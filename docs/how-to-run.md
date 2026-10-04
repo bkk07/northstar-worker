@@ -133,3 +133,16 @@ pip install pre-commit; pre-commit install
 
 `reset && seed` reproduces an identical world hash. Scenario catalogue:
 `eval/scenarios/catalog.yaml` (S1..S40; S901+ reserved for held-out).
+
+---
+
+# Phase 7: shop frontend (v1)
+
+```powershell
+cd frontend
+npm run generate:types  # regenerate DTOs from a running backend (:8000)
+npm run test:e2e         # Playwright: raise a ticket, confirm the DB row
+```
+
+Shop DTOs are generated (`src/shared/types/dto.ts`, committed) — feature
+code aliases them, never re-declares them.

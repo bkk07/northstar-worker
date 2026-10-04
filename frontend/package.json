@@ -1,7 +1,7 @@
 {
   "name": "northstar-worker-frontend",
   "private": true,
-  "version": "0.1.0-phase6",
+  "version": "0.1.0-phase7",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,19 +12,23 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write src",
-    "format:check": "prettier --check src"
+    "format:check": "prettier --check src",
+    "generate:types": "openapi-typescript http://127.0.0.1:8000/openapi.json -o src/shared/types/dto.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.45.0",
     "axios": "^1.7.0",
+    "clsx": "^2.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.23.0",
-    "@tanstack/react-query": "^5.45.0",
-    "clsx": "^2.1.0",
     "tailwind-merge": "^2.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.12.0",
+    "@playwright/test": "^1.63.0",
+    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^15.0.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
@@ -32,6 +36,7 @@
     "autoprefixer": "^10.4.19",
     "eslint": "^9.12.0",
     "jsdom": "^24.0.0",
+    "openapi-typescript": "^7.13.0",
     "postcss": "^8.4.38",
     "prettier": "^3.3.0",
     "tailwindcss": "^3.4.0",

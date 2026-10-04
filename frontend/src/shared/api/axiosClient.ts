@@ -1,8 +1,9 @@
 import axios from "axios";
 
 // Single configured client for the whole app (feature api/ modules import this).
-// Vite proxy forwards /api → backend in dev; VITE_API_URL overrides in prod.
-export const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
+// Same-origin relative URLs in dev (Vite proxies /api → backend, avoiding CORS);
+// VITE_API_URL overrides in prod.
+export const apiBaseUrl = import.meta.env.VITE_API_URL ?? "";
 
 export const axiosClient = axios.create({
   baseURL: apiBaseUrl,

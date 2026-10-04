@@ -26,15 +26,6 @@ export function RootLayout() {
   );
 }
 
-export function ShopLayout() {
-  return (
-    <Shell
-      title="Shop"
-      hint="Customer surface: orders, raise-ticket form, ticket status (Phase 7)."
-    />
-  );
-}
-
 export function OpsLayout() {
   return (
     <Shell title="Ops Console" hint="Support console the worker drives via Playwright (Phase 8)." />

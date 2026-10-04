@@ -1,7 +1,7 @@
 [project]
 name = "northstar-worker"
-version = "0.1.0-phase6"
-description = "Reliable Autonomous Operations Worker (Phase 6: commerce backend)"
+version = "0.1.0-phase7"
+description = "Reliable Autonomous Operations Worker (Phase 7: shop frontend)"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115",
