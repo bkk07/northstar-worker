@@ -19,6 +19,7 @@ def test_interpretation_round_trip():
             "goal": "customer has a working laptop",
             "requested_effects": ["replacement.create"],
             "mentioned_codes": ["ORD-1942", "TCK-101"],
+            "mentioned_names": [],
             "ambiguities": [],
             "unsupported": False,
         }

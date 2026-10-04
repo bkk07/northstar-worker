@@ -55,6 +55,7 @@ class WorkerState(TypedDict, total=False):
     task_id: str
     run_id: str
     task_text: str
+    interpretation: dict
     contract: dict
     contract_status: str
     plan: list

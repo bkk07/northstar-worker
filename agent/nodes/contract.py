@@ -1,10 +1,10 @@
-"""contract node (thin): task-contract compiler (Phase 13 wires the service)."""
+"""contract node (thin): compile and lock the task contract."""
 
 from agent.graph.state import WorkerState
+from agent.runtime import wiring
 
 
 def contract(state: WorkerState) -> dict:
-    """Stub: default to a plannable contract unless the test preset one."""
-    if "contract_status" in state:
-        return {}
-    return {"contract": {}, "contract_status": "ok"}
+    """Resolve entities, compile, persist; the edge reads the status."""
+    result = wiring.contract_service().build_contract(state["task_id"], state["task_text"])
+    return {"contract": result.model_dump(), "contract_status": result.status}

@@ -70,7 +70,7 @@ class TaskCheckpoint(UUIDPk, Base):
     state: Mapped[dict] = mapped_column(JSONB, nullable=False)
 
 
-class TaskContract(UUIDPk, Base):
+class TaskContract(UUIDPk, CreatedAt, Base):
     """Validated task contract with ambiguity flags."""
 
     __tablename__ = "task_contracts"

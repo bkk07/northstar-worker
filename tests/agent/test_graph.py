@@ -2,10 +2,62 @@
 
 Stub services drive every edge, so these tests run the real compiled
 graph end to end with canned states — the manual "print the path" check,
-as an assertion.
+as an assertion. `understand`/`contract` call services since Phase 13,
+so fakes pin their behavior from task-text markers.
 """
 
+import pytest
+
+from agent.contract.models import Contract
 from agent.graph.builder import NODE_NAMES, build_graph
+from agent.llm.schemas import Interpretation
+from agent.runtime import wiring
+
+
+class _FakeUnderstanding:
+    """Interpretation from task-text markers (no LLM)."""
+
+    def interpret(self, task_text):
+        """Marker-driven proposal: impossible/cancel steer the contract."""
+        text = task_text.lower()
+        return Interpretation(
+            summary=task_text[:80],
+            goal=task_text[:80],
+            requested_effects=[] if "impossible" in text else ["ticket.note"],
+            mentioned_codes=[],
+            mentioned_names=[],
+            ambiguities=[],
+            unsupported="impossible" in text,
+        )
+
+
+class _FakeContracts:
+    """Contracts from task-text markers (no gateway, no database)."""
+
+    def build_contract(self, task_id, task_text):
+        """Marker-driven lock: impossible/cancel steer the edge."""
+        text = task_text.lower()
+        if "impossible" in text:
+            status = "unsupported"
+        elif "cancel" in text:
+            status = "ambiguous"
+        else:
+            status = "ok"
+        return Contract(
+            task_id=task_id,
+            goal=task_text[:80],
+            effects=[],
+            capabilities=["read"],
+            ambiguity=[] if status == "ok" else [status],
+            status=status,
+        )
+
+
+@pytest.fixture(autouse=True)
+def _fake_wiring(monkeypatch):
+    """Pin Phase 13 services to marker-driven fakes for topology tests."""
+    monkeypatch.setattr(wiring, "understanding_service", lambda: _FakeUnderstanding())
+    monkeypatch.setattr(wiring, "contract_service", lambda: _FakeContracts())
 
 
 def _path(graph, state):
@@ -14,6 +66,10 @@ def _path(graph, state):
     for chunk in graph.stream(state, stream_mode="updates"):
         visited.extend(chunk.keys())
     return visited
+
+
+def _state(task_id, task_text, **overrides):
+    return {"task_id": task_id, "run_id": "r1", "task_text": task_text, **overrides}
 
 
 def test_all_fifteen_nodes_registered():
@@ -25,35 +81,15 @@ def test_all_fifteen_nodes_registered():
 def test_unsupported_contract_path():
     """understand → contract → finalize(INCONCLUSIVE)."""
     graph = build_graph()
-    final = graph.invoke(
-        {
-            "task_id": "t1",
-            "run_id": "r1",
-            "task_text": "do the impossible",
-            "contract_status": "unsupported",
-        }
-    )
-    assert _path(
-        graph,
-        {
-            "task_id": "t1",
-            "run_id": "r1",
-            "task_text": "do the impossible",
-            "contract_status": "unsupported",
-        },
-    ) == ["understand", "contract", "finalize"]
-    assert final["status"] == "inconclusive"
+    state = _state("t1", "do the impossible")
+    assert _path(graph, state) == ["understand", "contract", "finalize"]
+    assert graph.invoke(state)["status"] == "inconclusive"
 
 
 def test_happy_stub_path_to_verified():
     """Full spine: plan → act → observe(done) → verify → succeed."""
     graph = build_graph()
-    state = {
-        "task_id": "t2",
-        "run_id": "r2",
-        "task_text": "replace the damaged laptop",
-        "observation_status": "effects_done",
-    }
+    state = _state("t2", "replace the damaged laptop", observation_status="effects_done")
     assert _path(graph, state) == [
         "understand",
         "contract",
@@ -72,19 +108,12 @@ def test_happy_stub_path_to_verified():
 def test_blocked_policy_path():
     """BLOCK ends without touching execute or observe."""
     graph = build_graph()
-    visited = _path(
-        graph,
-        {
-            "task_id": "t3",
-            "run_id": "r3",
-            "task_text": "refund everything",
-            "policy_decision": {
-                "outcome": "block",
-                "rule_id": "P-REF-004",
-                "reason": "stub",
-            },
-        },
+    state = _state(
+        "t3",
+        "refund everything",
+        policy_decision={"outcome": "block", "rule_id": "P-REF-004", "reason": "stub"},
     )
+    visited = _path(graph, state)
     assert visited == [
         "understand",
         "contract",
@@ -100,21 +129,6 @@ def test_blocked_policy_path():
 def test_parked_clarification_ends_graph():
     """Ambiguous contracts park: the graph ends, the task does not."""
     graph = build_graph()
-    final = graph.invoke(
-        {
-            "task_id": "t4",
-            "run_id": "r4",
-            "task_text": "cancel it",
-            "contract_status": "ambiguous",
-        }
-    )
-    assert _path(
-        graph,
-        {
-            "task_id": "t4",
-            "run_id": "r4",
-            "task_text": "cancel it",
-            "contract_status": "ambiguous",
-        },
-    ) == ["understand", "contract", "clarification"]
-    assert final.get("status") != "succeeded"
+    state = _state("t4", "cancel it")
+    assert _path(graph, state) == ["understand", "contract", "clarification"]
+    assert graph.invoke(state).get("status") != "succeeded"

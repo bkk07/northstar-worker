@@ -21,6 +21,9 @@ class Interpretation(BaseModel):
     mentioned_codes: list[str] = Field(
         description="Human codes quoted in the text (C102, ORD-1942, TCK-101)"
     )
+    mentioned_names: list[str] = Field(
+        description="Person names quoted in the text (customer identity candidates)"
+    )
     ambiguities: list[str] = Field(description="Questions only the operator can settle")
     unsupported: bool = Field(description="True when no registry effect fits")
 
