@@ -1,5 +1,6 @@
 """Financial history read service."""
 
+import datetime
 import uuid
 
 from sqlalchemy.orm import Session
@@ -22,6 +23,19 @@ class FinancialService:
     def list_refunds_by_ticket(self, ticket_id: uuid.UUID) -> list[RefundRead]:
         """Refunds linked to one ticket."""
         return [to_refund_dto(r) for r in self._repos.list_refunds_by_ticket(ticket_id)]
+
+    def list_refunds_by_customer(
+        self, customer_id: uuid.UUID, window_days: int = 90
+    ) -> list[RefundRead]:
+        """Non-cancelled refunds of one customer inside the window."""
+        since = datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=window_days)
+        rows = self._repos.list_refunds_by_customer(customer_id, since)
+        return [to_refund_dto(r) for r in rows]
+
+    def list_active_refunds_by_order(self, order_id: uuid.UUID) -> list[RefundRead]:
+        """Non-cancelled refunds on one order (duplicate-trap facts)."""
+        rows = self._repos.list_active_refunds_by_order(order_id)
+        return [to_refund_dto(r) for r in rows]
 
 
 def to_replacement_dto(row: Replacement) -> ReplacementRead:

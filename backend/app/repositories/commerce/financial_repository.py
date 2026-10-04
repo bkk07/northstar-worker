@@ -1,5 +1,6 @@
 """Refund and replacement reads."""
 
+import datetime
 import uuid
 
 from app.repositories.base import BaseRepository
@@ -23,6 +24,33 @@ class FinancialRepository(BaseRepository[Refund | Replacement]):
         return (
             self._session.query(Refund)
             .filter(Refund.ticket_id == ticket_id)
+            .order_by(Refund.created_at.desc())
+            .all()
+        )
+
+    def list_refunds_by_customer(
+        self, customer_id: uuid.UUID, since: datetime.datetime
+    ) -> list[Refund]:
+        """Non-cancelled refunds of one customer since a timestamp."""
+        return (
+            self._session.query(Refund)
+            .filter(
+                Refund.customer_id == customer_id,
+                Refund.status != "cancelled",
+                Refund.created_at >= since,
+            )
+            .order_by(Refund.created_at.desc())
+            .all()
+        )
+
+    def list_active_refunds_by_order(self, order_id: uuid.UUID) -> list[Refund]:
+        """Non-cancelled refunds on one order (same-amount duplicate trap)."""
+        return (
+            self._session.query(Refund)
+            .filter(
+                Refund.order_id == order_id,
+                Refund.status != "cancelled",
+            )
             .order_by(Refund.created_at.desc())
             .all()
         )

@@ -83,6 +83,29 @@ class _FakeValidation:
         }
 
 
+class _FakePolicy:
+    """Marker-driven verdicts (topology only, no facts, no database)."""
+
+    def check_and_persist(self, task_id, run_id, action, contract, facts):
+        """'refund everything' blocks; everything else allows."""
+        _ = (task_id, run_id, action, facts)
+        if "refund everything" in contract.goal:
+            return _PolicyResult("block", "P-REF-004", "stub")
+        return _PolicyResult()
+
+
+class _PolicyResult:
+    def __init__(self, outcome="allow", rule_id="P-NOTE-001", reason="stub", token=""):
+        self.outcome = outcome
+        self.rule_id = rule_id
+        self.reason = reason
+        self.token = token
+
+
+class _EmptyFacts:
+    """No facts needed: the fake policy ignores them."""
+
+
 @pytest.fixture(autouse=True)
 def _fake_wiring(monkeypatch):
     """Pin Phase 13/14 services to marker-driven fakes for topology tests."""
@@ -91,6 +114,8 @@ def _fake_wiring(monkeypatch):
     monkeypatch.setattr(wiring, "planning_service", lambda: _FakePlanning())
     monkeypatch.setattr(wiring, "decision_service", lambda: _FakeDecision())
     monkeypatch.setattr(wiring, "validation_service", lambda: _FakeValidation())
+    monkeypatch.setattr(wiring, "policy_service", lambda: _FakePolicy())
+    monkeypatch.setattr("agent.nodes.policy_check.gather_facts", lambda *args: _EmptyFacts())
 
 
 def _path(graph, state):

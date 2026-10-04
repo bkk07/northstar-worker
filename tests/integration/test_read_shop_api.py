@@ -60,6 +60,35 @@ def test_read_api_rejects_post(client):
     assert response.status_code == 405
 
 
+def test_refunds_by_customer_window(client):
+    """Repeat-refunder facts: C107's four settled refunds come back."""
+    customers = client.get("/api/read/customers", params={"q": "C107"}).json()
+    customer_id = next(c["id"] for c in customers if c["code"] == "C107")
+    body = client.get(
+        "/api/read/refunds", params={"customer_id": customer_id, "window_days": 90}
+    ).json()
+    assert len(body) == 4
+    assert {r["amount_paise"] for r in body} == {50000, 75000, 60000, 90000}
+
+
+def test_refunds_by_order_for_duplicate_trap(client):
+    """Order-wide active refunds expose same-amount double refunds."""
+    order_id = client.get("/api/shop/orders/ORD-1973").json()["id"]
+    body = client.get("/api/read/refunds", params={"order_id": order_id}).json()
+    assert len(body) == 1
+    assert body[0]["amount_paise"] == 90000
+
+
+def test_refunds_require_exactly_one_scope(client):
+    """Zero or two scopes are 422 (fail closed on ambiguous reads)."""
+    assert client.get("/api/read/refunds").status_code == 422
+    response = client.get(
+        "/api/read/refunds",
+        params={"ticket_id": str(uuid.uuid4()), "customer_id": str(uuid.uuid4())},
+    )
+    assert response.status_code == 422
+
+
 def test_read_unknown_ids_404(client):
     """Unknown entities map to 404 with the NOT_FOUND code."""
     missing = str(uuid.uuid4())

@@ -2,9 +2,10 @@
 
 import time
 from datetime import UTC, datetime
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 
+@runtime_checkable
 class ClockPort(Protocol):
     """Wall-clock and monotonic time behind one interface."""
 

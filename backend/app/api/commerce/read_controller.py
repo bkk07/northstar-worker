@@ -2,7 +2,7 @@
 
 import uuid
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
@@ -61,9 +61,27 @@ def list_replacements(
 
 
 @router.get("/api/read/refunds", response_model=list[RefundRead])
-def list_refunds(ticket_id: uuid.UUID, session: Session = Depends(get_db)) -> list[RefundRead]:
-    """Refunds linked to one ticket."""
-    return FinancialService(session).list_refunds_by_ticket(ticket_id)
+def list_refunds(
+    ticket_id: uuid.UUID | None = None,
+    customer_id: uuid.UUID | None = None,
+    order_id: uuid.UUID | None = None,
+    window_days: int = 90,
+    session: Session = Depends(get_db),
+) -> list[RefundRead]:
+    """Refunds by ticket, customer window, or order (duplicate-trap facts)."""
+    service = FinancialService(session)
+    given = [v is not None for v in (ticket_id, customer_id, order_id)]
+    if sum(given) != 1:
+        raise HTTPException(
+            status_code=422,
+            detail="exactly one of ticket_id, customer_id, or order_id is required",
+        )
+    if ticket_id is not None:
+        return service.list_refunds_by_ticket(ticket_id)
+    if customer_id is not None:
+        return service.list_refunds_by_customer(customer_id, window_days)
+    assert order_id is not None
+    return service.list_active_refunds_by_order(order_id)
 
 
 @router.get("/api/read/policies", response_model=list[PolicyRead])
