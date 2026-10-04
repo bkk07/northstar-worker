@@ -1,0 +1,43 @@
+# Secrets — never commit real env
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.uv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/coverage/
+*.local
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Postgres / local data
+*.sqlite
+*.db
+data/
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+frontend/test-results/
+
+# Local planning docs (not part of the deliverable)
+NORTHSTAR_WORKER_FINAL_PLAN.md
