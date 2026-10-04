@@ -19,7 +19,7 @@ class Interpretation(BaseModel):
     goal: str = Field(min_length=1, description="Desired end state in own words")
     requested_effects: list[str] = Field(description="Effect-type guesses from the closed registry")
     mentioned_codes: list[str] = Field(
-        description="Human codes quoted in the text (C102, ORD-1942, TCK-101)"
+        description="Human codes quoted in the text (customer, order, ticket codes)"
     )
     mentioned_names: list[str] = Field(
         description="Person names quoted in the text (customer identity candidates)"

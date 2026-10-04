@@ -1,7 +1,7 @@
 """Contract service: interpretation + DB facts to a locked contract.
 
 Resolution binds every human code in the operator text through read
-tools: `C102` via customer search, `ORD-1942` / `TCK-101` via the shop
+tools: customer codes via customer search, order/ticket codes via the shop
 reads (code-addressable), names via search with multi-match flagged.
 Ownership is cross-checked from DB facts — conflicts park for the
 operator instead of binding a mixed triple.

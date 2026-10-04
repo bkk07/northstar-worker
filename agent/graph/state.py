@@ -68,6 +68,7 @@ class WorkerState(TypedDict, total=False):
     recovery: RecoveryInfo
     validation_status: str
     validation_error: str
+    validation_failures: int
     policy_decision: PolicyDecisionInfo
     approval_ref: dict
     approval_status: str

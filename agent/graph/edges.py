@@ -12,6 +12,9 @@ from agent.graph.state import WorkerState
 
 Route = str
 
+# Hard ceiling on correction rounds (decide's own fallback fires first).
+MAX_VALIDATION_FAILURES = 5
+
 
 def route_contract(state: WorkerState) -> Route:
     """Compiler outcome: plan it, clarify it, or end inconclusive."""
@@ -26,7 +29,14 @@ def route_contract(state: WorkerState) -> Route:
 
 
 def route_validate(state: WorkerState) -> Route:
-    """Invalid actions loop back with the error; anything else disposes."""
+    """Invalid actions loop back with the error; anything else disposes.
+
+    The correction loop is bounded twice: `decide` falls back to a safe
+    observe after its rounds run out, and this backstop ends runs whose
+    failures somehow keep climbing.
+    """
+    if state.get("validation_failures", 0) > MAX_VALIDATION_FAILURES:
+        return "finalize"
     status = state.get("validation_status", "ok")
     if status == "invalid":
         return "decide"

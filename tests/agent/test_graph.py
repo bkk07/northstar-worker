@@ -10,7 +10,7 @@ import pytest
 
 from agent.contract.models import Contract
 from agent.graph.builder import NODE_NAMES, build_graph
-from agent.llm.schemas import Interpretation
+from agent.llm.schemas import Interpretation, NextAction
 from agent.runtime import wiring
 
 
@@ -35,7 +35,6 @@ class _FakeContracts:
     """Contracts from task-text markers (no gateway, no database)."""
 
     def build_contract(self, task_id, task_text):
-        """Marker-driven lock: impossible/cancel steer the edge."""
         text = task_text.lower()
         if "impossible" in text:
             status = "unsupported"
@@ -53,11 +52,45 @@ class _FakeContracts:
         )
 
 
+class _FakePlanning:
+    """One canned observe step (topology only, no LLM)."""
+
+    def create_plan(self, contract):
+        """A fixed step over a read tool."""
+        _ = contract
+        return [{"step": "look", "tool": "browser_observe", "purpose": "stub"}]
+
+
+class _FakeDecision:
+    """Always propose a harmless observe (topology only, no LLM)."""
+
+    def next_action(self, *args, **kwargs):
+        """Ignore context; the canned action always validates."""
+        _ = (args, kwargs)
+        return NextAction(tool="browser_observe", params={}, rationale="stub")
+
+
+class _FakeValidation:
+    """Accept everything, reserve nothing (topology only, no database)."""
+
+    def check_and_reserve(self, run_id, action, contract, validation_failures=0):
+        """Mirror the service shape without side effects."""
+        _ = (run_id, action, contract, validation_failures)
+        return {
+            "validation_status": "ok",
+            "validation_error": "",
+            "validation_failures": 0,
+        }
+
+
 @pytest.fixture(autouse=True)
 def _fake_wiring(monkeypatch):
-    """Pin Phase 13 services to marker-driven fakes for topology tests."""
+    """Pin Phase 13/14 services to marker-driven fakes for topology tests."""
     monkeypatch.setattr(wiring, "understanding_service", lambda: _FakeUnderstanding())
     monkeypatch.setattr(wiring, "contract_service", lambda: _FakeContracts())
+    monkeypatch.setattr(wiring, "planning_service", lambda: _FakePlanning())
+    monkeypatch.setattr(wiring, "decision_service", lambda: _FakeDecision())
+    monkeypatch.setattr(wiring, "validation_service", lambda: _FakeValidation())
 
 
 def _path(graph, state):

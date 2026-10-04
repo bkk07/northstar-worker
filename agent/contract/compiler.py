@@ -37,7 +37,7 @@ from agent.llm.schemas import Interpretation
 # not an unsupported ask: the operator must say what "cancel" covers.
 CANCELLATION_HINTS = ("cancel", "cancellation", "void")
 
-# "mark TCK-104 resolved/closed/reopened..." — status words bind the target.
+# "mark the ticket resolved/closed/reopened..." — status words bind the target.
 STATUS_WORDS = {
     "open": "open",
     "reopen": "open",
