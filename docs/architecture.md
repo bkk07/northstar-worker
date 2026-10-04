@@ -110,3 +110,38 @@ verification_results, evidence, allowed_transitions.
 passwords are dev parity only; per-role engines in `database/session.py`
 (`DATABASE_URL` / `NS_*_DATABASE_URL`). Host port is **5433**: a native
 Windows PostgreSQL often occupies 5432.
+
+## Agent graph (Phase 12)
+
+Typed `WorkerState` (`agent/graph/state.py`) flows through 15 thin nodes
+(`agent/nodes/`); pure functions in `agent/graph/edges.py` route every
+conditional edge and fail closed on unknown values. `builder.py`
+compiles this topology (stub bodies; services attach in Phases 13-24):
+
+```
+understand -> contract -> {plan | clarification(park) | finalize}
+plan -> decide -> validate -> {decide(retry) | policy_check | finalize}
+policy_check -> {execute | human_approval(park) | finalize}
+execute -> observe -> {decide | verify | classify}
+classify -> recover -> {observe | execute | probe_reconcile | plan |
+                        human_approval | clarification | finalize}
+probe_reconcile -> {observe | execute | finalize}
+verify -> {finalize | recover}
+clarification(answered) -> contract
+finalize -> END
+```
+
+Checkpoints (`agent/repositories/checkpoint_repository.py`,
+`agent/graph/checkpointer.py`) persist one row per node transition
+(`worker.task_checkpoints`); the journal stays authoritative and the
+LangGraph state is a cache. Nodes import services only — never
+repositories, adapters, or LLM clients (gated).
+
+## Mercury client (Phase 12)
+
+`agent/llm/client.py` proposes typed objects (`schemas.py`:
+`Interpretation`, `PlanProposal`, `NextAction`, `SummaryDraft`) over the
+OpenAI-compatible Inception endpoint at temperature 0 with a strict
+JSON-schema response format, bounded malformed-JSON retries, then raises.
+Prompts live in `agent/llm/prompts/`; ports in `agent/ports/`
+(`ToolGateway`, `VerifierPort`, `ClockPort`).

@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     operator_token: str = "local-operator-token"
     inception_api_key: str = ""
     inception_model: str = ""
+    inception_base_url: str = "https://api.inceptionlabs.ai/v1"
+    llm_timeout_s: float = 30.0
+    llm_max_retries: int = 2
 
 
 @lru_cache

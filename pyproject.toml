@@ -1,7 +1,7 @@
 [project]
 name = "northstar-worker"
-version = "0.1.0-phase11"
-description = "Reliable Autonomous Operations Worker (Phase 11: MCP tool boundary)"
+version = "0.1.0-phase12"
+description = "Reliable Autonomous Operations Worker (Phase 12: graph skeleton and LLM client)"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.120",
@@ -9,6 +9,7 @@ dependencies = [
   "pydantic>=2.0",
   "pydantic-settings>=2.0",
   "httpx>=0.27",
+  "langgraph>=1.0",
   "mcp>=1.0",
   "sqlalchemy>=2.0",
   "psycopg[binary]>=3.0",
@@ -33,6 +34,8 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+# `llm`: live Mercury 2.5 calls (needs INCEPTION_API_KEY, opt-in RUN_LLM_TESTS=1).
+markers = ["llm: live LLM smoke tests (not run by default)"]
 # Lets `import northstar_common...` (PYTHONPATH=common) and `import app...`
 # (PYTHONPATH=backend) work both locally and in CI without install.
 pythonpath = [".", "common", "backend", "agent", "verifier", "mcp_server", "browser", "database", "eval"]
