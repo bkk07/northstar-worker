@@ -1,7 +1,7 @@
 [project]
 name = "northstar-worker"
-version = "0.1.0-phase1"
-description = "Reliable Autonomous Operations Worker (Phase 1 skeleton)"
+version = "0.1.0-phase2"
+description = "Reliable Autonomous Operations Worker (Phase 2: quality-gated repo)"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115",
@@ -11,6 +11,8 @@ dependencies = [
   "httpx>=0.27",
 ]
 
+# uv-native dev group (`uv sync --group dev`). Single-package project for now;
+# per-service packages arrive with their feature phases.
 [dependency-groups]
 dev = [
   "pytest>=8.0",
@@ -18,6 +20,8 @@ dev = [
   "httpx>=0.27",
   "ruff>=0.6",
   "mypy>=1.10",
+  "import-linter>=1.13",
+  "pre-commit>=3.0",
 ]
 
 [tool.pytest.ini_options]
@@ -31,9 +35,25 @@ pythonpath = [".", "common", "backend", "agent", "verifier", "mcp_server", "brow
 target-version = "py311"
 line-length = 100
 
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = []
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "agent", "verifier", "mcp_server", "browser", "eval", "database", "northstar_common"]
+
 [tool.mypy]
 python_version = "3.11"
 strict = false
+# Multi-root layout (repo root + common/ + backend/): resolve
+# `northstar_common.*` and `app.*` to their real module names.
+explicit_package_bases = true
+mypy_path = "common,backend"
+
+# Safety-critical packages are strict from the start.
+[[tool.mypy.overrides]]
+module = ["northstar_common.*", "verifier.*"]
+strict = true
 
 [build-system]
 requires = ["hatchling"]

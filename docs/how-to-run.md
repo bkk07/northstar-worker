@@ -80,3 +80,43 @@ the four shells.
 
 Phase 2 adds Docker Postgres, ruff/mypy/import-linter gates, and
 `make verify`. See `NORTHSTAR_WORKER_FINAL_PLAN.md` §29.
+
+---
+
+# Phase 2: quality gates and local infrastructure (v1)
+
+## 1. Infrastructure
+
+```powershell
+# starts Postgres 16 (empty `northstar` DB; schemas arrive in Phase 4)
+docker compose up -d
+docker exec northstar-postgres pg_isready -U postgres -d northstar
+```
+
+Or via make (Unix): `make up`. Scripts: `scripts/dev_up.sh`,
+`scripts/install_browsers.sh` (Chromium for the Phase 10 browser layer).
+
+> `.env` must be canonical `KEY=value` lines (no quotes/semicolons) —
+> docker compose parses it strictly, unlike most app loaders.
+
+## 2. Gates (`make verify` = `make lint` + `make test`)
+
+| Gate | Command (Windows / no `make`) |
+|---|---|
+| ruff lint + format | `ruff check .`, `ruff format --check .` |
+| mypy (strict on `common`, `verifier`) | `python -m mypy common/northstar_common verifier` |
+| import contracts (§8) | `$env:PYTHONPATH='.;backend;common'; lint-imports --config importlinter.ini` |
+| architecture tests | `python -m pytest tests/architecture -q` |
+| backend tests | `python -m pytest -q` |
+| frontend lint/type/test | `npm run lint`, `npm run typecheck`, `npm run test` (from `frontend/`) |
+
+Layer rules live in `importlinter.ini` and are enforced identically by
+`tests/architecture/test_import_contracts.py`. Adding a forbidden import
+(e.g. `agent` inside `verifier/`) fails both. The `eval.oracle_rules`
+contract enables in Phase 5 when that file is created.
+
+## 3. Pre-commit (optional)
+
+```powershell
+pip install pre-commit; pre-commit install
+```

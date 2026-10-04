@@ -37,10 +37,7 @@ export function ShopLayout() {
 
 export function OpsLayout() {
   return (
-    <Shell
-      title="Ops Console"
-      hint="Support console the worker drives via Playwright (Phase 8)."
-    />
+    <Shell title="Ops Console" hint="Support console the worker drives via Playwright (Phase 8)." />
   );
 }
 
@@ -54,10 +51,5 @@ export function WorkerLayout() {
 }
 
 export function EvaluationLayout() {
-  return (
-    <Shell
-      title="Evaluation"
-      hint="Seeded vs held-out metrics and drilldowns (Phase 27)."
-    />
-  );
+  return <Shell title="Evaluation" hint="Seeded vs held-out metrics and drilldowns (Phase 27)." />;
 }

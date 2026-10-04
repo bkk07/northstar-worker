@@ -2,10 +2,7 @@ import type { ButtonHTMLAttributes } from "react";
 import { cn } from "@/shared/lib/utils";
 
 // Minimal shadcn-style Button placeholder (full design system in later phases).
-export function Button({
-  className,
-  ...props
-}: ButtonHTMLAttributes<HTMLButtonElement>) {
+export function Button({ className, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       className={cn(

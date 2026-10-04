@@ -1,0 +1,24 @@
+# Phase 2: local infrastructure. Single Postgres 16 container; no Kafka,
+# Redis, or other services per plan non-goals (NORTHSTAR_WORKER_FINAL_PLAN §4).
+# Roles, schemas, and migrations arrive in Phase 4.
+services:
+  postgres:
+    image: postgres:16
+    container_name: northstar-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: northstar
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d northstar"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

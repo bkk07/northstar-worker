@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import logging
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 _SECRET_KEY_PARTS = (
@@ -53,15 +53,13 @@ class JsonFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         payload: dict[str, Any] = {
-            "ts": datetime.now(timezone.utc).isoformat(),
+            "ts": datetime.now(UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "msg": scrub_secrets(record.getMessage()),
         }
         # Attach structured extras without reserved LogRecord attrs.
-        reserved = set(
-            logging.makeLogRecord({}).__dict__.keys()
-        ) | {"message", "msg", "args"}
+        reserved = set(logging.makeLogRecord({}).__dict__.keys()) | {"message", "msg", "args"}
         for key, value in record.__dict__.items():
             if key not in reserved:
                 try:
@@ -77,7 +75,11 @@ class JsonFormatter(logging.Formatter):
 def configure_logging(level: str = "INFO") -> None:
     """Configure root logger once with the JSON handler (idempotent)."""
     root = logging.getLogger()
-    if any(isinstance(h, logging.StreamHandler) and isinstance(h.formatter, JsonFormatter) for h in root.handlers):
+    already_configured = any(
+        isinstance(h, logging.StreamHandler) and isinstance(h.formatter, JsonFormatter)
+        for h in root.handlers
+    )
+    if already_configured:
         root.setLevel(level.upper())
         return
     handler = logging.StreamHandler()

@@ -1,4 +1,1 @@
-# agent
-
-Phase 1 skeleton � see NORTHSTAR_WORKER_FINAL_PLAN.md section 8 for responsibility. Full docs arrive with its feature phase.
-
+‣条湥ੴ倊慨敳ㄠ猠敫敬潴⁮ₗ敳⁥低呒午䅔归佗䭒剅䙟义䱁偟䅌⹎摭猠捥楴湯㠠映牯爠獥潰獮扩汩瑩⹹䘠汵⁬潤獣愠牲癩⁥楷桴椠獴映慥畴敲瀠慨敳ਮ਍
