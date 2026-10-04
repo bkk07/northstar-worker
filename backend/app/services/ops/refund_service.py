@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import ConflictError, NotFoundError, UnprocessableError
+from app.faults import hooks as faults
 from app.repositories.commerce.order_repository import OrderRepository
 from app.repositories.ops.mutation_repository import MutationRepository
 from app.repositories.ops.refund_repository import RefundRepository
@@ -33,7 +34,8 @@ class RefundService:
         worker authorization lives in the agent (Phase 15).
         """
         prior = self._mutations.find_by_key(idempotency_key)
-        if prior is not None:
+        skip_replay = faults.before_mutation("ops.refunds")
+        if prior is not None and not skip_replay:
             if prior.kind != KIND:
                 raise ConflictError(f"idempotency key already used for {prior.kind}")
             row = self._refunds.get_by_id(Refund, prior.entity_id)
@@ -67,4 +69,5 @@ class RefundService:
         except IntegrityError as exc:
             self._session.rollback()
             raise ConflictError("duplicate refund") from exc
+        faults.after_mutation("ops.refunds")
         return to_refund_dto(row), True

@@ -107,7 +107,7 @@
   expected_outcome: FAIL_AND_RECOVER
   expected_effects:
     - {effect: replacement.create, order_code: ORD-1948, ticket_code: TCK-109}
-  fault_plan: {type: SESSION_EXPIRY, target: ops.session, trigger: {nth_call: 1}}
+  fault_plan: {type: SESSION_EXPIRY, target: ops.replacements, trigger: {nth_call: 1}}
 - id: S10
   category: replacement
   mode: explicit

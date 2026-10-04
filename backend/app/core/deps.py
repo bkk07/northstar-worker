@@ -2,9 +2,10 @@
 
 from collections.abc import Iterator
 
-from fastapi import Cookie, Depends
+from fastapi import Cookie, Depends, Header
 from sqlalchemy.orm import Session
 
+from app.core import security
 from app.core.security import COOKIE_NAME, validate_session_token
 from database.session import app_engine
 
@@ -34,3 +35,8 @@ def require_ops_session(
 ) -> str:
     """401 unless a live ops session cookie is present; returns agent name."""
     return validate_session_token(session, token)
+
+
+def require_operator(authorization: str | None = Header(default=None)) -> None:
+    """Control-plane guard: `Authorization: Bearer <OPERATOR_TOKEN>`."""
+    security.require_operator(authorization)

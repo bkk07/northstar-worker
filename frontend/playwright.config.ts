@@ -5,6 +5,9 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e",
   globalSetup: "./global-setup.ts",
+  // Serial execution: every spec shares one mutable database, and the
+  // fault specs reset+reseed around themselves.
+  workers: 1,
   fullyParallel: false,
   reporter: "list",
   use: { baseURL: "http://localhost:5173" },

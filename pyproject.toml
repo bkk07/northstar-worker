@@ -1,7 +1,7 @@
 [project]
 name = "northstar-worker"
-version = "0.1.0-phase8"
-description = "Reliable Autonomous Operations Worker (Phase 8: ops console)"
+version = "0.1.0-phase9"
+description = "Reliable Autonomous Operations Worker (Phase 9: control plane)"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115",

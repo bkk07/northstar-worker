@@ -40,6 +40,13 @@ class UnauthorizedError(AppError):
     code = "UNAUTHORIZED"
 
 
+class ForbiddenError(AppError):
+    """Valid identity, insufficient authority (control plane token)."""
+
+    status_code = 403
+    code = "FORBIDDEN"
+
+
 class UnprocessableError(AppError):
     """Business-rule violation (ownership, amounts, bad status)."""
 

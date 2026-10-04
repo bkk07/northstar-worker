@@ -3,7 +3,7 @@
 import datetime
 import uuid
 
-from sqlalchemy import DateTime, String
+from sqlalchemy import DateTime, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -47,3 +47,4 @@ class FaultPlan(UUIDPk, Base):
     consumed_at: Mapped[datetime.datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    calls: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

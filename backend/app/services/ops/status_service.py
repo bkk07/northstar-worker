@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import ConflictError, NotFoundError
+from app.faults import hooks as faults
 from app.repositories.ops.mutation_repository import MutationRepository
 from app.repositories.ops.ticket_repository import TicketRepository
 from app.schemas.commerce.ticket import TicketRead
@@ -26,10 +27,11 @@ class StatusService:
     ) -> tuple[TicketRead, bool]:
         """Set ticket status, or replay the prior change."""
         prior = self._mutations.find_by_key(idempotency_key)
+        skip_replay = faults.before_mutation("ops.status")
         ticket = self._tickets.get_by_code(ticket_code)
         if ticket is None:
             raise NotFoundError(f"ticket {ticket_code} not found")
-        if prior is not None:
+        if prior is not None and not skip_replay:
             if prior.kind != KIND:
                 raise ConflictError(f"idempotency key already used for {prior.kind}")
             return to_ticket_dto(ticket), False
@@ -40,4 +42,5 @@ class StatusService:
         except IntegrityError as exc:
             self._session.rollback()
             raise ConflictError("duplicate status change") from exc
+        faults.after_mutation("ops.status")
         return to_ticket_dto(ticket), True

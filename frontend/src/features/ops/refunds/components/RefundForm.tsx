@@ -4,6 +4,7 @@ import { ErrorState } from "@/shared/ui/feedback";
 import { useToast } from "@/shared/ui/toast";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useCreateRefund } from "../hooks/useRefunds";
+import { useUiFlags } from "../../tickets/hooks/useTickets";
 import type { RefundRead } from "../../types";
 
 function rupeesToPaise(value: string): number | null {
@@ -25,6 +26,41 @@ export function RefundForm({
   const create = useCreateRefund();
   const toast = useToast();
   const paise = rupeesToPaise(amount);
+  // DOM_DRIFT fault: labels renamed, amount field moves first.
+  const drift = useUiFlags().data?.dom_drift === true;
+  const orderLabel = drift ? "Order reference" : "Order code";
+  const amountLabel = drift ? "Refund total (Rs.)" : "Amount (Rs.)";
+
+  const orderField = (
+    <div>
+      <label htmlFor="refund-order" className="block text-sm">
+        {orderLabel}
+      </label>
+      <input
+        id="refund-order"
+        value={orderCode}
+        onChange={(e) => setOrderCode(e.target.value)}
+        required
+        className="w-full rounded border px-2 py-1"
+      />
+    </div>
+  );
+  const amountField = (
+    <div>
+      <label htmlFor="refund-amount" className="block text-sm">
+        {amountLabel}
+      </label>
+      <input
+        id="refund-amount"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        required
+        inputMode="decimal"
+        placeholder="2500.00"
+        className="w-full rounded border px-2 py-1"
+      />
+    </div>
+  );
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -51,32 +87,17 @@ export function RefundForm({
     <div>
       <form aria-label="Create refund" onSubmit={handleSubmit} className="space-y-2">
         <h3 className="font-semibold">New refund</h3>
-        <div>
-          <label htmlFor="refund-order" className="block text-sm">
-            Order code
-          </label>
-          <input
-            id="refund-order"
-            value={orderCode}
-            onChange={(e) => setOrderCode(e.target.value)}
-            required
-            className="w-full rounded border px-2 py-1"
-          />
-        </div>
-        <div>
-          <label htmlFor="refund-amount" className="block text-sm">
-            Amount (Rs.)
-          </label>
-          <input
-            id="refund-amount"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            required
-            inputMode="decimal"
-            placeholder="2500.00"
-            className="w-full rounded border px-2 py-1"
-          />
-        </div>
+        {drift ? (
+          <>
+            {amountField}
+            {orderField}
+          </>
+        ) : (
+          <>
+            {orderField}
+            {amountField}
+          </>
+        )}
         <button
           type="submit"
           disabled={create.isPending || paise === null}

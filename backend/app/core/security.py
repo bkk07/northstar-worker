@@ -11,8 +11,9 @@ from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import UnauthorizedError
+from app.core.exceptions import ForbiddenError, UnauthorizedError
 from app.repositories.ops.session_repository import SessionRepository
+from northstar_common.config import get_settings
 
 COOKIE_NAME = "ops_session"
 SESSION_TTL = timedelta(hours=24)
@@ -50,3 +51,17 @@ def revoke_session(session: Session, token: str | None) -> None:
         return
     SessionRepository(session).revoke(session_id)
     session.commit()
+
+
+def require_operator(authorization: str | None) -> None:
+    """Control-plane guard: `Authorization: Bearer <OPERATOR_TOKEN>`.
+
+    Missing credentials are 401; a wrong token is 403. The control plane
+    is never an MCP tool and never on the browser allowlist (plan §5).
+    """
+    expected = get_settings().operator_token
+    if not authorization:
+        raise UnauthorizedError("operator token required")
+    scheme, _, presented = authorization.partition(" ")
+    if scheme.lower() != "bearer" or not presented or presented != expected:
+        raise ForbiddenError("invalid operator token")

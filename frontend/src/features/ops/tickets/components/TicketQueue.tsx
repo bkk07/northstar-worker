@@ -1,14 +1,33 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ErrorState, LoadingState } from "@/shared/ui/feedback";
 import { getErrorMessage } from "@/shared/lib/errors";
-import { useTicketQueue } from "../hooks/useTickets";
+import { useTicketQueue, useUiFlags } from "../hooks/useTickets";
 import type { TicketListResponse } from "../../types";
 
 export function TicketQueue({ initialPage = 1 }: { initialPage?: number }) {
   const [page, setPage] = useState(initialPage);
   const queue = useTicketQueue(page);
-  return <TicketQueueView page={page} setPage={setPage} queue={queue} />;
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+  const stale = useUiFlags().data?.stale_rerender === true;
+
+  // STALE_ELEMENT fault surface: the queue subtree remounts every few
+  // seconds (fresh DOM nodes, new timestamps), invalidating element refs.
+  // The worker must re-observe instead of replaying stale handles.
+  useEffect(() => {
+    if (!stale) return;
+    const timer = window.setInterval(() => {
+      setUpdatedAt(new Date().toLocaleTimeString());
+    }, 3000);
+    return () => window.clearInterval(timer);
+  }, [stale]);
+
+  return (
+    <>
+      {stale && updatedAt && <p className="text-xs text-slate-500">Updated at {updatedAt}</p>}
+      <TicketQueueView key={updatedAt ?? "steady"} page={page} setPage={setPage} queue={queue} />
+    </>
+  );
 }
 
 // Split for testability: pure view over a queue result.

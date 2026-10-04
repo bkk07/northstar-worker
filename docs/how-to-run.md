@@ -159,3 +159,21 @@ npm run test:e2e -- e2e/ops.spec.ts  # login, queue, forms, idempotency, 401
 `/ops` consumes the session-cookie API with per-form idempotency keys;
 a 401 anywhere returns to `/ops/login`. UI flags come from
 `GET /api/ops/ui-flags` (armed fault plans, Phase 9).
+
+---
+
+# Phase 9: control plane (v1)
+
+```powershell
+$op = @{ Authorization = "Bearer local-operator-token" }
+# arm a fault, then clear it
+Invoke-WebRequest -Uri http://127.0.0.1:8000/api/control/chaos -Method POST `
+  -Headers $op -ContentType "application/json" `
+  -Body '{"fault_type":"TIMEOUT","target":"ops.notes",
+    "trigger":{"nth_call":1},"params":{"delay_seconds":2}}'
+Invoke-WebRequest -Uri http://127.0.0.1:8000/api/control/reset -Method POST -Headers $op
+Invoke-WebRequest -Uri http://127.0.0.1:8000/api/control/seed -Method POST -Headers $op
+```
+
+Fault catalogue: `docs/evaluation.md` (draft). Never expose the operator
+token to the browser bundle or the worker.

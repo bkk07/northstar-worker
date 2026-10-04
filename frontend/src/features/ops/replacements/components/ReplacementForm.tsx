@@ -4,6 +4,7 @@ import { ErrorState } from "@/shared/ui/feedback";
 import { useToast } from "@/shared/ui/toast";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useCreateReplacement } from "../hooks/useReplacements";
+import { useUiFlags } from "../../tickets/hooks/useTickets";
 import type { ReplacementRead } from "../../types";
 
 export function ReplacementForm({
@@ -18,6 +19,41 @@ export function ReplacementForm({
   const [confirming, setConfirming] = useState(false);
   const create = useCreateReplacement();
   const toast = useToast();
+  // DOM_DRIFT fault (S25): labels renamed and fields reordered. Accessible
+  // names still exist (a11y holds); only the text/position changes, which is
+  // what forces the worker to re-discover instead of replaying stale refs.
+  const drift = useUiFlags().data?.dom_drift === true;
+  const orderLabel = drift ? "Order reference" : "Order code";
+  const skuLabel = drift ? "Stock-keeping code" : "Item SKU";
+
+  const orderField = (
+    <div>
+      <label htmlFor="repl-order" className="block text-sm">
+        {orderLabel}
+      </label>
+      <input
+        id="repl-order"
+        value={orderCode}
+        onChange={(e) => setOrderCode(e.target.value)}
+        required
+        className="w-full rounded border px-2 py-1"
+      />
+    </div>
+  );
+  const skuField = (
+    <div>
+      <label htmlFor="repl-sku" className="block text-sm">
+        {skuLabel}
+      </label>
+      <input
+        id="repl-sku"
+        value={itemSku}
+        onChange={(e) => setItemSku(e.target.value)}
+        required
+        className="w-full rounded border px-2 py-1"
+      />
+    </div>
+  );
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -43,30 +79,17 @@ export function ReplacementForm({
     <div>
       <form aria-label="Create replacement" onSubmit={handleSubmit} className="space-y-2">
         <h3 className="font-semibold">New replacement</h3>
-        <div>
-          <label htmlFor="repl-order" className="block text-sm">
-            Order code
-          </label>
-          <input
-            id="repl-order"
-            value={orderCode}
-            onChange={(e) => setOrderCode(e.target.value)}
-            required
-            className="w-full rounded border px-2 py-1"
-          />
-        </div>
-        <div>
-          <label htmlFor="repl-sku" className="block text-sm">
-            Item SKU
-          </label>
-          <input
-            id="repl-sku"
-            value={itemSku}
-            onChange={(e) => setItemSku(e.target.value)}
-            required
-            className="w-full rounded border px-2 py-1"
-          />
-        </div>
+        {drift ? (
+          <>
+            {skuField}
+            {orderField}
+          </>
+        ) : (
+          <>
+            {orderField}
+            {skuField}
+          </>
+        )}
         <button
           type="submit"
           disabled={create.isPending}

@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import ConflictError, NotFoundError
+from app.faults import hooks as faults
 from app.repositories.ops.mutation_repository import MutationRepository
 from app.repositories.ops.note_repository import NoteRepository
 from app.repositories.ops.ticket_repository import TicketRepository
@@ -39,7 +40,9 @@ class NoteService:
         self, ticket_code: str, kind: str, body: str, author: str, idempotency_key: str
     ) -> tuple[NoteRead, bool]:
         prior = self._mutations.find_by_key(idempotency_key)
-        if prior is not None:
+        target = "ops.notes" if kind == NOTE_KIND else "ops.reply"
+        skip_replay = faults.before_mutation(target)
+        if prior is not None and not skip_replay:
             if prior.kind != kind:
                 raise ConflictError(f"idempotency key already used for {prior.kind}")
             row = self._notes.get_by_id(TicketNote, prior.entity_id)
@@ -63,6 +66,7 @@ class NoteService:
         except IntegrityError as exc:
             self._session.rollback()
             raise ConflictError("duplicate note") from exc
+        faults.after_mutation("ops.notes" if kind == NOTE_KIND else "ops.reply")
         return to_note_dto(row), True
 
 
