@@ -1,7 +1,7 @@
 [project]
 name = "northstar-worker"
-version = "0.1.0-phase5"
-description = "Reliable Autonomous Operations Worker (Phase 5: seed data)"
+version = "0.1.0-phase6"
+description = "Reliable Autonomous Operations Worker (Phase 6: commerce backend)"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115",
@@ -41,7 +41,8 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
-ignore = []
+# B008 (function call in defaults) is FastAPI's mandatory Depends() idiom.
+ignore = ["B008"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app", "agent", "verifier", "mcp_server", "browser", "eval", "database", "northstar_common"]

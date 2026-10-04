@@ -194,6 +194,7 @@ def seed() -> dict[str, int]:
         counts["policies"] = len(policies)
 
         for r in history.get("refunds", []):
+            refund_id = _uid(f"hist:{r['key']}")
             conn.execute(
                 text(
                     "INSERT INTO biz.refunds (id, order_id, customer_id, ticket_id, "
@@ -204,7 +205,7 @@ def seed() -> dict[str, int]:
                     ":amount, :status, :key) ON CONFLICT (mutation_key) DO NOTHING"
                 ),
                 {
-                    "id": _uid(f"hist:{r['key']}"),
+                    "id": refund_id,
                     "ocode": r["order"],
                     "ccode": r["customer"],
                     "tcode": r["ticket"],
@@ -213,7 +214,15 @@ def seed() -> dict[str, int]:
                     "key": r["key"],
                 },
             )
+            conn.execute(
+                text(
+                    "INSERT INTO biz.mutation_log (id, mutation_key, kind, entity_id) "
+                    "VALUES (:id, :key, 'refund', :eid) ON CONFLICT (mutation_key) DO NOTHING"
+                ),
+                {"id": _uid(f"histlog:{r['key']}"), "key": r["key"], "eid": refund_id},
+            )
         for r in history.get("replacements", []):
+            replacement_id = _uid(f"hist:{r['key']}")
             conn.execute(
                 text(
                     "INSERT INTO biz.replacements (id, order_id, order_item_id, customer_id, "
@@ -224,7 +233,7 @@ def seed() -> dict[str, int]:
                     ":status, :key) ON CONFLICT (mutation_key) DO NOTHING"
                 ),
                 {
-                    "id": _uid(f"hist:{r['key']}"),
+                    "id": replacement_id,
                     "ocode": r["order"],
                     "iid": item_ids[f"{r['order']}:{r['item_sku']}"],
                     "ccode": r["customer"],
@@ -232,6 +241,14 @@ def seed() -> dict[str, int]:
                     "status": r["status"],
                     "key": r["key"],
                 },
+            )
+            conn.execute(
+                text(
+                    "INSERT INTO biz.mutation_log (id, mutation_key, kind, entity_id) "
+                    "VALUES (:id, :key, 'replacement', :eid) "
+                    "ON CONFLICT (mutation_key) DO NOTHING"
+                ),
+                {"id": _uid(f"histlog:{r['key']}"), "key": r["key"], "eid": replacement_id},
             )
         counts["history"] = len(history.get("refunds", [])) + len(history.get("replacements", []))
     return counts

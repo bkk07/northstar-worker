@@ -40,14 +40,12 @@ def test_reset_seed_reproduces_identical_world(admin_conn):
 
 
 def test_about_forty_tickets_seeded(admin_conn):
-    """40 scenario tickets plus 5 backstory tickets."""
+    """All 40 scenario tickets plus 5 backstory tickets exist (extras from
+    API tests are ignored: set-membership, not exact counts)."""
     loader.seed()
-    total = _ticket_total(admin_conn)
-    scenario = admin_conn.execute(
-        text("SELECT count(*) FROM biz.tickets WHERE category <> 'history'")
-    ).scalar()
-    assert scenario == 40
-    assert total == 45
+    codes = {row[0] for row in admin_conn.execute(text("SELECT code FROM biz.tickets")).all()}
+    expected = {f"TCK-{i}" for i in range(101, 141)} | {f"TCK-H{i}" for i in range(1, 6)}
+    assert expected <= codes
 
 
 def test_seeded_checks_clean(admin_conn):

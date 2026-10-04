@@ -175,3 +175,22 @@ def test_checker_catches_deliberate_violation(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     assert check_verifier_allowlist(good) == []
+
+
+def test_single_backend_identity() -> None:
+    """Every backend import is `app.*`, never `backend.app.*`.
+
+    Both `backend/` and the repo root sit on sys.path, so `backend.app.*`
+    would create a second identity for one package (exception handlers
+    then miss dependency errors). One root, enforced.
+    """
+    offenders = []
+    for path in sorted((REPO_ROOT / "backend").rglob("*.py")):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except (SyntaxError, UnicodeDecodeError):
+            continue
+        for _, dotted in _imported_roots(tree):
+            if dotted == "backend" or dotted.startswith("backend."):
+                offenders.append(f"{path.relative_to(REPO_ROOT)} imports {dotted}")
+    assert not offenders, "dual backend identity:\n" + "\n".join(offenders)
