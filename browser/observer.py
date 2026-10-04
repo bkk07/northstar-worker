@@ -53,8 +53,13 @@ SNAPSHOT_JS = """() => {
     if (seen.has(el)) return;
     seen.add(el);
     const rect = el.getBoundingClientRect();
-    const formHost = el.closest("form[aria-label]");
+    const formHost = el.closest("form[aria-label], [role='alertdialog'][aria-label]");
     const form = formHost ? (formHost.getAttribute("aria-label") || "") : "";
+    const formRole = formHost
+      ? (formHost.tagName.toLowerCase() === "form"
+        ? "form"
+        : formHost.getAttribute("role") || "")
+      : "";
     const role = el.getAttribute("role") || implicitRole(el);
     const name = pick(el) || (el.innerText || el.textContent || "").trim().slice(0, 80)
       || el.getAttribute("placeholder") || el.getAttribute("title") || el.getAttribute("alt") || "";
@@ -63,6 +68,7 @@ SNAPSHOT_JS = """() => {
       role,
       name,
       form,
+      form_role: formRole,
       type: el.getAttribute("type") || "",
       value: el.value !== undefined ? String(el.value).slice(0, 120) : "",
       disabled: !!el.disabled,

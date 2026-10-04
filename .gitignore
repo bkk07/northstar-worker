@@ -20,6 +20,7 @@ node_modules/
 frontend/dist/
 frontend/dist-ssr/
 frontend/coverage/
+vite-debug.log
 *.local
 
 # OS / editors

@@ -28,7 +28,13 @@ from browser.observer import Observation, observe
 
 
 class BrowserSession:
-    """One headed/headless Chromium session bound to a run id."""
+    """One headed/headless Chromium session bound to a run id.
+
+    Sessions own their browser by default. A manager may inject a shared
+    (playwright, browser) pair instead: one live browser per thread, many
+    contexts — Playwright's sync API supports a single live instance per
+    thread, so sharing is required, not just faster.
+    """
 
     def __init__(
         self,
@@ -40,6 +46,7 @@ class BrowserSession:
         screenshot_dir: str | Path = "screenshots",
         action_timeout_ms: int = 10_000,
         navigation_timeout_ms: int = 15_000,
+        _shared: tuple | None = None,
     ) -> None:
         self.run_id = run_id
         self.frontend_origin = frontend_origin.rstrip("/")
@@ -50,6 +57,7 @@ class BrowserSession:
         self.action_timeout_ms = action_timeout_ms
         self.navigation_timeout_ms = navigation_timeout_ms
         self.network = NetworkCapture()
+        self._shared = _shared
         self._playwright = None
         self._browser = None
         self._context = None
@@ -60,13 +68,16 @@ class BrowserSession:
     # -- lifecycle ------------------------------------------------------
 
     def start(self):
-        """Launch Chromium, restore storage, install guard + capture."""
-        from playwright.sync_api import sync_playwright
+        """Launch Chromium (or join the shared browser), restore storage."""
+        if self._shared is None:
+            from playwright.sync_api import sync_playwright
 
-        self._playwright = sync_playwright().start()
-        self._browser = self._playwright.chromium.launch(
-            headless=self.headless, slow_mo=self.slow_mo
-        )
+            self._playwright = sync_playwright().start()
+            self._browser = self._playwright.chromium.launch(
+                headless=self.headless, slow_mo=self.slow_mo
+            )
+        else:
+            self._playwright, self._browser = self._shared
         self.storage_path.parent.mkdir(parents=True, exist_ok=True)
         kwargs = {}
         if self.storage_path.exists():
@@ -80,7 +91,11 @@ class BrowserSession:
         return self
 
     def stop(self) -> None:
-        """Detach listeners and close everything (keeps the storage file)."""
+        """Detach listeners and close the context (keeps the storage file).
+
+        A shared browser/playwright pair outlives the session; owned ones
+        are shut down with it.
+        """
         try:
             if self._page is not None:
                 self.network.detach(self._page)
@@ -89,12 +104,13 @@ class BrowserSession:
         if self._context is not None:
             self._context.close()
             self._context = None
-        if self._browser is not None:
-            self._browser.close()
-            self._browser = None
-        if self._playwright is not None:
-            self._playwright.stop()
-            self._playwright = None
+        if self._shared is None:
+            if self._browser is not None:
+                self._browser.close()
+                self._browser = None
+            if self._playwright is not None:
+                self._playwright.stop()
+                self._playwright = None
         self._refs = {}
         self._version = None
 

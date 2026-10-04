@@ -35,6 +35,28 @@ def _wait_for(url: str, timeout_s: float) -> None:
     raise RuntimeError(f"server never came up: {url}")
 
 
+def _terminate(proc) -> None:
+    """Terminate a process tree (npm orphans grandchildren on Windows)."""
+    if proc is None or proc.poll() is not None:
+        return
+    proc.terminate()
+    try:
+        proc.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        if os.name == "nt":
+            subprocess.run(
+                ["taskkill", "/T", "/F", "/PID", str(proc.pid)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            try:
+                proc.wait(timeout=10)
+                return
+            except subprocess.TimeoutExpired:
+                pass
+        proc.kill()
+
+
 @pytest.fixture(scope="session")
 def servers():
     """Boot backend + frontend once per session; seed the world."""
@@ -62,7 +84,17 @@ def servers():
     frontend_env = dict(os.environ)
     frontend_env["BACKEND_URL"] = f"http://127.0.0.1:{BACKEND_PORT}"
     _frontend_proc = subprocess.Popen(
-        [npm, "run", "dev", "--", "--port", str(FRONTEND_PORT), "--strictPort"],
+        [
+            npm,
+            "run",
+            "dev",
+            "--",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            str(FRONTEND_PORT),
+            "--strictPort",
+        ],
         cwd=REPO_ROOT / "frontend",
         env=frontend_env,
         stdout=subprocess.DEVNULL,
@@ -77,12 +109,7 @@ def servers():
         yield {"backend": BACKEND_PORT, "frontend": FRONTEND_ORIGIN}
     finally:
         for proc in (_frontend_proc, _backend_proc):
-            if proc is not None:
-                proc.terminate()
-                try:
-                    proc.wait(timeout=15)
-                except subprocess.TimeoutExpired:
-                    proc.kill()
+            _terminate(proc)
         _backend_proc = _frontend_proc = None
 
 

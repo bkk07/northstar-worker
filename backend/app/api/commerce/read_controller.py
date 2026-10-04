@@ -76,3 +76,17 @@ def list_policies(session: Session = Depends(get_db)) -> list[PolicyRead]:
 def probe_mutation(key: str, session: Session = Depends(get_db)) -> ProbeResult:
     """Probe an idempotency key (found with identity, or not found)."""
     return ProbeService(session).probe(key)
+
+
+@router.get("/api/read/probe/replacement", response_model=ProbeResult)
+def probe_replacement(order_item_id: uuid.UUID, session: Session = Depends(get_db)) -> ProbeResult:
+    """Probe the active replacement for an order item (business identity)."""
+    return ProbeService(session).probe_replacement(order_item_id)
+
+
+@router.get("/api/read/probe/refund", response_model=ProbeResult)
+def probe_refund(
+    ticket_id: uuid.UUID, order_id: uuid.UUID, session: Session = Depends(get_db)
+) -> ProbeResult:
+    """Probe the active refund for a (ticket, order) identity."""
+    return ProbeService(session).probe_refund(ticket_id, order_id)

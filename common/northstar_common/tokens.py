@@ -10,7 +10,10 @@ Token wire format: `{task_id}:{action}:{params_hash}:{signature}`
 
 import hashlib
 import hmac
+import json
+from collections.abc import Mapping
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -62,3 +65,12 @@ def verify_policy_token(raw: str, secret: str, task_id: str, action: str, params
         return False
     expected = _signature(secret, task_id, action, params_hash)
     return hmac.compare_digest(token.signature, expected)
+
+
+def canonical_params_hash(params: Mapping[str, Any]) -> str:
+    """Stable hash of action params (issuer and MCP guard must agree).
+
+    Canonical form: JSON with sorted keys and compact separators.
+    """
+    canonical = json.dumps(params, sort_keys=True, separators=(",", ":"), default=str)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()

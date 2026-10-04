@@ -26,11 +26,12 @@ class RefTarget:
 def resolve(page, target: RefTarget):
     """Resolve a ref to a locator with exactly one match, else raise.
 
-    Refs discovered inside a labeled form resolve within that form scope,
-    so identically labeled fields in sibling forms stay unambiguous.
+    Refs discovered inside a labeled form (or dialog) resolve within that
+    scope, so identically labeled fields in sibling forms stay unambiguous.
     """
     form_name = (target.extra or {}).get("form") or ""
-    scope = page.get_by_role("form", name=form_name) if form_name else page
+    form_role = (target.extra or {}).get("form_role") or "form"
+    scope = page.get_by_role(form_role, name=form_name) if form_name else page
     if target.kind == "role":
         locator = scope.get_by_role(target.role, name=target.name)
     elif target.kind == "label":

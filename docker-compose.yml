@@ -1,6 +1,7 @@
 # Phase 2: local infrastructure. Single Postgres 16 container; no Kafka,
 # Redis, or other services per plan non-goals (NORTHSTAR_WORKER_FINAL_PLAN §4).
 # Roles, schemas, and migrations arrive in Phase 4.
+# Phase 11: the MCP tool server (typed boundary the agent can never bypass).
 services:
   postgres:
     image: postgres:16
@@ -21,6 +22,23 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  mcp:
+    build:
+      context: .
+      dockerfile: mcp_server/Dockerfile
+    container_name: northstar-mcp
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      READ_API_URL: http://backend:8000
+      FRONTEND_URL: http://frontend:5173
+      MCP_PORT: 8002
+      POLICY_TOKEN_SECRET: ${POLICY_TOKEN_SECRET:-local-policy-secret}
+    ports:
+      - "8002:8002"
 
 volumes:
   pgdata:
