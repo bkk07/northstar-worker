@@ -177,3 +177,18 @@ Invoke-WebRequest -Uri http://127.0.0.1:8000/api/control/seed -Method POST -Head
 
 Fault catalogue: `docs/evaluation.md` (draft). Never expose the operator
 token to the browser bundle or the worker.
+
+---
+
+# Phase 10: browser layer (v1)
+
+```powershell
+python -m playwright install chromium  # or ./scripts/install_browsers.sh
+python -m pytest tests/browser -q      # isolated servers on :8001/:5174
+# headed replacement demo (backend :8000 + vite :5173 up, fresh seed):
+python scripts/browser_replacement_demo.py
+```
+
+One Chromium context per run (`browser/`); refs are ephemeral
+accessibility handles, never selectors. Perception notes:
+`browser/README.md`.

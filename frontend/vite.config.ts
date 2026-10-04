@@ -14,7 +14,8 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      "/api": "http://127.0.0.1:8000",
+      // BACKEND_URL lets pytest (8001) and e2e (8000) run isolated servers.
+      "/api": process.env.BACKEND_URL ?? "http://127.0.0.1:8000",
     },
   },
   test: {

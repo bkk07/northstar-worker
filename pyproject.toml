@@ -1,7 +1,7 @@
 [project]
 name = "northstar-worker"
-version = "0.1.0-phase9"
-description = "Reliable Autonomous Operations Worker (Phase 9: control plane)"
+version = "0.1.0-phase10"
+description = "Reliable Autonomous Operations Worker (Phase 10: browser layer)"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115",
@@ -12,6 +12,7 @@ dependencies = [
   "sqlalchemy>=2.0",
   "psycopg[binary]>=3.0",
   "alembic>=1.13",
+  "playwright>=1.40",
   "pyyaml>=6.0",
 ]
 

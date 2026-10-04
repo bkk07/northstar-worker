@@ -33,6 +33,10 @@ Thumbs.db
 *.db
 data/
 
+# Browser run artifacts (storage state, screenshots)
+storage/
+screenshots/
+
 # Playwright
 /test-results/
 /playwright-report/
