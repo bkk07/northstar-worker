@@ -10,8 +10,10 @@ services:
       POSTGRES_DB: northstar
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+# Host port 5433: a native Windows PostgreSQL often occupies 5432.
+# All repo URLs (session.py, alembic.ini, .env.example) use 5433.
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

@@ -60,3 +60,53 @@ trusted core (contract compiler, validator, policy, classifier, router,
 verifier). Only `browser_submit` with a valid HMAC policy token commits,
 and only through the `/ops` UI. The verifier reads DB state with its own
 role and imports nothing from the agent.
+
+## Schema reference (Phase 4)
+
+PostgreSQL 16, schemas `biz` (commerce) and `worker` (operations).
+All PKs are UUID, timestamps `timestamptz`, money integer paise, human
+codes (`C102`, `ORD-1942`, `TCK-101`) UNIQUE. Migrations:
+`database/alembic/versions/0001_biz.py`, `0002_worker.py` (both reversible).
+
+### `biz` tables
+
+| Table | Guards |
+|---|---|
+| customers | UNIQUE code/email; trigram GIN on `lower(name)` (look-alikes) |
+| orders | UNIQUE code; CHECK paid ≤ total |
+| order_items | CHECK qty > 0 |
+| tickets | UNIQUE code; indexes on status, customer |
+| ticket_notes | UNIQUE mutation_key (nullable) |
+| refunds | UNIQUE mutation_key; CHECK amount > 0; partial UNIQUE (ticket, order) while not cancelled; trigger rejects totals above paid |
+| replacements | UNIQUE mutation_key; partial UNIQUE (order_item) while pending/shipped |
+| policies | UNIQUE rule_key (engine thresholds) |
+| mutation_log | UNIQUE mutation_key, written atomically with each mutation |
+| ops_sessions | session-expiry fault target |
+| fault_plans | armed/consumed chaos faults (control plane only) |
+
+### `worker` tables
+
+tasks (+status index), task_runs (UNIQUE task/attempt, lease columns),
+task_checkpoints (UNIQUE run/seq), task_contracts, actions (UNIQUE
+run/seq, UNIQUE mutation_key), action_attempts (UNIQUE action/no),
+policy_decisions, approvals, clarifications, audit_events (bigserial
+seq, append-only), memory_items (trust field), snapshots,
+verification_results, evidence, allowed_transitions.
+
+`tasks.status` changes are rejected by trigger
+`trg_tasks_transition` unless the pair is in `allowed_transitions`
+(seeded from `agent/runtime/transitions.py`; a test keeps them in sync).
+
+### Roles (least privilege, default-deny)
+
+| Role | May |
+|---|---|
+| `ns_app` | Write `biz.*`; API-owned `worker.*`; audit INSERT/SELECT only |
+| `ns_runner` | Write `worker.*`; read `biz` via `worker.v_*` views only |
+| `ns_verifier` | SELECT-only everywhere |
+| `ns_test_redteam` | Test-only writer of bad states (red-team) |
+
+`audit_events` denies UPDATE/DELETE to every worker role. Local role
+passwords are dev parity only; per-role engines in `database/session.py`
+(`DATABASE_URL` / `NS_*_DATABASE_URL`). Host port is **5433**: a native
+Windows PostgreSQL often occupies 5432.

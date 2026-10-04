@@ -1,7 +1,7 @@
 [project]
 name = "northstar-worker"
-version = "0.1.0-phase3"
-description = "Reliable Autonomous Operations Worker (Phase 3: domain model)"
+version = "0.1.0-phase4"
+description = "Reliable Autonomous Operations Worker (Phase 4: persistence layer)"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115",
@@ -9,6 +9,9 @@ dependencies = [
   "pydantic>=2.0",
   "pydantic-settings>=2.0",
   "httpx>=0.27",
+  "sqlalchemy>=2.0",
+  "psycopg[binary]>=3.0",
+  "alembic>=1.13",
 ]
 
 # uv-native dev group (`uv sync --group dev`). Single-package project for now;

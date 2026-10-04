@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:5173"
 
     # Optional: wired in later phases (DB roles, operator token, LLM).
-    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/northstar"
+    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5433/northstar"
     operator_token: str = "local-operator-token"
     inception_api_key: str = ""
     inception_model: str = ""
