@@ -1,7 +1,7 @@
 [project]
 name = "northstar-worker"
-version = "0.1.0-phase2"
-description = "Reliable Autonomous Operations Worker (Phase 2: quality-gated repo)"
+version = "0.1.0-phase3"
+description = "Reliable Autonomous Operations Worker (Phase 3: domain model)"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115",

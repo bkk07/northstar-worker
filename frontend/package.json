@@ -1,7 +1,7 @@
 {
   "name": "northstar-worker-frontend",
   "private": true,
-  "version": "0.1.0-phase2",
+  "version": "0.1.0-phase3",
   "type": "module",
   "scripts": {
     "dev": "vite",
