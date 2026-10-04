@@ -1,0 +1,16 @@
+# Seeded customers. C105/C106 are look-alikes (Test H); C107 is the repeat
+# refunder; C109 is high-value. Emails are unique by construction.
+- {code: C101, name: Aarav Sharma, email: aarav.sharma@example.com}
+- {code: C102, name: Diya Patel, email: diya.patel@example.com}
+- {code: C103, name: Kabir Singh, email: kabir.singh@example.com}
+- {code: C104, name: Meera Iyer, email: meera.iyer@example.com}
+- {code: C105, name: Priya Nair, email: priya.nair@example.com}
+- {code: C106, name: Priya Nayar, email: priya.nayar@example.com}
+- {code: C107, name: Ravi Menon, email: ravi.menon@example.com}
+- {code: C108, name: Ananya Rao, email: ananya.rao@example.com}
+- {code: C109, name: Vikram Malhotra, email: vikram.malhotra@example.com}
+- {code: C110, name: Sneha Kulkarni, email: sneha.kulkarni@example.com}
+- {code: C111, name: Arjun Desai, email: arjun.desai@example.com}
+- {code: C112, name: Ishita Bose, email: ishita.bose@example.com}
+- {code: C113, name: Rohan Khanna, email: rohan.khanna@example.com}
+- {code: C114, name: Zara Sheikh, email: zara.sheikh@example.com}

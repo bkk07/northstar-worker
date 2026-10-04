@@ -1,13 +1,19 @@
 # Phase 2: quality gates. `make verify` runs lint, types, architecture and
 # unit tests (definition of done). Windows has no `make`; run the same
 # commands from `docs/how-to-run.md` instead.
-.PHONY: up down test lint verify
+.PHONY: up down seed reset test lint verify
 
 up:
 	./scripts/dev_up.sh
 
 down:
 	docker compose down
+
+seed:
+	./scripts/seed.sh
+
+reset:
+	./scripts/reset.sh
 
 test:
 	python -m pytest -q

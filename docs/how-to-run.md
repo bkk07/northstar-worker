@@ -120,3 +120,16 @@ contract enables in Phase 5 when that file is created.
 ```powershell
 pip install pre-commit; pre-commit install
 ```
+
+---
+
+# Phase 5: seed data (v1)
+
+```powershell
+# reproducible world: 14 customers, 33 orders, 45 tickets, 14 policies
+.\scripts\seed.sh      # or: make seed (Unix) — prints the world hash
+.\scripts\reset.sh     # or: make reset — truncates biz + worker
+```
+
+`reset && seed` reproduces an identical world hash. Scenario catalogue:
+`eval/scenarios/catalog.yaml` (S1..S40; S901+ reserved for held-out).

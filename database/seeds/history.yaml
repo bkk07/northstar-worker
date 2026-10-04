@@ -1,0 +1,9 @@
+# Backstory rows: settled refunds (repeat-refunder + duplicate-refund traps)
+# and one shipped replacement (already-replaced trap). Loaded after tickets.
+refunds:
+  - {key: hist-k1, order: ORD-1952, customer: C107, ticket: TCK-H1, amount_paise: 50000, status: settled}
+  - {key: hist-k2, order: ORD-1953, customer: C107, ticket: TCK-H2, amount_paise: 75000, status: settled}
+  - {key: hist-k3, order: ORD-1953, customer: C107, ticket: TCK-H3, amount_paise: 60000, status: settled}
+  - {key: hist-k4, order: ORD-1973, customer: C107, ticket: TCK-H4, amount_paise: 90000, status: settled}
+replacements:
+  - {key: hist-k5, order: ORD-1957, item_sku: BG-12, customer: C105, ticket: TCK-H5, status: shipped}

@@ -1,0 +1,302 @@
+# Seeded orders. Amounts are paise. Dates are days-ago relative to seed time
+# so eligibility windows hold whenever the world is built; the world hash
+# therefore covers business facts, not timestamps (see loader.py).
+# Statuses: delivered | open (open orders can still be cancelled).
+- code: ORD-1942
+  customer: C101
+  status: delivered
+  total_paise: 8500000
+  paid_paise: 8500000
+  placed_days_ago: 6
+  delivered_days_ago: 5
+  items:
+    - {sku: LAP-X1, title: ProBook Laptop 14, qty: 1, unit_paise: 8500000, category: electronics}
+- code: ORD-1943
+  customer: C102
+  status: delivered
+  total_paise: 250000
+  paid_paise: 250000
+  placed_days_ago: 11
+  delivered_days_ago: 10
+  items:
+    - {sku: HP-01, title: Studio Headphones, qty: 1, unit_paise: 250000, category: electronics}
+- code: ORD-1944
+  customer: C109
+  status: delivered
+  total_paise: 3500000
+  paid_paise: 3500000
+  placed_days_ago: 4
+  delivered_days_ago: 3
+  items:
+    - {sku: TV-55, title: 55in QLED TV, qty: 1, unit_paise: 3500000, category: electronics}
+- code: ORD-1945
+  customer: C103
+  status: delivered
+  total_paise: 6000000
+  paid_paise: 6000000
+  placed_days_ago: 3
+  delivered_days_ago: 2
+  items:
+    - {sku: PH-09, title: Nova Phone 12, qty: 1, unit_paise: 6000000, category: electronics}
+- code: ORD-1946
+  customer: C104
+  status: delivered
+  total_paise: 180000
+  paid_paise: 180000
+  placed_days_ago: 9
+  delivered_days_ago: 8
+  items:
+    - {sku: MX-02, title: Stand Mixer, qty: 1, unit_paise: 180000, category: appliances}
+- code: ORD-1947
+  customer: C108
+  status: delivered
+  total_paise: 320000
+  paid_paise: 320000
+  placed_days_ago: 7
+  delivered_days_ago: 6
+  items:
+    - {sku: SH-10, title: Trail Running Shoes, qty: 1, unit_paise: 320000, category: apparel}
+- code: ORD-1948
+  customer: C110
+  status: delivered
+  total_paise: 1200000
+  paid_paise: 1200000
+  placed_days_ago: 5
+  delivered_days_ago: 4
+  items:
+    - {sku: WT-03, title: Chrono Watch, qty: 1, unit_paise: 1200000, category: accessories}
+- code: ORD-1949
+  customer: C111
+  status: delivered
+  total_paise: 95000
+  paid_paise: 95000
+  placed_days_ago: 13
+  delivered_days_ago: 12
+  items:
+    - {sku: KB-04, title: Mechanical Keyboard, qty: 1, unit_paise: 95000, category: electronics}
+- code: ORD-1950
+  customer: C112
+  status: delivered
+  total_paise: 15000
+  paid_paise: 15000
+  placed_days_ago: 10
+  delivered_days_ago: 9
+  items:
+    - {sku: CB-05, title: USB-C Cable 2m, qty: 1, unit_paise: 15000, category: electronics}
+- code: ORD-1951
+  customer: C113
+  status: delivered
+  total_paise: 450000
+  paid_paise: 450000
+  placed_days_ago: 22
+  delivered_days_ago: 20
+  items:
+    - {sku: JK-06, title: Winter Parka, qty: 1, unit_paise: 450000, category: apparel}
+- code: ORD-1952
+  customer: C107
+  status: delivered
+  total_paise: 200000
+  paid_paise: 200000
+  placed_days_ago: 16
+  delivered_days_ago: 15
+  items:
+    - {sku: BK-07, title: Systems Handbook, qty: 1, unit_paise: 80000, category: books}
+    - {sku: BM-30, title: Brass Bookmark Set, qty: 1, unit_paise: 120000, category: books}
+- code: ORD-1953
+  customer: C107
+  status: delivered
+  total_paise: 500000
+  paid_paise: 500000
+  placed_days_ago: 26
+  delivered_days_ago: 25
+  items:
+    - {sku: LP-08, title: Desk Lamp, qty: 1, unit_paise: 500000, category: home}
+- code: ORD-1954
+  customer: C114
+  status: delivered
+  total_paise: 500000
+  paid_paise: 500000
+  placed_days_ago: 8
+  delivered_days_ago: 7
+  items:
+    - {sku: BT-09, title: Steel Bottle 1L, qty: 1, unit_paise: 500000, category: home}
+- code: ORD-1955
+  customer: C101
+  status: delivered
+  total_paise: 500100
+  paid_paise: 500100
+  placed_days_ago: 8
+  delivered_days_ago: 7
+  items:
+    - {sku: MS-10, title: Wireless Mouse, qty: 1, unit_paise: 500100, category: electronics}
+- code: ORD-1956
+  customer: C102
+  status: delivered
+  total_paise: 500000
+  paid_paise: 500000
+  placed_days_ago: 9
+  delivered_days_ago: 8
+  items:
+    - {sku: SP-11, title: Bluetooth Speaker, qty: 1, unit_paise: 500000, category: electronics}
+- code: ORD-1957
+  customer: C105
+  status: delivered
+  total_paise: 220000
+  paid_paise: 220000
+  placed_days_ago: 12
+  delivered_days_ago: 11
+  items:
+    - {sku: BG-12, title: Canvas Tote, qty: 1, unit_paise: 220000, category: apparel}
+- code: ORD-1958
+  customer: C106
+  status: delivered
+  total_paise: 750000
+  paid_paise: 750000
+  placed_days_ago: 46
+  delivered_days_ago: 45
+  items:
+    - {sku: CT-13, title: Wool Coat, qty: 1, unit_paise: 750000, category: apparel}
+- code: ORD-1959
+  customer: C108
+  status: delivered
+  total_paise: 2000000
+  paid_paise: 2000000
+  placed_days_ago: 6
+  delivered_days_ago: 5
+  items:
+    - {sku: CM-14, title: Mirrorless Camera, qty: 1, unit_paise: 2000000, category: electronics}
+- code: ORD-1960
+  customer: C105
+  status: delivered
+  total_paise: 90000
+  paid_paise: 90000
+  placed_days_ago: 7
+  delivered_days_ago: 6
+  items:
+    - {sku: SC-15, title: Silk Scarf, qty: 1, unit_paise: 90000, category: apparel}
+- code: ORD-1961
+  customer: C111
+  status: delivered
+  total_paise: 1500000
+  paid_paise: 1500000
+  placed_days_ago: 6
+  delivered_days_ago: 5
+  items:
+    - {sku: MN-16, title: 27in Monitor, qty: 1, unit_paise: 1500000, category: electronics}
+- code: ORD-1962
+  customer: C112
+  status: delivered
+  total_paise: 1800000
+  paid_paise: 1800000
+  placed_days_ago: 6
+  delivered_days_ago: 5
+  items:
+    - {sku: TB-17, title: Slate Tablet 11, qty: 1, unit_paise: 1800000, category: electronics}
+- code: ORD-1963
+  customer: C113
+  status: delivered
+  total_paise: 120000
+  paid_paise: 120000
+  placed_days_ago: 7
+  delivered_days_ago: 6
+  items:
+    - {sku: EB-18, title: True Wireless Earbuds, qty: 1, unit_paise: 120000, category: electronics}
+- code: ORD-1964
+  customer: C114
+  status: delivered
+  total_paise: 200000
+  paid_paise: 200000
+  placed_days_ago: 7
+  delivered_days_ago: 6
+  items:
+    - {sku: WL-19, title: Leather Wallet, qty: 1, unit_paise: 200000, category: accessories}
+- code: ORD-1965
+  customer: C109
+  status: delivered
+  total_paise: 16000000
+  paid_paise: 16000000
+  placed_days_ago: 5
+  delivered_days_ago: 4
+  items:
+    - {sku: SF-20, title: Three-Seat Sofa, qty: 1, unit_paise: 16000000, category: furniture}
+- code: ORD-1966
+  customer: C103
+  status: delivered
+  total_paise: 45000
+  paid_paise: 45000
+  placed_days_ago: 14
+  delivered_days_ago: 13
+  items:
+    - {sku: CH-21, title: GaN Charger 65W, qty: 1, unit_paise: 45000, category: electronics}
+- code: ORD-1967
+  customer: C104
+  status: delivered
+  total_paise: 30000
+  paid_paise: 30000
+  placed_days_ago: 5
+  delivered_days_ago: 4
+  items:
+    - {sku: MG-22, title: Ceramic Mug, qty: 1, unit_paise: 30000, category: home}
+- code: ORD-1968
+  customer: C110
+  status: delivered
+  total_paise: 380000
+  paid_paise: 380000
+  placed_days_ago: 20
+  delivered_days_ago: 18
+  items:
+    - {sku: DR-23, title: Evening Dress, qty: 1, unit_paise: 380000, category: apparel}
+- code: ORD-1969
+  customer: C112
+  status: delivered
+  total_paise: 25000
+  paid_paise: 25000
+  placed_days_ago: 9
+  delivered_days_ago: 8
+  items:
+    - {sku: NV-24, title: Collected Essays, qty: 1, unit_paise: 25000, category: final_sale}
+- code: ORD-1970
+  customer: C113
+  status: delivered
+  total_paise: 275000
+  paid_paise: 275000
+  placed_days_ago: 8
+  delivered_days_ago: 7
+  items:
+    - {sku: PN-25, title: Cast Iron Pan, qty: 1, unit_paise: 275000, category: home}
+- code: ORD-1971
+  customer: C114
+  status: open
+  total_paise: 150000
+  paid_paise: 150000
+  placed_days_ago: 6
+  delivered_days_ago: null
+  items:
+    - {sku: SH-26, title: Cotton Shirt, qty: 1, unit_paise: 150000, category: apparel}
+- code: ORD-1972
+  customer: C114
+  status: open
+  total_paise: 175000
+  paid_paise: 175000
+  placed_days_ago: 6
+  delivered_days_ago: null
+  items:
+    - {sku: JN-27, title: Denim Jeans, qty: 1, unit_paise: 175000, category: apparel}
+- code: ORD-1973
+  customer: C107
+  status: delivered
+  total_paise: 90000
+  paid_paise: 90000
+  placed_days_ago: 12
+  delivered_days_ago: 11
+  items:
+    - {sku: TY-28, title: Building Blocks Set, qty: 1, unit_paise: 90000, category: toys}
+- code: ORD-1974
+  customer: C101
+  status: delivered
+  total_paise: 110000
+  paid_paise: 110000
+  placed_days_ago: 9
+  delivered_days_ago: 8
+  items:
+    - {sku: ST-29, title: Laptop Stand, qty: 1, unit_paise: 110000, category: electronics}

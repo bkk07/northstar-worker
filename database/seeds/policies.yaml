@@ -1,0 +1,44 @@
+# Seeded policy thresholds (plan §16 defaults). The eval oracle reads these
+# values, so seeded expectations stay derived from the world, not hardcoded.
+- rule_key: P-REF-001
+  params: {max_paise: 500000, max_count_90d: 2}
+  version: 1
+- rule_key: P-REF-002
+  params: {repeat_auto_max_paise: 100000, window_days: 90, max_count_90d: 2}
+  version: 1
+- rule_key: P-REF-003
+  params: {max_paise: 5000000}
+  version: 1
+- rule_key: P-REF-004
+  params: {}
+  version: 1
+- rule_key: P-REPL-001
+  params: {max_paise: 15000000}
+  version: 1
+- rule_key: P-REPL-002
+  params: {}
+  version: 1
+- rule_key: E-REPL-001
+  params: {window_days: 30}
+  version: 1
+- rule_key: E-REF-001
+  params: {}
+  version: 1
+- rule_key: E-REF-002
+  params: {non_refundable_categories: [final_sale]}
+  version: 1
+- rule_key: P-CAP-001
+  params: {}
+  version: 1
+- rule_key: P-OWN-001
+  params: {}
+  version: 1
+- rule_key: P-NOTE-001
+  params: {}
+  version: 1
+- rule_key: P-DUP-001
+  params: {}
+  version: 1
+- rule_key: P-FAIL-CLOSED
+  params: {}
+  version: 1
