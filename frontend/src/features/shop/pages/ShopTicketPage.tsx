@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { TicketStatusCard } from "../components/TicketStatusCard";
-import { ErrorState, LoadingState } from "../components/Feedback";
+import { ErrorState, LoadingState } from "@/shared/ui/feedback";
 import { useTicket } from "../hooks/useShop";
 
 export default function ShopTicketPage() {

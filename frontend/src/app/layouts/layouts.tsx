@@ -26,12 +26,6 @@ export function RootLayout() {
   );
 }
 
-export function OpsLayout() {
-  return (
-    <Shell title="Ops Console" hint="Support console the worker drives via Playwright (Phase 8)." />
-  );
-}
-
 export function WorkerLayout() {
   return (
     <Shell

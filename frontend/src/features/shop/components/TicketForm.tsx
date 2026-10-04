@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useCreateTicket } from "../hooks/useShop";
 import type { TicketFormState, TicketRead } from "../types";
-import { ErrorState } from "./Feedback";
+import { ErrorState } from "@/shared/ui/feedback";
 
 const EMPTY: TicketFormState = { subject: "", body: "", category: "damage" };
 

@@ -1,9 +1,10 @@
 import { defineConfig } from "@playwright/test";
 
-// Phase 7: shop end-to-end. webServer boots the real backend (seeded DB)
-// and the Vite dev server; reuse running servers locally when present.
+// Phase 7-8 end-to-end. globalSetup reseeds a pristine world; webServer
+// boots the real backend and the Vite dev server (reused locally).
 export default defineConfig({
   testDir: "./e2e",
+  globalSetup: "./global-setup.ts",
   fullyParallel: false,
   reporter: "list",
   use: { baseURL: "http://localhost:5173" },

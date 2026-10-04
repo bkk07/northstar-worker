@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { TicketForm } from "../components/TicketForm";
-import { ErrorState, LoadingState } from "../components/Feedback";
+import { ErrorState, LoadingState } from "@/shared/ui/feedback";
 import { useCustomer, useOrder } from "../hooks/useShop";
 import { formatINR } from "@/shared/lib/format";
 

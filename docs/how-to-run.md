@@ -146,3 +146,16 @@ npm run test:e2e         # Playwright: raise a ticket, confirm the DB row
 
 Shop DTOs are generated (`src/shared/types/dto.ts`, committed) — feature
 code aliases them, never re-declares them.
+
+---
+
+# Phase 8: ops console (v1)
+
+```powershell
+cd frontend
+npm run test:e2e -- e2e/ops.spec.ts  # login, queue, forms, idempotency, 401
+```
+
+`/ops` consumes the session-cookie API with per-form idempotency keys;
+a 401 anywhere returns to `/ops/login`. UI flags come from
+`GET /api/ops/ui-flags` (armed fault plans, Phase 9).

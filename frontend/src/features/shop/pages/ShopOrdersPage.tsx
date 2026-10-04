@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { OrderCard } from "../components/OrderCard";
-import { ErrorState, LoadingState } from "../components/Feedback";
+import { ErrorState, LoadingState } from "@/shared/ui/feedback";
 import { useOrders } from "../hooks/useShop";
 
 export default function ShopOrdersPage() {
