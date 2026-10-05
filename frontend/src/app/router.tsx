@@ -1,6 +1,7 @@
 import { lazy } from "react";
 import { Navigate, createBrowserRouter } from "react-router-dom";
-import { EvaluationLayout, RootLayout } from "@/app/layouts/layouts";
+import { RootLayout } from "@/app/layouts/layouts";
+import { EvaluationLayout } from "@/features/evaluation/components/EvaluationLayout";
 import { WorkerLayout } from "@/features/worker/components/WorkerLayout";
 import { OpsAuthLayout, OpsLayout } from "@/app/layouts/OpsLayout";
 import { ShopLayout } from "@/app/layouts/ShopLayout";
@@ -20,6 +21,16 @@ const OrderLookupPage = lazy(() => import("@/features/ops/orders/pages/OrderLook
 const WorkerDashboardPage = lazy(() => import("@/features/worker/pages/WorkerDashboardPage"));
 const WorkerTaskDetailPage = lazy(() => import("@/features/worker/pages/WorkerTaskDetailPage"));
 const WorkerEnvironmentPage = lazy(() => import("@/features/worker/pages/WorkerEnvironmentPage"));
+
+const EvaluationResultsPage = lazy(
+  () => import("@/features/evaluation/pages/EvaluationResultsPage"),
+);
+const EvaluationScenariosPage = lazy(
+  () => import("@/features/evaluation/pages/EvaluationScenariosPage"),
+);
+const EvaluationComparisonPage = lazy(
+  () => import("@/features/evaluation/pages/EvaluationComparisonPage"),
+);
 
 export const routePaths = ["/shop", "/ops", "/worker", "/evaluation"] as const;
 
@@ -64,7 +75,15 @@ export const router = createBrowserRouter([
           { path: "environment", element: <WorkerEnvironmentPage /> },
         ],
       },
-      { path: "evaluation/*", element: <EvaluationLayout /> },
+      {
+        path: "evaluation",
+        element: <EvaluationLayout />,
+        children: [
+          { index: true, element: <EvaluationResultsPage /> },
+          { path: "scenarios", element: <EvaluationScenariosPage /> },
+          { path: "comparison", element: <EvaluationComparisonPage /> },
+        ],
+      },
       { path: "*", element: <Navigate to="/shop/orders" replace /> },
     ],
   },

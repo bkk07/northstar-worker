@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from app.api import health_controller
 from app.api.commerce import read_controller, shop_controller
 from app.api.control import chaos_controller, oracle_controller, reset_controller
+from app.api.evaluation import evaluation_controller
 from app.api.ops import (
     auth_controller,
     customer_controller,
@@ -55,6 +56,7 @@ def create_app() -> FastAPI:
     app.include_router(chaos_controller.router)
     app.include_router(reset_controller.router)
     app.include_router(oracle_controller.router)
+    app.include_router(evaluation_controller.router)
     app.include_router(task_controller.router)
     app.include_router(approval_controller.router)
     app.include_router(clarification_controller.router)

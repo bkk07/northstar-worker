@@ -27,7 +27,4 @@ export function RootLayout() {
 }
 
 export { WorkerLayout } from "@/features/worker/components/WorkerLayout";
-
-export function EvaluationLayout() {
-  return <Shell title="Evaluation" hint="Seeded vs held-out metrics and drilldowns (Phase 27)." />;
-}
+export { EvaluationLayout } from "@/features/evaluation/components/EvaluationLayout";
