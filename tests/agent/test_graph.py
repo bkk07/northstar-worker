@@ -189,6 +189,30 @@ class _FakeVerifier:
         return {"verdict": "verified", "invariants": [], "diff": {}}
 
 
+class _FakeAudit:
+    """Record node audit events without a database (topology only)."""
+
+    def __init__(self):
+        self.events = []
+
+    def emit(self, task_id, run_id, node, kind, **fields):
+        """Capture the uniform event (never raises on stub task IDs)."""
+        self.events.append(
+            {"task_id": task_id, "run_id": run_id, "node": node, "kind": kind, **fields}
+        )
+
+    def node_transition(self, task_id, run_id, node, status=None, payload=None):
+        """Runner-side transition seam (unused by the bare graph)."""
+        self.emit(task_id, run_id, node, "node.transition", status=status, payload=payload or {})
+
+    def run_event(self, task_id, run_id, kind, payload):
+        """Runner-side lifecycle seam (unused by the bare graph)."""
+        self.emit(task_id, run_id, None, kind, payload=payload)
+
+
+_FAKE_AUDIT = _FakeAudit()
+
+
 @pytest.fixture(autouse=True)
 def _fake_wiring(monkeypatch):
     """Pin Phase 13/14 services to marker-driven fakes for topology tests."""
@@ -205,6 +229,7 @@ def _fake_wiring(monkeypatch):
     monkeypatch.setattr(wiring, "approval_service", lambda: _FakeApproval())
     monkeypatch.setattr(wiring, "clarification_service", lambda: _FakeClarification())
     monkeypatch.setattr(wiring, "memory_store", lambda: _FakeMemory())
+    monkeypatch.setattr(wiring, "audit_emitter", lambda: _FAKE_AUDIT)
     monkeypatch.setattr("agent.nodes.policy_check.gather_facts", lambda *args: _EmptyFacts())
 
 
@@ -280,3 +305,22 @@ def test_parked_clarification_ends_graph():
     state = _state("t4", "cancel it")
     assert _path(graph, state) == ["understand", "contract", "clarification"]
     assert graph.invoke(state).get("status") != "succeeded"
+
+
+def test_decision_nodes_emit_uniform_audit():
+    """Contract + policy nodes audit rule and outcome for the packet."""
+    _FAKE_AUDIT.events.clear()
+    graph = build_graph()
+    graph.invoke(
+        _state(
+            "t3",
+            "refund everything",
+            policy_decision={"outcome": "block", "rule_id": "P-REF-004", "reason": "stub"},
+        )
+    )
+    kinds = {(event["node"], event["kind"]) for event in _FAKE_AUDIT.events}
+    assert ("contract", "contract.compiled") in kinds
+    assert ("policy_check", "policy.decision") in kinds
+    decision = next(event for event in _FAKE_AUDIT.events if event["kind"] == "policy.decision")
+    assert decision["policy_result"] == "block"
+    assert decision["payload"]["rule_id"] == "P-REF-004"

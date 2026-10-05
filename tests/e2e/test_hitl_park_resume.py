@@ -52,6 +52,10 @@ def task_id():
         cleanup = session_factory.session_for(engine)
         try:
             cleanup.execute(
+                text("DELETE FROM worker.evidence WHERE task_id = :id"),
+                {"id": str(key)},
+            )
+            cleanup.execute(
                 text("DELETE FROM worker.approvals WHERE task_id = :id"),
                 {"id": str(key)},
             )

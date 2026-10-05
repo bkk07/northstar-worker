@@ -6,11 +6,26 @@ from agent.runtime import wiring
 
 def clarification(state: WorkerState) -> dict:
     """Park on the first visit; carry the answer back on resume."""
-    return wiring.clarification_service().evaluate(
+    outcome = wiring.clarification_service().evaluate(
         state["task_id"],
         _question(state),
         kind=str(state.get("clarification_kind", "operator")),
     )
+    status = str(outcome.get("clarification_status", ""))
+    kind = {
+        "pending": "clarification.park",
+        "answered": "clarification.answered",
+        "expired": "clarification.expired",
+    }.get(status, "clarification.update")
+    wiring.audit_emitter().emit(
+        state["task_id"],
+        state.get("run_id", ""),
+        "clarification",
+        kind,
+        status=status,
+        payload={"clarification_id": str(outcome.get("clarification_ref", {}).get("id", ""))},
+    )
+    return outcome
 
 
 def _question(state: WorkerState) -> str:

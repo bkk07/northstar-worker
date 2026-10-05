@@ -20,11 +20,14 @@ from agent.graph.checkpointer import PostgresCheckpointStore
 from agent.graph.state import WorkerState, initial_state
 from agent.ports.clock import ClockPort
 from agent.repositories.checkpoint_repository import CheckpointRepository
+from agent.repositories.evidence_repository import EvidenceRepository
 from agent.repositories.journal_repository import JournalRepository
 from agent.repositories.task_repository import TaskRepository
 from agent.runtime import budgets, lease, transitions
 from agent.runtime.audit_emitter import AuditEmitter
+from agent.runtime.log import log_event
 from agent.runtime.resume import fresh_or_resumed
+from agent.services.finalization_service import FinalizationService
 from northstar_common.enums import TaskState
 
 TERMINAL_MAP = {
@@ -71,6 +74,7 @@ class Runner:
         task_text, run_id, attempt = claimed
 
         self._audit.run_event(task_id, run_id, "run.start", {"attempt": attempt})
+        log_event("runner", "run.start", task_id=task_id, run_id=run_id, attempt=attempt)
         merged: dict = self._seed_state(task_id, run_id, task_text)
         wall_start = self._clock.monotonic()
         steps = 0
@@ -90,7 +94,15 @@ class Runner:
                     if on_node is not None:
                         on_node(node, dict(merged))
                     self._checkpoints.save(run_id, node, _jsonable(merged))
-                    self._audit.node_transition(task_id, run_id, node)
+                    self._audit.node_transition(
+                        task_id,
+                        run_id,
+                        node,
+                        status=str(merged.get("status", "") or ""),
+                        payload={
+                            "delta_keys": sorted(delta.keys()) if isinstance(delta, dict) else [],
+                        },
+                    )
                     if steps % 10 == 0:
                         self._beat(run_id)
                     budget_hit = budgets.exceeded(merged)
@@ -107,10 +119,14 @@ class Runner:
                 "run.error",
                 {"error": str(exc), "traceback": traceback.format_exc(limit=5)},
             )
+            log_event("runner", "run.error", task_id=task_id, run_id=run_id, error=str(exc))
             return {**merged, "status": "failed", "error": str(exc)}
         if budget_hit:
             merged["status"] = "failed"
             merged["error"] = f"{budgets.BUDGET_EXCEEDED}:{budget_hit}"
+            log_event(
+                "runner", "budget.exceeded", task_id=task_id, run_id=run_id, budget=budget_hit
+            )
         elif capped:
             merged["status"] = "inconclusive"
             merged["error"] = f"step cap hit ({MAX_RUN_STEPS} node transitions)"
@@ -119,6 +135,21 @@ class Runner:
             merged["status"] = terminal.value
         self._finish(task_id, run_id, terminal)
         self._audit.run_event(task_id, run_id, "run.end", {"status": merged.get("status", "")})
+        log_event(
+            "runner",
+            "run.end",
+            task_id=task_id,
+            run_id=run_id,
+            status=merged.get("status", ""),
+            steps=steps,
+        )
+        if terminal in (
+            TaskState.SUCCEEDED,
+            TaskState.FAILED,
+            TaskState.BLOCKED,
+            TaskState.INCONCLUSIVE,
+        ):
+            merged["evidence_ref"] = self._build_packet(task_id, run_id, merged)
         return merged
 
     def poll_once(self, limit: int = 10) -> list[dict]:
@@ -206,6 +237,32 @@ class Runner:
             session.commit()
         finally:
             session.close()
+
+    def _build_packet(self, task_id: str, run_id: str, merged: dict) -> dict:
+        """Assemble, persist, and audit the terminal evidence packet."""
+        packet = FinalizationService().build_packet(self._sessions, task_id, run_id, merged)
+        session = self._sessions()
+        try:
+            row = EvidenceRepository(session).save_packet(UUID(task_id), packet, packet["summary"])
+            session.commit()
+            evidence_id = str(row.id)
+        finally:
+            session.close()
+        self._audit.run_event(
+            task_id,
+            run_id,
+            "run.packet",
+            {"evidence_id": evidence_id, "headline": packet["summary"][0]},
+        )
+        log_event(
+            "runner",
+            "run.packet",
+            task_id=task_id,
+            run_id=run_id,
+            evidence_id=evidence_id,
+            headline=packet["summary"][0],
+        )
+        return {"id": evidence_id, "summary": packet["summary"]}
 
     def _finish(self, task_id: str, run_id: str, terminal: TaskState) -> None:
         """Fold the run into the task row (terminal) and release the lease."""

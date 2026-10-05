@@ -3,6 +3,7 @@
 Every node transition, tool call, policy decision, failure, recovery,
 approval, and verification result lands here. UPDATE/DELETE are revoked
 for all worker roles (Phase 4 grants); history is never rewritten.
+Reads are seq-ordered so any run's chain replays exactly.
 """
 
 from uuid import UUID
@@ -49,3 +50,21 @@ class AuditRepository(BaseRepository[AuditEvent]):
         self.add(row)
         self.flush()
         return self.refresh(row)
+
+    def list_by_task(self, task_id: UUID) -> list[AuditEvent]:
+        """Full task history in replay order (seq is gapless per DB)."""
+        return (
+            self._session.query(AuditEvent)
+            .filter(AuditEvent.task_id == task_id)
+            .order_by(AuditEvent.seq.asc())
+            .all()
+        )
+
+    def list_by_run(self, run_id: UUID) -> list[AuditEvent]:
+        """One run's chain in replay order."""
+        return (
+            self._session.query(AuditEvent)
+            .filter(AuditEvent.run_id == run_id)
+            .order_by(AuditEvent.seq.asc())
+            .all()
+        )

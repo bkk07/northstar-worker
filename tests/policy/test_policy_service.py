@@ -21,6 +21,7 @@ from agent.runtime import wiring
 from agent.services.policy_service import PolicyService
 from database import session as session_factory
 from database.models.worker.action import Action
+from database.models.worker.audit import AuditEvent
 from database.models.worker.flow import PolicyDecision
 from database.models.worker.task import Task, TaskRun
 from mcp_server.token_guard import verify_submit_token
@@ -118,6 +119,7 @@ def run_ids():
             for model, column in (
                 (PolicyDecision, PolicyDecision.run_id),
                 (Action, Action.run_id),
+                (AuditEvent, AuditEvent.run_id),
             ):
                 cleanup.query(model).filter(column == run.id).delete(synchronize_session=False)
             cleanup.query(TaskRun).filter(TaskRun.id == run.id).delete(synchronize_session=False)

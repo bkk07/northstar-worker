@@ -59,10 +59,20 @@ class AuditEmitter:
             session.close()
 
     def node_transition(
-        self, task_id: str, run_id: str, node: str, status: str | None = None
+        self,
+        task_id: str,
+        run_id: str,
+        node: str,
+        status: str | None = None,
+        payload: dict | None = None,
     ) -> None:
-        """One checkpointed node transition (the run's trace)."""
-        self.emit(task_id, run_id, node, "node.transition", status=status)
+        """One checkpointed node transition (the run's trace).
+
+        The payload carries the uniform per-node fact — the returned
+        delta keys plus the run status — so every node's visit is
+        reconstructable from audit alone.
+        """
+        self.emit(task_id, run_id, node, "node.transition", status=status, payload=payload)
 
     def run_event(self, task_id: str, run_id: str, kind: str, payload: dict) -> None:
         """Run lifecycle events (`run.start`, `run.end`, `run.error`)."""

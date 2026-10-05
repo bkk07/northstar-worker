@@ -10,11 +10,13 @@ the verifier cross-checks them in Phase 21).
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from agent.memory import injection_detector, provenance
 from agent.memory.store import MemoryStore
+from agent.repositories.evidence_repository import EvidenceRepository
 
 READ_TOOLS = frozenset(
     {
@@ -49,7 +51,6 @@ class ObservationService:
         self, task_id: str, run_id: str, action: dict, result: Mapping
     ) -> ObservationVerdict:
         """Bucket one executed action; write its memory rows; return."""
-        _ = task_id
         tool = action.get("tool", "")
         ok = bool(result.get("ok", False))
         if not ok:
@@ -79,6 +80,7 @@ class ObservationService:
                 "body": str(payload.get("body", ""))[:500],
             }
             self._remember(run_id, action, result, observation, outcome="effects_done")
+            self._index_screenshots(task_id, run_id, tool, action, payload)
             return ObservationVerdict(status="effects_done", observation=observation)
         observation = {
             "tool": tool,
@@ -88,7 +90,34 @@ class ObservationService:
             "mutated": False,
         }
         self._remember(run_id, action, result, observation, outcome="success")
+        self._index_screenshots(task_id, run_id, tool, action, payload)
         return ObservationVerdict(status="success", observation=observation)
+
+    def _index_screenshots(
+        self, task_id: str, run_id: str, tool: str, action: dict, payload: dict
+    ) -> None:
+        """Index screenshot paths as evidence rows (the packet lists them)."""
+        shots: list[tuple[str, str]] = []
+        if tool == "browser_screenshot" and payload.get("path"):
+            label = str(action.get("params", {}).get("label", "evidence"))
+            shots.append((label, str(payload["path"])))
+        if tool == "browser_submit":
+            for key, label in (
+                ("before_screenshot", "before-submit"),
+                ("after_screenshot", "after-submit"),
+            ):
+                if payload.get(key):
+                    shots.append((label, str(payload[key])))
+        if not shots:
+            return
+        session = self._sessions()
+        try:
+            repo = EvidenceRepository(session)
+            for label, path in shots:
+                repo.save_screenshot(UUID(task_id), UUID(run_id), label, path)
+            session.commit()
+        finally:
+            session.close()
 
     def _remember(
         self,

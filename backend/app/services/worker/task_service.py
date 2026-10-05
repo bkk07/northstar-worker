@@ -40,6 +40,13 @@ class TaskService:
         self._session.refresh(row)
         return self._to_dto(row)
 
+    def list_tasks(self, limit: int = 50, status: str | None = None) -> list[TaskRead]:
+        """Newest tasks first, optionally filtered to one lifecycle state."""
+        query = self._session.query(Task).order_by(Task.created_at.desc(), Task.id.desc())
+        if status:
+            query = query.filter(Task.status == status)
+        return [self._to_dto(row) for row in query.limit(max(limit, 1)).all()]
+
     def get_task(self, task_id: UUID) -> TaskRead:
         """One task (404 when absent)."""
         row = self._session.get(Task, task_id)

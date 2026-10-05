@@ -54,9 +54,18 @@ def test_contract_node_locks_status(monkeypatch):
             )
 
     monkeypatch.setattr(wiring, "contract_service", lambda: _Contracts())
+    monkeypatch.setattr(wiring, "audit_emitter", lambda: _NullAudit())
     delta = contract_node.contract(WorkerState(task_id="t", run_id="r", task_text="Replace."))
     assert delta["contract_status"] == "ambiguous"
     assert delta["contract"]["ambiguity"] == ["which customer?"]
+
+
+class _NullAudit:
+    """Swallow node audit (unit scope: emission is covered by graph tests)."""
+
+    def emit(self, *args, **kwargs):
+        """No database in node unit tests."""
+        _ = (args, kwargs)
 
 
 def test_understanding_rejects_empty_text():

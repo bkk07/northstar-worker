@@ -22,6 +22,15 @@ def policy_check(state: WorkerState) -> dict:
             "reason": result.reason,
         }
     }
+    wiring.audit_emitter().emit(
+        state["task_id"],
+        state.get("run_id", ""),
+        "policy_check",
+        "policy.decision",
+        tool=action.get("tool", ""),
+        policy_result=result.outcome,
+        payload={"rule_id": result.rule_id, "reason": result.reason},
+    )
     if result.token:
         delta["last_action"] = {
             **action,

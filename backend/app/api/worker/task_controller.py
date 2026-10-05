@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
@@ -16,6 +16,16 @@ router = APIRouter(tags=["worker-tasks"])
 def create_task(payload: TaskCreate, session: Session = Depends(get_db)) -> TaskRead:
     """Submit one operator task (starts `pending`; the runner executes)."""
     return TaskService(session).create_task(payload, created_by="api")
+
+
+@router.get("/api/tasks", response_model=list[TaskRead])
+def list_tasks(
+    limit: int = Query(default=50, ge=1, le=200),
+    task_status: str | None = Query(default=None, alias="status"),
+    session: Session = Depends(get_db),
+) -> list[TaskRead]:
+    """Newest tasks first, optionally filtered to one lifecycle state."""
+    return TaskService(session).list_tasks(limit=limit, status=task_status)
 
 
 @router.get("/api/tasks/{task_id}", response_model=TaskRead)

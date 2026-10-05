@@ -100,3 +100,56 @@ def test_memory_rows_carry_provenance():
     by_source = {row.source_type: row.trust for row in rows}
     assert by_source == {"browser": "untrusted", "database": "trusted"}
     assert all(str(row.run_id) == run for row in rows)
+
+
+def test_screenshot_paths_indexed_as_evidence():
+    """Screenshot results land in the evidence trail, not just memory."""
+    from database.models.worker.evidence import Evidence
+
+    service, sessions = _service()
+    task = "11111111-1111-1111-1111-111111111111"
+    run = "00000000-0000-0000-0000-000000000000"
+    verdict = service.observe(
+        task,
+        run,
+        {"tool": "browser_screenshot", "params": {"label": "queue"}, "seq": 0},
+        {"ok": True, "payload": {"path": "shots/queue.png"}, "mutation_key": "k"},
+    )
+    assert verdict.status == "success"
+    shots = [row for session in sessions for row in session.rows if isinstance(row, Evidence)]
+    assert len(shots) == 1
+    assert shots[0].packet["type"] == "screenshot/v1"
+    assert shots[0].packet["label"] == "queue"
+    assert shots[0].packet["path"] == "shots/queue.png"
+    assert str(shots[0].task_id) == task
+
+
+def test_submit_screenshots_indexed_before_and_after():
+    """Submits index their before/after screenshots for the packet."""
+    from database.models.worker.evidence import Evidence
+
+    service, sessions = _service()
+    task = "11111111-1111-1111-1111-111111111111"
+    run = "00000000-0000-0000-0000-000000000000"
+    service.observe(
+        task,
+        run,
+        _action("browser_submit"),
+        {
+            "ok": True,
+            "payload": {
+                "ok": True,
+                "status": 201,
+                "effect": "replacement.create",
+                "before_screenshot": "shots/before.png",
+                "after_screenshot": "shots/after.png",
+            },
+            "mutated": True,
+            "mutation_key": "k",
+        },
+    )
+    shots = [row for session in sessions for row in session.rows if isinstance(row, Evidence)]
+    assert [(shot.packet["label"], shot.packet["path"]) for shot in shots] == [
+        ("before-submit", "shots/before.png"),
+        ("after-submit", "shots/after.png"),
+    ]

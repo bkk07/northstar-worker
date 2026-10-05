@@ -9,4 +9,13 @@ def verify(state: WorkerState) -> dict:
     if "verification" in state:
         return {}
     outcome = wiring.verifier_adapter().verify(state.get("contract", {}), state.get("run_id", ""))
+    verdict = outcome.get("verdict", "") if isinstance(outcome, dict) else ""
+    wiring.audit_emitter().emit(
+        state["task_id"],
+        state.get("run_id", ""),
+        "verify",
+        "verification.result",
+        verification_result=verdict,
+        payload={"verdict": verdict},
+    )
     return {"verification": outcome}

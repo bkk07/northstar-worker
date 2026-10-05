@@ -24,8 +24,11 @@ from app.api.ops import (
 from app.api.worker import (
     approval_controller,
     clarification_controller,
+    events_controller,
+    evidence_controller,
     memory_controller,
     task_controller,
+    verification_controller,
 )
 from app.core.exceptions import AppError, app_error_handler
 
@@ -55,6 +58,9 @@ def create_app() -> FastAPI:
     app.include_router(approval_controller.router)
     app.include_router(clarification_controller.router)
     app.include_router(memory_controller.router)
+    app.include_router(events_controller.router)
+    app.include_router(evidence_controller.router)
+    app.include_router(verification_controller.router)
     return app
 
 

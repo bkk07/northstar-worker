@@ -9,6 +9,17 @@ def execute(state: WorkerState) -> dict:
     action = dict(state.get("last_action", {}))
     attempts = action.get("attempts", 0)
     result = wiring.execution_service().execute(state["task_id"], state["run_id"], action)
+    wiring.audit_emitter().emit(
+        state["task_id"],
+        state.get("run_id", ""),
+        "execute",
+        "tool.call",
+        tool=action.get("tool", ""),
+        payload={
+            "action_id": str(result.action_id),
+            "mutation_key": str(result.mutation_key or ""),
+        },
+    )
     return {
         "last_action": {
             **action,
