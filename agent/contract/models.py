@@ -53,3 +53,7 @@ class Contract(BaseModel):
         default_factory=dict,
         description="Verifier scope: customer/order/ticket ID lists",
     )
+    policy_scope: dict = Field(
+        default_factory=dict,
+        description="Policy scope: the bindings P-CAP/P-OWN enforce",
+    )

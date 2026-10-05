@@ -55,59 +55,85 @@ def _load_env() -> None:
             os.environ.setdefault(name.strip(), value.strip())
 
 
+def _port_open(port: int) -> bool:
+    try:
+        with socket.create_connection(("127.0.0.1", port), timeout=1):
+            return True
+    except OSError:
+        return False
+
+
 @pytest.fixture(scope="module")
-def live_stack(monkeypatch):
+def live_stack():
     """Backend + MCP + frontend subprocesses with a shared policy secret."""
     _needs_live()
     _load_env()
-    monkeypatch.setenv("MCP_URL", f"http://127.0.0.1:{MCP_PORT}")
-    monkeypatch.setenv("POLICY_TOKEN_SECRET", SHARED_SECRET)
-    monkeypatch.setenv("HEADLESS", "1")
+    saved = {key: os.environ.get(key) for key in ("MCP_URL", "POLICY_TOKEN_SECRET", "HEADLESS")}
+    os.environ["MCP_URL"] = f"http://127.0.0.1:{MCP_PORT}"
+    os.environ["POLICY_TOKEN_SECRET"] = SHARED_SECRET
+    os.environ["HEADLESS"] = "1"
     pythonpath = os.pathsep.join([str(REPO_ROOT), str(REPO_ROOT / "common")])
+    spawned = []
 
-    backend = subprocess.Popen(
-        [
-            sys.executable,
-            "-m",
-            "uvicorn",
-            "app.main:app",
-            "--host",
-            "127.0.0.1",
-            "--port",
-            str(BACKEND_PORT),
-        ],
-        cwd=REPO_ROOT / "backend",
-        env={**os.environ, "PYTHONPATH": pythonpath},
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    mcp_env = dict(os.environ)
-    mcp_env["PYTHONPATH"] = pythonpath
-    mcp_env["MCP_PORT"] = str(MCP_PORT)
-    mcp_env["POLICY_TOKEN_SECRET"] = SHARED_SECRET
-    mcp = subprocess.Popen(
-        [sys.executable, "-m", "mcp_server.server"],
-        cwd=REPO_ROOT,
-        env=mcp_env,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    frontend = subprocess.Popen(
-        [
-            "npm.cmd",
-            "run",
-            "dev",
-            "--",
-            "--port",
-            str(FRONTEND_PORT),
-            "--host",
-            "127.0.0.1",
-            "--strictPort",
-        ],
-        cwd=REPO_ROOT / "frontend",
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+    def _ensure(port, make):
+        if _port_open(port):
+            return None
+        proc = make()
+        spawned.append(proc)
+        return proc
+
+    def _backend():
+        return subprocess.Popen(
+            [
+                sys.executable,
+                "-m",
+                "uvicorn",
+                "app.main:app",
+                "--host",
+                "127.0.0.1",
+                "--port",
+                str(BACKEND_PORT),
+            ],
+            cwd=REPO_ROOT / "backend",
+            env={**os.environ, "PYTHONPATH": pythonpath},
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+    def _mcp():
+        env = dict(os.environ)
+        env["PYTHONPATH"] = pythonpath
+        env["MCP_PORT"] = str(MCP_PORT)
+        env["POLICY_TOKEN_SECRET"] = SHARED_SECRET
+        return subprocess.Popen(
+            [sys.executable, "-m", "mcp_server.server"],
+            cwd=REPO_ROOT,
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+    def _frontend():
+        return subprocess.Popen(
+            [
+                "npm.cmd",
+                "run",
+                "dev",
+                "--",
+                "--port",
+                str(FRONTEND_PORT),
+                "--host",
+                "127.0.0.1",
+                "--strictPort",
+            ],
+            cwd=REPO_ROOT / "frontend",
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+    _ensure(BACKEND_PORT, _backend)
+    _ensure(MCP_PORT, _mcp)
+    _ensure(FRONTEND_PORT, _frontend)
     try:
         _wait_for_port(BACKEND_PORT)
         _wait_for_port(MCP_PORT)
@@ -117,13 +143,18 @@ def live_stack(monkeypatch):
             "mcp": f"http://127.0.0.1:{MCP_PORT}",
         }
     finally:
-        for proc in (frontend, mcp, backend):
+        for proc in spawned:
             proc.terminate()
-        for proc in (frontend, mcp, backend):
+        for proc in spawned:
             try:
                 proc.wait(timeout=20)
             except subprocess.TimeoutExpired:
                 proc.kill()
+        for key, value in saved.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
 
 
 def _operator_headers():

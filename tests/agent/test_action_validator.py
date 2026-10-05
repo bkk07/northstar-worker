@@ -40,6 +40,25 @@ def test_unknown_tool_rejected():
     assert any("unknown tool" in err for err in outcome.errors)
 
 
+def test_missing_required_params_rejected():
+    """Param-less reads fail validation (correction loop, not dispatch)."""
+    outcome = validate_action(
+        {"tool": "get_order", "params": {}, "rationale": "look"},
+        _contract(),
+    )
+    assert not outcome.valid
+    assert any("order_id" in err for err in outcome.errors)
+
+
+def test_bound_read_passes():
+    """Fully-bound reads validate (the live loop's bread and butter)."""
+    outcome = validate_action(
+        {"tool": "get_order", "params": {"order_id": "o-1942"}, "rationale": "look"},
+        _contract(),
+    )
+    assert outcome.valid
+
+
 def test_out_of_scope_capability_rejected():
     """A replacement-scoped task cannot submit a refund form."""
     outcome = validate_action(

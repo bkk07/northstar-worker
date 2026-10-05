@@ -31,7 +31,7 @@ class Action(UUIDPk, Base):
     tool: Mapped[str] = mapped_column(String(64), nullable=False)
     params: Mapped[dict] = mapped_column(JSONB, nullable=False)
     params_hash: Mapped[str] = mapped_column(String(64), nullable=False)
-    mutation_key: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True)
+    mutation_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
     side_effect: Mapped[str] = mapped_column(String(16), nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
     policy_decision_id: Mapped[uuid.UUID | None] = mapped_column(

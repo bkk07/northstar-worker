@@ -217,3 +217,32 @@ def test_amount_traceability():
         validate_amount_traceable(10000000, [250000])
     with pytest.raises(UntraceableAmountError):
         validate_amount_traceable(0, [0])
+
+
+def test_policy_scope_matches_enforced_bindings():
+    """policy_scope locks exactly what P-CAP/P-OWN enforce (Phase 15)."""
+    interpretation = _interpretation(requested_effects=["replacement.create"])
+    contract = compile_contract(
+        TASK,
+        "Replace the damaged ProBook laptop on order ORD-1942 (ticket TCK-101).",
+        interpretation,
+        _resolution(),
+        [],
+    )
+    assert contract.status == "ok"
+    assert contract.policy_scope == {
+        "customer_id": "c-101",
+        "order_id": "o-1942",
+        "ticket_id": "t-101",
+        "capabilities": contract.capabilities,
+        "effects": ["replacement.create"],
+    }
+
+
+def test_policy_scope_present_on_parked_contracts():
+    """Ambiguous contracts lock scope too (clarification cannot widen it)."""
+    interpretation = _interpretation(requested_effects=[], goal="cancel it")
+    contract = compile_contract("t-2", "cancel my order", interpretation, _resolution(), [])
+    assert contract.status in ("ambiguous", "unsupported")
+    assert contract.policy_scope["capabilities"] == contract.capabilities
+    assert contract.policy_scope["effects"] == []

@@ -54,7 +54,10 @@ class _FakeHttp:
         self.calls += 1
         self.request_path = path
         self.request_json = json
-        return self._responses.pop(0)
+        played = self._responses.pop(0)
+        if isinstance(played, Exception):
+            raise played
+        return played
 
 
 def _client(responses, **overrides):
@@ -122,10 +125,22 @@ def test_exhausted_retries_raise():
 
 
 def test_http_error_raises_immediately():
-    """Transport/server failures raise; the router owns retry policy."""
+    """Auth failures raise at once (retries never help a bad key)."""
     client = _client([_FakeResponse(401, "bad key")])
     with pytest.raises(LLMError, match="HTTP 401"):
         client.propose(EchoSchema, "sys", "user")
+
+
+def test_transport_blip_retries_then_succeeds():
+    """Flaky reads retry inside the call (runs survive API blips)."""
+    import httpx
+
+    client = _client(
+        [httpx.ReadTimeout("slow"), _FakeResponse(200, _completion('{"word": "ok", "n": 1}'))],
+        max_retries=2,
+    )
+    assert client.propose(EchoSchema, "sys", "user").word == "ok"
+    assert client._http.calls == 2
 
 
 @pytest.mark.llm

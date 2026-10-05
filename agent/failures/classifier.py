@@ -21,7 +21,11 @@ def classify(signals: FailureSignals) -> str:
     text = signals.error_text
     exception = signals.exception
 
-    if _mentions(text, exception, ("token_denied", "capability_denied", "policy")):
+    if _mentions(
+        text,
+        exception,
+        ("token_denied", "capability_denied", "policy_blocked", "not permitted"),
+    ):
         return taxonomy.POLICY_BLOCKED
     if _mentions(text, exception, ("guard", "url guard", "outside the url guard")):
         return taxonomy.GUARD_VIOLATION
@@ -33,13 +37,13 @@ def classify(signals: FailureSignals) -> str:
         return taxonomy.SESSION_EXPIRED
     if signals.status == 403 or "forbidden" in text:
         return taxonomy.FORBIDDEN
-    if signals.status == 404 or _mentions(text, exception, ("not found", "no such")):
+    if signals.status == 404 or _mentions(text, exception, ("not found", "not_found", "no such")):
         return taxonomy.NOT_FOUND
     if signals.status == 409 or _mentions(
         text, exception, ("conflict", "duplicate", "already has an active", "already used")
     ):
         return taxonomy.CONFLICT_DUPLICATE
-    if signals.status == 422 or "validation" in text:
+    if signals.status == 422 or _mentions(text, exception, ("validation", "rejected", "allowlist")):
         return taxonomy.VALIDATION_ERROR
     if _mentions(text, exception, ("stalereference", "stale", "page moved")):
         return taxonomy.STALE_REFERENCE

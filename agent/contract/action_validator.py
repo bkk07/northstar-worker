@@ -29,6 +29,24 @@ SUBMIT_OPERATIONAL_KEYS = frozenset({"ref", "mutation_key", "token"})
 # Binding keys: when present, they must equal the locked contract.
 BINDING_KEYS = frozenset({"order_id", "ticket_id", "customer_id", "order_item_id", "amount_paise"})
 
+# Required params per tool: proposals missing these fail validation and
+# enter the correction loop (decide fixes them) instead of dying in
+# dispatch and burning recovery retries on an unfixable action.
+REQUIRED_PARAMS: dict[str, frozenset[str]] = {
+    "search_customer": frozenset({"q"}),
+    "get_customer": frozenset({"customer_id"}),
+    "search_order": frozenset({"customer_id"}),
+    "get_order": frozenset({"order_id"}),
+    "get_ticket": frozenset({"ticket_id"}),
+    "get_policy": frozenset({"rule_key"}),
+    "api_get": frozenset({"path"}),
+    "inspect_state": frozenset({"kind", "key"}),
+    "browser_navigate": frozenset({"route"}),
+    "browser_click": frozenset({"ref"}),
+    "browser_fill": frozenset({"ref"}),
+    "browser_submit": frozenset({"ref", "effect"}),
+}
+
 
 class ActionValidationError(NorthstarError):
     """A proposal failed schema, capability, or binding checks."""
@@ -91,6 +109,9 @@ def validate_action(action: dict, contract: Contract) -> ValidationOutcome:
     capability_error = _check_capability(meta.capability, contract)
     if capability_error is not None:
         return ValidationOutcome(valid=False, errors=[capability_error])
+    params_error = _check_required_params(proposal)
+    if params_error is not None:
+        return ValidationOutcome(valid=False, errors=[params_error])
     ref_error = _check_refs(proposal)
     if ref_error is not None:
         return ValidationOutcome(valid=False, errors=[ref_error])
@@ -130,6 +151,17 @@ def _validate_submit(proposal: NextAction, contract: Contract) -> ValidationOutc
 def _check_capability(capability: str, contract: Contract) -> str | None:
     if capability not in contract.capabilities:
         return f"capability: task lacks {capability!r}"
+    return None
+
+
+def _check_required_params(proposal: NextAction) -> str | None:
+    missing = [
+        key
+        for key in REQUIRED_PARAMS.get(proposal.tool, frozenset())
+        if proposal.params.get(key) in (None, "")
+    ]
+    if missing:
+        return f"params: {proposal.tool} needs {sorted(missing)}"
     return None
 
 

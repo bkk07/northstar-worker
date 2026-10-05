@@ -64,6 +64,17 @@ def snapshot_scope(contract: Contract) -> dict:
     return scope
 
 
+def policy_scope(contract: Contract) -> dict:
+    """Policy scope: exactly what P-CAP-001/P-OWN-001 enforce (Phase 15)."""
+    return {
+        "customer_id": contract.customer_id,
+        "order_id": contract.order_id,
+        "ticket_id": contract.ticket_id,
+        "capabilities": list(contract.capabilities),
+        "effects": [effect.effect for effect in contract.effects],
+    }
+
+
 def compile_contract(
     task_id: str,
     task_text: str,
@@ -106,6 +117,7 @@ def compile_contract(
         status="ok",
     )
     contract.snapshot_scope = snapshot_scope(contract)
+    contract.policy_scope = policy_scope(contract)
     return contract
 
 
@@ -232,6 +244,7 @@ def _ambiguous(
         status="ambiguous",
     )
     contract.snapshot_scope = snapshot_scope(contract)
+    contract.policy_scope = policy_scope(contract)
     return contract
 
 
@@ -256,4 +269,5 @@ def _unsupported(
         status="unsupported",
     )
     contract.snapshot_scope = snapshot_scope(contract)
+    contract.policy_scope = policy_scope(contract)
     return contract

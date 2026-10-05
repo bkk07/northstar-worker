@@ -84,3 +84,58 @@ def test_unknown_tool_raises_without_journal():
         service.execute(
             "t", "00000000-0000-0000-0000-000000000000", {"tool": "delete_everything", "params": {}}
         )
+
+
+class _NullJournal:
+    """Journal double: hands out handles, records finishes (no DB)."""
+
+    def start_action(self, *args, **kwargs):
+        from uuid import UUID
+
+        from agent.runtime.journal import StartedAction
+
+        _ = (args, kwargs)
+        return StartedAction(
+            action_id=UUID("00000000-0000-0000-0000-000000000001"),
+            seq=0,
+            mutation_key="k",
+        )
+
+    def begin_attempt(self, action_id):
+        from uuid import UUID
+
+        from agent.runtime.journal import AttemptHandle
+
+        return AttemptHandle(attempt_id=UUID("00000000-0000-0000-0000-000000000002"), attempt_no=1)
+
+    def end_attempt(self, *args, **kwargs):
+        _ = (args, kwargs)
+
+    def finish_action(self, *args, **kwargs):
+        _ = (args, kwargs)
+
+
+def test_missing_session_opens_and_retries_once():
+    """First browser touch opens the session (observe-before-open works)."""
+    service, _ = _service()
+    calls = {"observe": 0, "opened": 0}
+
+    class _Sessionless:
+        def browser_observe(self, task_id):
+            calls["observe"] += 1
+            if calls["observe"] == 1:
+                raise RuntimeError(f"no session {task_id!r}")
+            return {"url": "http://x/ops", "refs": {}}
+
+        def browser_open(self, task_id, target="ops", headless=True):
+            calls["opened"] += 1
+            _ = (target, headless)
+            return {"url": "http://x/ops", "refs": {}}
+
+    service._gateway = _Sessionless()
+    service._journal = _NullJournal()
+    result = service.execute(
+        "t", "00000000-0000-0000-0000-000000000000", {"tool": "browser_observe", "params": {}}
+    )
+    assert result.ok is True
+    assert (calls["observe"], calls["opened"]) == (2, 1)

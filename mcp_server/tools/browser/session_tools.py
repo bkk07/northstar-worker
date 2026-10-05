@@ -73,8 +73,23 @@ def _navigate_impl(task_id: str, route: str) -> dict:
     args = BrowserNavigateInput(task_id=task_id, route=route)
     context.store().check(args.task_id, "browser")
     session = context.browser_manager().get(args.task_id)
+    if _same_path(session, args.route):
+        return _observe_dict(args.task_id, session)
     session.navigate(args.route)
     return _observe_dict(args.task_id, session)
+
+
+def _same_path(session, route: str) -> bool:
+    """True when the session already shows the target path (no-op)."""
+    from urllib.parse import urlparse
+
+    try:
+        current = urlparse(session._page.url).path or "/"
+    except Exception:
+        return False
+    return current.rstrip("/") == route.rstrip("/") or current.rstrip("/").endswith(
+        route.rstrip("/")
+    )
 
 
 async def browser_navigate(task_id: str, route: str) -> dict:

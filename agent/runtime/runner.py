@@ -36,9 +36,9 @@ TERMINAL_MAP = {
 
 RUNNER_OWNER = "runner-single-process"
 
-# Hard ceiling on node transitions per run (read-loop backstop; the
-# decide correction loop and validation bound fire first).
-MAX_RUN_STEPS = 60
+# Hard ceiling on node transitions per run (backstop behind the §19
+# budgets; one loop iteration costs several node visits).
+MAX_RUN_STEPS = 400
 
 
 class Runner:
@@ -184,8 +184,10 @@ class Runner:
     def _track_budget(self, merged: dict, node: str, wall_start: float) -> None:
         """Fold this transition into the state's budget counters."""
         entry = merged.setdefault("budgets", {})
+        entry.setdefault("limits", _limit_overrides())
         used = entry.setdefault("used", {})
-        used["iterations"] = used.get("iterations", 0) + 1
+        if node == "decide":
+            used["iterations"] = used.get("iterations", 0) + 1
         if node == "execute":
             used["tool_calls"] = used.get("tool_calls", 0) + 1
         if node == "recover":
@@ -218,6 +220,28 @@ class Runner:
             session.commit()
         finally:
             session.close()
+
+
+def _limit_overrides() -> dict:
+    """Env-tunable limits (defaults stay §19; live runs allow more room)."""
+    import os
+
+    overrides: dict = {}
+    for name, env in (
+        ("iterations", "BUDGET_ITERATIONS"),
+        ("tool_calls", "BUDGET_TOOL_CALLS"),
+        ("retries_per_action", "BUDGET_RETRIES_PER_ACTION"),
+        ("total_retries", "BUDGET_TOTAL_RETRIES"),
+        ("recovery_attempts", "BUDGET_RECOVERY_ATTEMPTS"),
+        ("runtime_s", "BUDGET_RUNTIME_S"),
+    ):
+        raw = os.environ.get(env)
+        if raw:
+            try:
+                overrides[name] = float(raw)
+            except ValueError:
+                pass
+    return overrides
 
 
 def _terminal_for(merged: dict) -> TaskState:

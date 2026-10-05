@@ -13,6 +13,15 @@ def test_verified_maps_to_succeeded():
     assert final_status(state) == "succeeded"
 
 
+def test_decided_status_survives_summary():
+    """Runner-decided terminals are never recomputed (no fake DONE)."""
+    assert final_status(_state(status="failed")) == "failed"
+    assert final_status(_state(status="blocked")) == "blocked"
+    lines = summarize(_state(status="failed", failure={"type": "network_error"}))
+    assert lines[0].startswith("FAILED")
+    assert "network_error" in lines[1]
+
+
 def test_policy_block_maps_to_blocked():
     """BLOCK ends without touching tools."""
     state = _state(policy_decision={"outcome": "block", "rule_id": "P-REF-004"})

@@ -13,6 +13,8 @@ TERMINAL_STATUSES = ("succeeded", "failed", "blocked", "inconclusive")
 
 def final_status(state: Mapping) -> str:
     """Fold the decided outcome into a terminal status (deterministic)."""
+    if state.get("status") in TERMINAL_STATUSES:
+        return str(state["status"])
     if state.get("approval_status") == "rejected":
         return "blocked"
     if state.get("policy_decision", {}).get("outcome") == "block":
@@ -28,7 +30,7 @@ def final_status(state: Mapping) -> str:
         return "inconclusive"
     if verdict == "verified":
         return "succeeded"
-    return "succeeded"
+    return "inconclusive"
 
 
 def summarize(state: Mapping) -> list[str]:
@@ -45,8 +47,15 @@ def summarize(state: Mapping) -> list[str]:
         "blocked": "BLOCKED",
         "inconclusive": "INCONCLUSIVE",
     }[status]
-    verdict = str(state.get("verification", {}).get("verdict", "no verification"))
-    detail = f"{rule}: {reason}" if rule else verdict
+    failure = state.get("failure", {})
+    if status == "failed" and failure.get("type"):
+        detail = f"{failure['type']}: {state.get('error', failure.get('type'))}"
+    elif status == "failed" and state.get("error"):
+        detail = str(state["error"])[:300]
+    elif rule:
+        detail = f"{rule}: {reason}"
+    else:
+        detail = str(state.get("verification", {}).get("verdict", "no verification"))
     next_step = {
         "succeeded": "No action needed; see the journal for the committed effects.",
         "failed": "Inspect the failure type and retry or escalate to an operator.",

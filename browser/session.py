@@ -133,7 +133,10 @@ class BrowserSession:
         self._require_started()
         url = path if "://" in path else f"{self.frontend_origin}{path}"
         if not route_guard.is_navigation_allowed(url, self.frontend_origin):
-            raise GuardViolation(f"navigation blocked by URL guard: {url}")
+            raise GuardViolation(
+                f"navigation blocked by URL guard: {url} "
+                "(navigate to /ops or /shop paths only, e.g. /ops/tickets/TCK-101)"
+            )
         try:
             self._page.goto(url, timeout=self.navigation_timeout_ms)
         except PlaywrightTimeoutError as exc:

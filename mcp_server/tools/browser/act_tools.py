@@ -97,12 +97,23 @@ def _submit_impl(task_id: str, ref: str, mutation_key: str, token: str, params: 
 
     page.route("**/api/ops/**", inject_key)
     try:
-        with page.expect_response(
-            lambda response: "/api/ops/" in response.url and response.request.method == "POST",
-            timeout=session.action_timeout_ms,
-        ) as response_info:
-            session.click(args.ref)
-        response = response_info.value
+        try:
+            with page.expect_response(
+                lambda response: "/api/ops/" in response.url and response.request.method == "POST",
+                timeout=session.action_timeout_ms,
+            ) as response_info:
+                session.click(args.ref)
+            response = response_info.value
+        except Exception as exc:
+            from playwright.sync_api import TimeoutError as PlaywrightTimeout
+
+            if isinstance(exc, PlaywrightTimeout):
+                raise RuntimeError(
+                    f"no commit POST fired for {effect!r}: the ref is not an open "
+                    "confirm button (open the ticket form, fill it, press Review, "
+                    "then submit the Confirm button's ref)"
+                ) from exc
+            raise
         try:
             body = response.text()[:2000]
         except Exception:

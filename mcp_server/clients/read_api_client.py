@@ -47,11 +47,13 @@ class ReadApiClient:
         return self._get(f"/api/read/tickets/{ticket_id}")
 
     def get_policy(self, rule_key: str):
-        """One policy rule by key."""
-        for policy in self._get("/api/read/policies"):
+        """One policy rule by key (unknown keys list what exists)."""
+        policies = self._get("/api/read/policies")
+        for policy in policies:
             if policy.get("rule_key") == rule_key:
                 return policy
-        raise LookupError(f"not_found: policy {rule_key}")
+        known = sorted(str(p.get("rule_key", "")) for p in policies)
+        raise LookupError(f"not_found: policy {rule_key} (known: {', '.join(known)})")
 
     def probe_mutation(self, key: str) -> dict:
         """Probe an idempotency key."""
@@ -68,5 +70,8 @@ class ReadApiClient:
     def api_get(self, path: str, params: dict | None = None):
         """Fallback GET restricted to the read allowlist."""
         if not path.startswith(ALLOWED_PREFIXES):
-            raise PermissionError(f"rejected: path outside read allowlist: {path}")
+            raise PermissionError(
+                f"rejected: path outside read allowlist: {path} "
+                f"(allowed prefixes: {', '.join(ALLOWED_PREFIXES)})"
+            )
         return self._get(path, params)

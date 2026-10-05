@@ -22,5 +22,6 @@ def decide(state: WorkerState) -> dict:
         state.get("last_observation", {}),
         state.get("validation_error", ""),
         state.get("validation_failures", 0),
+        state.get("task_text", ""),
     )
     return {"last_action": action.model_dump()}

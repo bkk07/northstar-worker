@@ -34,6 +34,7 @@ CASES = [
     ("browser_observe", None, "timeout waiting for response", taxonomy.TIMEOUT),
     ("get_ticket", None, "ActionTimeout", taxonomy.TIMEOUT),
     ("browser_submit", 422, "validation failed: amount is invalid", taxonomy.VALIDATION_ERROR),
+    ("api_get", None, "rejected: path outside read allowlist", taxonomy.VALIDATION_ERROR),
     ("get_order", 404, "not found", taxonomy.NOT_FOUND),
     (
         "browser_submit",

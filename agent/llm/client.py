@@ -129,7 +129,7 @@ class MercuryClient:
         self._http.close()
 
     def propose(self, model_cls: type[T], system: str, user: str) -> T:
-        """One schema-valid proposal (retries malformed JSON, then raises)."""
+        """One schema-valid proposal (retries transport + malformed JSON)."""
         messages = [
             {"role": "system", "content": system},
             {"role": "user", "content": user},
@@ -137,7 +137,13 @@ class MercuryClient:
         attempts = 1 + max(0, self._config.max_retries)
         last_error = "no attempts made"
         for attempt in range(attempts):
-            content = self._chat(messages, model_cls)
+            try:
+                content = self._chat(messages, model_cls)
+            except LLMError as exc:
+                last_error = f"attempt {attempt + 1}: {exc}"
+                if not _retryable(exc) or attempt + 1 >= attempts:
+                    raise
+                continue
             try:
                 data = json.loads(content)
             except (TypeError, ValueError) as exc:
@@ -174,6 +180,14 @@ class MercuryClient:
             return body["choices"][0]["message"]["content"]
         except (ValueError, KeyError, IndexError, TypeError) as exc:
             raise LLMError(f"unreadable chat payload: {exc}") from exc
+
+
+def _retryable(exc: LLMError) -> bool:
+    """Retry transport blips and server-side 5xx/429 (never 4xx/auth)."""
+    text = str(exc)
+    if text.startswith("transport error"):
+        return True
+    return any(code in text for code in ("HTTP 429", "HTTP 500", "HTTP 502", "HTTP 503"))
 
 
 def _repair_nudge(messages: list[dict[str, str]], error: str) -> list[dict[str, str]]:

@@ -115,24 +115,13 @@ class ExecutionService:
         try:
             payload = self._dispatch(task_id, tool, params, started.mutation_key)
         except Exception as exc:
-            error = str(exc) or type(exc).__name__
-            provisional = {"ok": False, "error": error, "error_type": type(exc).__name__}
-            failure_type, _ = classify_failure({"tool": tool, "params": params}, provisional, {})
-            self._journal.end_attempt(
-                attempt.attempt_id,
-                "error",
-                _journal_observation(tool, {}, error),
-                failure_type,
-            )
-            self._journal.finish_action(started.action_id, "failed")
-            return ExecutionResult(
-                action_id=str(started.action_id),
-                seq=started.seq,
-                mutation_key=started.mutation_key,
-                ok=False,
-                error=error,
-                error_type=type(exc).__name__,
-            )
+            if self._ensure_open_and_retry(task_id, tool, params, action):
+                try:
+                    payload = self._dispatch(task_id, tool, params, started.mutation_key)
+                except Exception as retry_exc:
+                    return self._fail(started, attempt, tool, params, retry_exc)
+            else:
+                return self._fail(started, attempt, tool, params, exc)
         succeeded = bool(payload.get("ok", True))
         mutated = tool == "browser_submit" and succeeded
         result_view = {
@@ -159,6 +148,43 @@ class ExecutionService:
             payload=payload,
             mutated=mutated,
         )
+
+    def _fail(self, started, attempt, tool: str, params: dict, exc: Exception) -> ExecutionResult:
+        """Journal a failed attempt and return the classified result."""
+        error = str(exc) or type(exc).__name__
+        provisional = {"ok": False, "error": error, "error_type": type(exc).__name__}
+        failure_type, _ = classify_failure({"tool": tool, "params": params}, provisional, {})
+        self._journal.end_attempt(
+            attempt.attempt_id,
+            "error",
+            _journal_observation(tool, {}, error),
+            failure_type,
+        )
+        self._journal.finish_action(started.action_id, "failed")
+        return ExecutionResult(
+            action_id=str(started.action_id),
+            seq=started.seq,
+            mutation_key=started.mutation_key,
+            ok=False,
+            error=error,
+            error_type=type(exc).__name__,
+        )
+
+    def _ensure_open_and_retry(self, task_id: str, tool: str, params: dict, action: dict) -> bool:
+        """Open a missing browser session, then let the caller retry once.
+
+        Reads/clicks/fills before any `browser_open` die on the missing
+        session; reopening is read-only navigation, so one blind retry is
+        safe. Submits and opens never take this path.
+        """
+        if action.get("_ensured_open") or tool in ("browser_open", "browser_submit"):
+            return False
+        action["_ensured_open"] = True
+        try:
+            self._gateway.browser_open(task_id)
+        except Exception:
+            pass
+        return True
 
     def _search_before_create(self, task_id: str, params: dict) -> dict | None:
         """Adopt an existing entity for this effect (None when absent).

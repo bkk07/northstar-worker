@@ -84,7 +84,15 @@ def main() -> None:
 def _progress(node: str, state: dict) -> None:
     """Live node trace (the graph is silent otherwise)."""
     action = state.get("last_action", {})
-    print(f"[{node}] action={action.get('tool', '')} cursor={state.get('cursor', '')}", flush=True)
+    extra = ""
+    if state.get("validation_error"):
+        extra = f" invalid={state['validation_error'][:120]}"
+    if state.get("failure", {}).get("type"):
+        extra = f" failure={state['failure']['type']}"
+    print(
+        f"[{node}] action={action.get('tool', '')} cursor={state.get('cursor', '')}{extra}",
+        flush=True,
+    )
 
 
 def _print_journal(task_id: str, run_id: str) -> None:
