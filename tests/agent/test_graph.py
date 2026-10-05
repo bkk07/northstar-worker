@@ -148,6 +148,24 @@ class _EmptyFacts:
     """No facts needed: the fake policy ignores them."""
 
 
+class _FakeApproval:
+    """Always parked (topology only, no database)."""
+
+    def evaluate(self, task_id, run_id, action, decision):
+        """Mirror the service shape without side effects."""
+        _ = (task_id, run_id, action, decision)
+        return {"approval_status": "pending", "approval_ref": {"id": "ap1"}}
+
+
+class _FakeClarification:
+    """Always parked (topology only, no database)."""
+
+    def evaluate(self, task_id, question, kind="operator", customer_reply=None):
+        """Mirror the service shape without side effects."""
+        _ = (task_id, question, kind, customer_reply)
+        return {"clarification_status": "pending", "clarification_ref": {"id": "c1"}}
+
+
 class _FakeVerifier:
     """No database: snapshot is a no-op, verify always proves (topology only)."""
 
@@ -175,6 +193,8 @@ def _fake_wiring(monkeypatch):
     monkeypatch.setattr(wiring, "observation_service", lambda: _FakeObservation())
     monkeypatch.setattr(wiring, "finalization_service", lambda: _FakeFinalization())
     monkeypatch.setattr(wiring, "verifier_adapter", lambda: _FakeVerifier())
+    monkeypatch.setattr(wiring, "approval_service", lambda: _FakeApproval())
+    monkeypatch.setattr(wiring, "clarification_service", lambda: _FakeClarification())
     monkeypatch.setattr("agent.nodes.policy_check.gather_facts", lambda *args: _EmptyFacts())
 
 

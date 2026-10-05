@@ -28,6 +28,8 @@ if TYPE_CHECKING:
     from agent.adapters.verifier_adapter import VerifierAdapter
     from agent.runtime.audit_emitter import AuditEmitter
     from agent.runtime.runner import Runner
+    from agent.services.approval_service import ApprovalService
+    from agent.services.clarification_service import ClarificationService
     from agent.services.reconciliation_service import ReconciliationService
     from agent.services.recovery_service import RecoveryService
 
@@ -134,6 +136,24 @@ def verifier_adapter() -> "VerifierAdapter":
 
 def _verifier_session_factory() -> Session:
     return session_factory.session_for(session_factory.verifier_engine())
+
+
+def approval_service() -> "ApprovalService":
+    """Runner-role approval park/resume with token-on-consume (Phase 22)."""
+    from agent.services.approval_service import ApprovalService
+
+    return ApprovalService(
+        _session_factory,
+        os.environ.get("POLICY_TOKEN_SECRET", "local-policy-secret"),
+        system_clock(),
+    )
+
+
+def clarification_service() -> "ClarificationService":
+    """Runner-role clarification park/resume (Phase 22)."""
+    from agent.services.clarification_service import ClarificationService
+
+    return ClarificationService(_session_factory, system_clock())
 
 
 def _session_factory() -> Session:

@@ -252,6 +252,8 @@ def _terminal_for(merged: dict) -> TaskState:
     if merged.get("approval_status") == "pending":
         return TaskState.WAITING_FOR_APPROVAL
     if merged.get("clarification_status") == "pending":
+        if merged.get("waiting_on_customer"):
+            return TaskState.WAITING_ON_CUSTOMER
         return TaskState.WAITING_FOR_CLARIFICATION
     return TaskState.INCONCLUSIVE
 
