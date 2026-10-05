@@ -2,6 +2,7 @@
 
 import datetime
 import uuid
+from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
@@ -21,7 +22,7 @@ class Snapshot(UUIDPk, Base):
         PG_UUID(as_uuid=True), ForeignKey("worker.task_runs.id"), nullable=False
     )
     phase: Mapped[str] = mapped_column(String(16), nullable=False)
-    data: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    data: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
 
 
 class VerificationResult(UUIDPk, Base):
@@ -34,8 +35,8 @@ class VerificationResult(UUIDPk, Base):
         PG_UUID(as_uuid=True), ForeignKey("worker.task_runs.id"), nullable=False
     )
     verdict: Mapped[str] = mapped_column(String(32), nullable=False)
-    invariants: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
-    diff: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    invariants: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+    diff: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
     computed_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
@@ -48,5 +49,5 @@ class Evidence(UUIDPk, CreatedAt, Base):
     task_id: Mapped[uuid.UUID] = mapped_column(
         PG_UUID(as_uuid=True), ForeignKey("worker.tasks.id"), nullable=False
     )
-    packet: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    packet: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
     summary: Mapped[str] = mapped_column(Text, nullable=False)

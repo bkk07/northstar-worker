@@ -7,6 +7,7 @@ for all worker roles (Phase 4 grants); history is never rewritten.
 
 import datetime
 import uuid
+from typing import Any
 
 from sqlalchemy import BigInteger, DateTime, ForeignKey, Identity, Index, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
@@ -39,4 +40,4 @@ class AuditEvent(UUIDPk, Base):
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     policy_result: Mapped[str | None] = mapped_column(String(32), nullable=True)
     verification_result: Mapped[str | None] = mapped_column(String(32), nullable=True)
-    payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)

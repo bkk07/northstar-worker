@@ -2,6 +2,7 @@
 
 import datetime
 import uuid
+from typing import Any
 
 from sqlalchemy import DateTime, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
@@ -41,8 +42,8 @@ class FaultPlan(UUIDPk, Base):
 
     fault_type: Mapped[str] = mapped_column(String(64), nullable=False)
     target: Mapped[str] = mapped_column(String(200), nullable=False)
-    trigger: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
-    params: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    trigger: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+    params: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
     armed: Mapped[bool] = mapped_column(nullable=False, default=True)
     consumed_at: Mapped[datetime.datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

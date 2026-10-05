@@ -2,6 +2,7 @@
 
 import datetime
 import uuid
+from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, Index, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
@@ -67,7 +68,7 @@ class TaskCheckpoint(UUIDPk, Base):
     )
     seq: Mapped[int] = mapped_column(Integer, nullable=False)
     node: Mapped[str] = mapped_column(String(64), nullable=False)
-    state: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    state: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
 
 
 class TaskContract(UUIDPk, CreatedAt, Base):
@@ -79,6 +80,6 @@ class TaskContract(UUIDPk, CreatedAt, Base):
     task_id: Mapped[uuid.UUID] = mapped_column(
         PG_UUID(as_uuid=True), ForeignKey("worker.tasks.id"), nullable=False
     )
-    contract: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    contract: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
-    ambiguity: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    ambiguity: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)

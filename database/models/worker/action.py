@@ -5,6 +5,7 @@ Journal-first: STARTED rows exist before `execute`; nothing runs unlogged.
 
 import datetime
 import uuid
+from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, Index, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
@@ -29,7 +30,7 @@ class Action(UUIDPk, Base):
     seq: Mapped[int] = mapped_column(Integer, nullable=False)
     kind: Mapped[str] = mapped_column(String(64), nullable=False)
     tool: Mapped[str] = mapped_column(String(64), nullable=False)
-    params: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    params: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
     params_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     mutation_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
     side_effect: Mapped[str] = mapped_column(String(16), nullable=False)
@@ -62,4 +63,4 @@ class ActionAttempt(UUIDPk, Base):
     )
     outcome: Mapped[str | None] = mapped_column(String(32), nullable=True)
     error_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    observation: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    observation: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)

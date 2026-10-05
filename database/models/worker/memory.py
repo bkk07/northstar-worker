@@ -1,6 +1,7 @@
 """Run-scoped working memory with provenance (`worker.memory_items`)."""
 
 import uuid
+from typing import Any
 
 from sqlalchemy import Float, ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSONB
@@ -20,7 +21,7 @@ class MemoryItem(UUIDPk, CreatedAt, Base):
         PG_UUID(as_uuid=True), ForeignKey("worker.task_runs.id"), nullable=False
     )
     key: Mapped[str] = mapped_column(String(200), nullable=False)
-    value: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    value: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
     source_type: Mapped[str] = mapped_column(String(32), nullable=False)
     source_ref: Mapped[str | None] = mapped_column(String(200), nullable=True)
     trust: Mapped[str] = mapped_column(String(16), nullable=False)

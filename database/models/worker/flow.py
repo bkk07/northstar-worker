@@ -2,6 +2,7 @@
 
 import datetime
 import uuid
+from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSONB
@@ -29,7 +30,7 @@ class PolicyDecision(UUIDPk, Base):
     rule_id: Mapped[str] = mapped_column(String(32), nullable=False)
     outcome: Mapped[str] = mapped_column(String(32), nullable=False)
     reason: Mapped[str] = mapped_column(String(500), nullable=False)
-    params: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    params: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
     ts: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
@@ -49,7 +50,7 @@ class Approval(UUIDPk, CreatedAt, Base):
         PG_UUID(as_uuid=True), ForeignKey("worker.actions.id"), nullable=True
     )
     requested_action: Mapped[str] = mapped_column(String(64), nullable=False)
-    params: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    params: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
     params_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     reason: Mapped[str] = mapped_column(String(500), nullable=False)
     policy_rule_id: Mapped[str] = mapped_column(String(32), nullable=False)

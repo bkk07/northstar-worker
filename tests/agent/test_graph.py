@@ -148,6 +148,20 @@ class _EmptyFacts:
     """No facts needed: the fake policy ignores them."""
 
 
+class _FakeVerifier:
+    """No database: snapshot is a no-op, verify always proves (topology only)."""
+
+    def snapshot_before(self, contract, run_id):
+        """Pretend the before-snapshot persisted."""
+        _ = (contract, run_id)
+        return {}
+
+    def verify(self, contract, run_id):
+        """Always proved; red-team coverage lives in tests/verifier."""
+        _ = (contract, run_id)
+        return {"verdict": "verified", "invariants": [], "diff": {}}
+
+
 @pytest.fixture(autouse=True)
 def _fake_wiring(monkeypatch):
     """Pin Phase 13/14 services to marker-driven fakes for topology tests."""
@@ -160,6 +174,7 @@ def _fake_wiring(monkeypatch):
     monkeypatch.setattr(wiring, "execution_service", lambda: _FakeExecution())
     monkeypatch.setattr(wiring, "observation_service", lambda: _FakeObservation())
     monkeypatch.setattr(wiring, "finalization_service", lambda: _FakeFinalization())
+    monkeypatch.setattr(wiring, "verifier_adapter", lambda: _FakeVerifier())
     monkeypatch.setattr("agent.nodes.policy_check.gather_facts", lambda *args: _EmptyFacts())
 
 

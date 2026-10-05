@@ -25,6 +25,7 @@ from agent.services.validation_service import ValidationService
 from database import session as session_factory
 
 if TYPE_CHECKING:
+    from agent.adapters.verifier_adapter import VerifierAdapter
     from agent.runtime.audit_emitter import AuditEmitter
     from agent.runtime.runner import Runner
     from agent.services.reconciliation_service import ReconciliationService
@@ -122,6 +123,17 @@ def runner() -> "Runner":
 def new_runner_session() -> Session:
     """One short-lived `ns_runner` session (node persistence)."""
     return _session_factory()
+
+
+def verifier_adapter() -> "VerifierAdapter":
+    """Independent verification over the read-only role (Phase 21)."""
+    from agent.adapters.verifier_adapter import VerifierAdapter
+
+    return VerifierAdapter(_session_factory, _verifier_session_factory)
+
+
+def _verifier_session_factory() -> Session:
+    return session_factory.session_for(session_factory.verifier_engine())
 
 
 def _session_factory() -> Session:
