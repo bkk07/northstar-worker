@@ -90,6 +90,13 @@ class FakeGateway:
             raise RuntimeError("not_found")
         return {"result": order}
 
+    def get_order(self, task_id, order_id):
+        """One order by id (missing raises like the real client)."""
+        for order in WORLD["orders"].values():
+            if order["id"] == order_id:
+                return {"order": order}
+        raise RuntimeError("not_found: order")
+
 
 def _interpretation(**overrides):
     base = {
@@ -260,8 +267,14 @@ def test_j_unmappable_free_form_is_unsupported(task_id):
     assert contract.effects == []
 
 
-def test_ownership_mismatch_parks(task_id):
-    """Cross-customer triples park instead of mixing entities."""
+def test_ownership_mismatch_compiles_for_policy_block(task_id):
+    """Cross-customer triples compile ok; P-OWN-001 BLOCKs them (Phase 29).
+
+    Ownership conflicts are DB facts, not operator questions: the run
+    must reach the deterministic policy check and BLOCK with zero
+    commits, instead of parking for clarification (the S5/S17/S20 live
+    misses, where clarification replaced the BLOCK).
+    """
     service = _service(
         _interpretation(
             goal="replace",
@@ -272,8 +285,54 @@ def test_ownership_mismatch_parks(task_id):
     contract = service.build_contract(
         task_id, "Replace the item on order ORD-1943 (ticket TCK-105)."
     )
+    assert contract.status == "ok"
+    assert contract.ambiguity == []
+    assert contract.traceability["ownership_conflict"] == [
+        "ownership mismatch: ticket belongs to a different customer"
+    ]
+
+
+def test_ownership_mismatch_plus_unknown_code_parks(task_id):
+    """A conflict plus a genuinely unresolvable code still clarifies."""
+    service = _service(
+        _interpretation(
+            goal="replace",
+            requested_effects=["replacement.create"],
+            mentioned_codes=["ORD-1943", "TCK-105", "ORD-9999"],
+        )
+    )
+    contract = service.build_contract(
+        task_id, "Replace the items on orders ORD-1943 and ORD-9999 (ticket TCK-105)."
+    )
     assert contract.status == "ambiguous"
-    assert any("ownership" in item for item in contract.ambiguity)
+    assert any("unknown code" in item for item in contract.ambiguity)
+
+
+def test_ticket_only_task_follows_ticket_order(task_id):
+    """S5 shape: a ticket-only task binds the ticket's order (DB fact).
+
+    The payout then compiles `ok` with the ownership conflict recorded,
+    so the deterministic policy check BLOCKs (over-cap and cross-customer)
+    instead of the run parking for clarification.
+    """
+    service = _service(
+        _interpretation(
+            goal="payout",
+            requested_effects=["refund.create"],
+            mentioned_codes=["TCK-105"],
+        )
+    )
+    contract = service.build_contract(
+        task_id, "Process the Rs. 100,000 payout requested in ticket TCK-105."
+    )
+    assert contract.status == "ok"
+    assert contract.order_id == "o-1943"
+    assert contract.ticket_id == "t-105"
+    [effect] = contract.effects
+    assert effect.params["amount_paise"] == 10000000
+    assert contract.traceability["ownership_conflict"] == [
+        "ownership mismatch: ticket belongs to a different customer"
+    ]
 
 
 def test_contract_persists_with_status(task_id):

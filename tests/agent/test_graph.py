@@ -93,6 +93,11 @@ class _FakePolicy:
             return _PolicyResult("block", "P-REF-004", "stub")
         return _PolicyResult()
 
+    def pending_terminal_block(self, task_id, run_id, action, contract, gateway):
+        """Topology tests never hold minors (gate covered in policy tests)."""
+        _ = (task_id, run_id, action, contract, gateway)
+        return None
+
 
 class _PolicyResult:
     def __init__(self, outcome="allow", rule_id="P-NOTE-001", reason="stub", token=""):

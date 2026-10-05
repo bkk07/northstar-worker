@@ -1,7 +1,7 @@
 # Phase 2: quality gates. `make verify` runs lint, types, architecture and
 # unit tests (definition of done). Windows has no `make`; run the same
 # commands from `docs/how-to-run.md` instead.
-.PHONY: up down seed reset test lint verify
+.PHONY: up down seed reset test lint secret-scan verify
 
 up:
 	./scripts/dev_up.sh
@@ -27,4 +27,7 @@ lint:
 	python -m pytest tests/architecture -q
 	cd frontend && npm run lint && npm run typecheck
 
-verify: lint test
+secret-scan:
+	python scripts/secret_scan.py
+
+verify: lint secret-scan test

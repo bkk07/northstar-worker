@@ -99,7 +99,7 @@ Or via make (Unix): `make up`. Scripts: `scripts/dev_up.sh`,
 > `.env` must be canonical `KEY=value` lines (no quotes/semicolons) —
 > docker compose parses it strictly, unlike most app loaders.
 
-## 2. Gates (`make verify` = `make lint` + `make test`)
+## 2. Gates (`make verify` = `make lint` + `make secret-scan` + `make test`)
 
 | Gate | Command (Windows / no `make`) |
 |---|---|
@@ -107,6 +107,7 @@ Or via make (Unix): `make up`. Scripts: `scripts/dev_up.sh`,
 | mypy (strict on `common`, `verifier`) | `python -m mypy common/northstar_common verifier` |
 | import contracts (§8) | `$env:PYTHONPATH='.;backend;common'; lint-imports --config importlinter.ini` |
 | architecture tests | `python -m pytest tests/architecture -q` |
+| secret scan | `python scripts/secret_scan.py` |
 | backend tests | `python -m pytest -q` |
 | frontend lint/type/test | `npm run lint`, `npm run typecheck`, `npm run test` (from `frontend/`) |
 

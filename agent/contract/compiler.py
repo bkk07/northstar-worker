@@ -9,8 +9,11 @@ Outcome rules:
   outside the registry → `unsupported` (graph ends INCONCLUSIVE).
 - Cancellation language with a bound ticket but no clear effect mapping
   → `ambiguous` (scope question for the operator, oracle CLARIFY).
-- Unresolved entities, conflicting ownership, or untraceable amounts →
-  `ambiguous` (clarification), never a guess.
+- Unresolved entities or untraceable amounts → `ambiguous`
+  (clarification), never a guess.
+- Conflicting ownership (bound triple disagrees) is NOT a question: the
+  contract compiles `ok` with the conflict recorded in traceability, and
+  the deterministic policy check BLOCKs it (P-OWN-001) with zero commits.
 - Otherwise every effect is instantiated with bound IDs, validated
   against its registry schema, and the contract is `ok`.
 """
@@ -33,6 +36,9 @@ from agent.contract.validators import (
 )
 from agent.llm.schemas import Interpretation
 
+# Ownership conflicts compile `ok` for a deterministic policy BLOCK
+# (Phase 29): they are facts from DB reads, not questions for the operator.
+OWNERSHIP_PREFIX = "ownership mismatch:"
 # Cancellation without a mappable effect is a scope question (S4),
 # not an unsupported ask: the operator must say what "cancel" covers.
 CANCELLATION_HINTS = ("cancel", "cancellation", "void")
@@ -75,9 +81,13 @@ def policy_scope(contract: Contract) -> dict:
     }
 
 
-def traceability(operator_amounts_paise: list[int], resolution: EntityResolution) -> dict:
+def traceability(
+    operator_amounts_paise: list[int],
+    resolution: EntityResolution,
+    ownership_conflict: list[str] | None = None,
+) -> dict:
     """Fact provenance: amounts from the operator text, bindings from DB reads."""
-    return {
+    record = {
         "amounts_paise": [
             {"amount_paise": amount, "source": "operator_task_text"}
             for amount in operator_amounts_paise
@@ -89,6 +99,9 @@ def traceability(operator_amounts_paise: list[int], resolution: EntityResolution
         },
         "untrusted_inputs_ignored": ["ticket_body", "page_text"],
     }
+    if ownership_conflict:
+        record["ownership_conflict"] = list(ownership_conflict)
+    return record
 
 
 def compile_contract(
@@ -99,14 +112,19 @@ def compile_contract(
     operator_amounts_paise: list[int],
 ) -> Contract:
     """Bind one interpretation to a validated contract (or a safe end)."""
-    ambiguities = list(resolution.ambiguities)
-    ambiguities.extend(f"unknown code: {code}" for code in resolution.unmatched_codes)
+    ownership_conflicts = [
+        item for item in resolution.ambiguities if item.startswith(OWNERSHIP_PREFIX)
+    ]
+    hard_blocks = [item for item in resolution.ambiguities if not item.startswith(OWNERSHIP_PREFIX)]
+    hard_blocks.extend(f"unknown code: {code}" for code in resolution.unmatched_codes)
 
     unknown_effects = [name for name in interpretation.requested_effects if not _known_effect(name)]
     if interpretation.unsupported or not interpretation.requested_effects or unknown_effects:
         if _is_cancellation(task_text) and resolution.ticket is not None:
-            ambiguities.append("cancellation scope unclear: full order or single item?")
-            return _ambiguous(task_id, interpretation, resolution, ambiguities)
+            hard_blocks.append("cancellation scope unclear: full order or single item?")
+            return _ambiguous(
+                task_id, interpretation, resolution, hard_blocks + ownership_conflicts
+            )
         return _unsupported(task_id, interpretation, resolution, unknown_effects)
 
     effects: list[ExpectedEffect] = []
@@ -116,10 +134,10 @@ def compile_contract(
                 _instantiate(name, task_text, interpretation, resolution, operator_amounts_paise)
             )
         except (ContractValidationError, UntraceableAmountError) as exc:
-            ambiguities.append(str(exc))
+            hard_blocks.append(str(exc))
 
-    if ambiguities:
-        return _ambiguous(task_id, interpretation, resolution, ambiguities)
+    if hard_blocks:
+        return _ambiguous(task_id, interpretation, resolution, hard_blocks + ownership_conflicts)
     capabilities = list(BASE_CAPABILITIES) + sorted({effect.capability for effect in effects})
     contract = Contract(
         task_id=task_id,
@@ -134,7 +152,9 @@ def compile_contract(
     )
     contract.snapshot_scope = snapshot_scope(contract)
     contract.policy_scope = policy_scope(contract)
-    contract.traceability = traceability(operator_amounts_paise, resolution)
+    contract.traceability = traceability(
+        operator_amounts_paise, resolution, ownership_conflicts or None
+    )
     return contract
 
 

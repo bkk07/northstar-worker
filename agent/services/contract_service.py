@@ -3,8 +3,10 @@
 Resolution binds every human code in the operator text through read
 tools: customer codes via customer search, order/ticket codes via the shop
 reads (code-addressable), names via search with multi-match flagged.
-Ownership is cross-checked from DB facts — conflicts park for the
-operator instead of binding a mixed triple.
+Ownership is cross-checked from DB facts — conflicts compile into the
+contract (recorded in traceability) so the deterministic policy check
+BLOCKs them (P-OWN-001), instead of parking a decided question with the
+operator.
 
 Amounts are parsed from the operator text only (paise ints). Ticket or
 page text never contributes an amount: the compiler's allowlist is built
@@ -188,6 +190,40 @@ def _bind_ticket(
         }
     elif resolution.ticket.get("code") != ticket.get("code", code):
         resolution.ambiguities.append("task mentions more than one ticket")
+    _follow_ticket_order(task_id, gateway, resolution)
+
+
+def _follow_ticket_order(task_id: str, gateway: ToolGateway, resolution: EntityResolution) -> None:
+    """Bind the ticket's own order when the text names none (Phase 29).
+
+    The filing linkage is a DB fact, not a guess: a ticket-only task
+    (S5) still compiles to an `ok` contract so the deterministic policy
+    check decides (over-cap / ownership BLOCK) instead of the run
+    parking for clarification. Unresolvable linkage leaves the order
+    unbound, which clarifies safely downstream.
+    """
+    if resolution.order is not None:
+        return
+    order_id = (resolution.ticket or {}).get("order_id", "")
+    if not order_id:
+        return
+    try:
+        order = gateway.get_order(task_id, order_id).get("order", {})
+    except Exception:
+        return
+    if not order or not order.get("id"):
+        return
+    resolution.order = {
+        "id": order["id"],
+        "code": order.get("code", ""),
+        "customer_id": order.get("customer_id", ""),
+        "items": [
+            {"id": item["id"], "title": item.get("title", ""), "sku": item.get("sku", "")}
+            for item in order.get("items", [])
+            if isinstance(item, dict) and item.get("id")
+        ],
+    }
+    _bind_customer_from_order(task_id, gateway, resolution)
 
 
 def _cross_check_ownership(resolution: EntityResolution) -> None:

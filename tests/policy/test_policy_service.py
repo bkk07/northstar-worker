@@ -247,3 +247,199 @@ def test_policy_node_attaches_token(monkeypatch, run_ids):
 def test_clock_port_contract():
     """SystemClock satisfies the protocol the service depends on."""
     assert isinstance(wiring.system_clock(), ClockPort)
+
+
+def _note_action():
+    return {
+        "tool": "browser_submit",
+        "params": {
+            "effect": "ticket.note",
+            "ref": "e9",
+            "ticket_id": "t-101",
+            "kind": "internal",
+            "body": "status update",
+        },
+        "rationale": "test",
+    }
+
+
+def _mixed_contract(amount, task_key, major="refund.create"):
+    if major == "refund.create":
+        major_effect = ExpectedEffect(
+            effect="refund.create",
+            params={"order_id": "o-1942", "ticket_id": "t-101", "amount_paise": amount},
+            capability="refund.create",
+        )
+    else:
+        major_effect = ExpectedEffect(
+            effect="replacement.create",
+            params={"order_id": "o-1942", "order_item_id": "i-1", "ticket_id": "t-101"},
+            capability="replacement.create",
+        )
+    effects = [
+        major_effect,
+        ExpectedEffect(
+            effect="ticket.note",
+            params={"ticket_id": "t-101", "kind": "internal", "body": "status update"},
+            capability="ticket.note",
+        ),
+    ]
+    return Contract(
+        task_id=task_key,
+        goal="major and note",
+        customer_id="c-101",
+        order_id="o-1942",
+        ticket_id="t-101",
+        effects=effects,
+        capabilities=["read", "read.fallback", "probe", "browser", major, "ticket.note"],
+        status="ok",
+    )
+
+
+class _GateGateway:
+    """Canned reads; probes configurable per test (dup worlds included)."""
+
+    def __init__(self, order=None, ticket=None, probe=None):
+        self._order = order
+        self._ticket = ticket
+        self._probe = probe if probe is not None else {"found": False}
+
+    def get_customer(self, task_id, customer_id):
+        """Canned customer read."""
+        return {"customer": {"id": "c-101"}}
+
+    def get_order(self, task_id, order_id):
+        """Canned order read."""
+        return {"order": self._order or _facts().order}
+
+    def get_ticket(self, task_id, ticket_id):
+        """Canned ticket read."""
+        return {"ticket": self._ticket or _facts().ticket}
+
+    def inspect_state(self, task_id, kind, key, extra=None):
+        """Probe answer for the test world."""
+        return dict(self._probe)
+
+    def api_get(self, task_id, path, params=None):
+        """Empty policies and history (code defaults apply)."""
+        return {"result": []}
+
+
+def _wire(monkeypatch, gateway=None):
+    monkeypatch.setattr(wiring, "mcp_gateway", lambda: gateway or _GateGateway())
+    monkeypatch.setattr(wiring, "policy_service", lambda: _service())
+
+
+def _check(monkeypatch, run_ids, contract, action):
+    task_id, run_id = run_ids
+    task_key = str(task_id)
+    contract.task_id = task_key
+    return (
+        policy_node.policy_check(
+            WorkerState(
+                task_id=task_key,
+                run_id=str(run_id),
+                task_text="x",
+                contract=contract.model_dump(),
+                last_action=action,
+            )
+        ),
+        task_key,
+        run_id,
+    )
+
+
+def test_terminal_gate_blocks_note_ahead_of_over_cap_refund(monkeypatch, run_ids):
+    """S914 shape: the note dies with the doomed refund (zero commits)."""
+    _wire(monkeypatch, _GateGateway(order=order(paid=9000000)))
+    task_key = str(run_ids[0])
+    delta, _, run_id = _check(
+        monkeypatch, run_ids, _mixed_contract(8000000, task_key), _note_action()
+    )
+    decision = delta["policy_decision"]
+    assert (decision["outcome"], decision["rule_id"]) == ("block", "P-REF-004")
+    assert "terminal refund.create would block" in decision["reason"]
+    assert "last_action" not in delta  # no token for a held note
+    check = session_factory.session_for(session_factory.admin_engine())
+    try:
+        rows = PolicyDecisionRepository(check).list_by_run(run_id)
+        assert len(rows) == 1 and rows[0].rule_id == "P-REF-004"
+        assert rows[0].params["effect"] == "refund.create"
+    finally:
+        check.close()
+
+
+def test_terminal_gate_blocks_note_on_ownership_mismatch(monkeypatch, run_ids):
+    """Ownership-doomed tasks post nothing before the BLOCK."""
+    _wire(monkeypatch, _GateGateway(ticket=ticket(customer="c-102")))
+    task_key = str(run_ids[0])
+    contract = _mixed_contract(0, task_key, major="replacement.create")
+    delta, _, _ = _check(monkeypatch, run_ids, contract, _note_action())
+    assert (delta["policy_decision"]["outcome"], delta["policy_decision"]["rule_id"]) == (
+        "block",
+        "P-OWN-001",
+    )
+
+
+def test_terminal_gate_blocks_note_ahead_of_duplicate(monkeypatch, run_ids):
+    """Duplicate-doomed tasks end before the first commit (probes loaded)."""
+    _wire(monkeypatch, _GateGateway(probe={"found": True, "kind": "refund"}))
+    task_key = str(run_ids[0])
+    delta, _, _ = _check(monkeypatch, run_ids, _mixed_contract(250000, task_key), _note_action())
+    assert (delta["policy_decision"]["outcome"], delta["policy_decision"]["rule_id"]) == (
+        "block",
+        "P-DUP-001",
+    )
+
+
+def test_terminal_gate_passes_healthy_note(monkeypatch, run_ids):
+    """Healthy mixed tasks keep their notes (gate is BLOCK-only)."""
+    _wire(monkeypatch)
+    task_key = str(run_ids[0])
+    delta, _, _ = _check(monkeypatch, run_ids, _mixed_contract(250000, task_key), _note_action())
+    assert (delta["policy_decision"]["outcome"], delta["policy_decision"]["rule_id"]) == (
+        "allow",
+        "P-NOTE-001",
+    )
+    assert delta["last_action"]["params"]["token"]
+
+
+def test_terminal_gate_passes_note_when_refund_needs_approval(monkeypatch, run_ids):
+    """Approval flows keep their notes; the refund still parks for HITL."""
+    _wire(monkeypatch, _GateGateway(order=order(paid=9000000)))
+    task_key = str(run_ids[0])
+    delta, _, _ = _check(monkeypatch, run_ids, _mixed_contract(3500000, task_key), _note_action())
+    assert (delta["policy_decision"]["outcome"], delta["policy_decision"]["rule_id"]) == (
+        "allow",
+        "P-NOTE-001",
+    )
+
+
+def test_terminal_gate_skips_committed_major(monkeypatch, run_ids):
+    """Post-commit notes still flow after the refund executed."""
+    _wire(monkeypatch)
+    task_id, run_id = run_ids
+    task_key = str(task_id)
+    engine = session_factory.admin_engine()
+    setup = session_factory.session_for(engine)
+    try:
+        setup.add(
+            Action(
+                run_id=run_id,
+                seq=0,
+                kind="write",
+                tool="browser_submit",
+                params={"effect": "refund.create", "order_id": "o-1942", "ticket_id": "t-101"},
+                params_hash="committed-major",
+                side_effect="write",
+                status="done",
+            )
+        )
+        setup.commit()
+    finally:
+        setup.close()
+    delta, _, _ = _check(monkeypatch, run_ids, _mixed_contract(250000, task_key), _note_action())
+    assert (delta["policy_decision"]["outcome"], delta["policy_decision"]["rule_id"]) == (
+        "allow",
+        "P-NOTE-001",
+    )

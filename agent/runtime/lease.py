@@ -29,6 +29,10 @@ def claim(session, task_id: UUID, owner: str, now, ttl_s: int = LEASE_TTL_S) -> 
     if task is None:
         raise LeaseDenied(f"unknown task: {task_id}")
     assert_not_terminal(TaskState(task.status))
+    # Serialize claims per task: the row lock is held to commit, so a
+    # concurrent claimer blocks here, then sees the winner's live lease
+    # below instead of inserting a second open attempt (Phase 29 flood).
+    session.execute(select(Task.id).where(Task.id == task_id).with_for_update())
     live = (
         session.query(TaskRun)
         .filter(
