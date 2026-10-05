@@ -24,9 +24,8 @@ import yaml
 from sqlalchemy import text
 from sqlalchemy.engine import Connection
 
-from database.session import admin_engine, app_engine
-
 from agent.runtime.transitions import ALLOWED_TRANSITIONS as CODE_TRANSITIONS
+from database.session import admin_engine, app_engine
 
 SEED_DIR = Path(__file__).parent
 

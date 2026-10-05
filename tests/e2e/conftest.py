@@ -60,8 +60,10 @@ def runner_session(_migrate_head):
                 {"ids": created_tasks},
             )
             cleanup.execute(
-                text("DELETE FROM worker.task_checkpoints WHERE run_id IN "
-                     "(SELECT id FROM worker.task_runs WHERE task_id = ANY(:ids))"),
+                text(
+                    "DELETE FROM worker.task_checkpoints WHERE run_id IN "
+                    "(SELECT id FROM worker.task_runs WHERE task_id = ANY(:ids))"
+                ),
                 {"ids": created_tasks},
             )
             cleanup.execute(

@@ -15,8 +15,12 @@ class _StubGateway:
         def _call(*args, **kwargs):
             self.calls.append((name, args, kwargs))
             if name == "browser_submit":
-                return {"ok": True, "status": 201, "effect": "replacement.create",
-                        "mutation_key": kwargs.get("mutation_key", args[2])}
+                return {
+                    "ok": True,
+                    "status": 201,
+                    "effect": "replacement.create",
+                    "mutation_key": kwargs.get("mutation_key", args[2]),
+                }
             if name.startswith("browser_"):
                 return {"url": "http://x/", "refs": {}}
             return {"items": []}
@@ -77,5 +81,6 @@ def test_unknown_tool_raises_without_journal():
     """Unregistered tools fail before any journal row exists."""
     service, _ = _service()
     with pytest.raises(ExecutionError, match="unknown tool"):
-        service.execute("t", "00000000-0000-0000-0000-000000000000",
-                        {"tool": "delete_everything", "params": {}})
+        service.execute(
+            "t", "00000000-0000-0000-0000-000000000000", {"tool": "delete_everything", "params": {}}
+        )

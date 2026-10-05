@@ -91,7 +91,7 @@ def build_graph():
     builder.add_conditional_edges(
         "observe",
         edges.route_observe,
-        {"decide": "decide", "verify": "verify", "classify": "classify"},
+        {"decide": "decide", "verify": "verify", "classify": "classify", "finalize": "finalize"},
     )
     builder.add_edge("classify", "recover")
     builder.add_conditional_edges(
@@ -120,7 +120,7 @@ def build_graph():
     builder.add_conditional_edges(
         "clarification",
         edges.route_clarification,
-        {"contract": "contract", "__end__": END},
+        {"contract": "contract", "finalize": "finalize", "__end__": END},
     )
     builder.add_edge("finalize", END)
     return builder.compile()

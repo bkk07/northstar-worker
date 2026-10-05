@@ -66,8 +66,16 @@ def live_stack(monkeypatch):
     pythonpath = os.pathsep.join([str(REPO_ROOT), str(REPO_ROOT / "common")])
 
     backend = subprocess.Popen(
-        [sys.executable, "-m", "uvicorn", "app.main:app",
-         "--host", "127.0.0.1", "--port", str(BACKEND_PORT)],
+        [
+            sys.executable,
+            "-m",
+            "uvicorn",
+            "app.main:app",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            str(BACKEND_PORT),
+        ],
         cwd=REPO_ROOT / "backend",
         env={**os.environ, "PYTHONPATH": pythonpath},
         stdout=subprocess.DEVNULL,
@@ -85,8 +93,17 @@ def live_stack(monkeypatch):
         stderr=subprocess.DEVNULL,
     )
     frontend = subprocess.Popen(
-        ["npm.cmd", "run", "dev", "--", "--port", str(FRONTEND_PORT),
-         "--host", "127.0.0.1", "--strictPort"],
+        [
+            "npm.cmd",
+            "run",
+            "dev",
+            "--",
+            "--port",
+            str(FRONTEND_PORT),
+            "--host",
+            "127.0.0.1",
+            "--strictPort",
+        ],
         cwd=REPO_ROOT / "frontend",
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -116,11 +133,9 @@ def _operator_headers():
 
 
 def _reset_and_seed(backend):
-    response = httpx.post(f"{backend}/api/control/reset", headers=_operator_headers(),
-                          timeout=30)
+    response = httpx.post(f"{backend}/api/control/reset", headers=_operator_headers(), timeout=30)
     assert response.status_code == 200, response.text
-    response = httpx.post(f"{backend}/api/control/seed", headers=_operator_headers(),
-                          timeout=60)
+    response = httpx.post(f"{backend}/api/control/seed", headers=_operator_headers(), timeout=60)
     assert response.status_code == 200, response.text
 
 
@@ -130,8 +145,11 @@ def _run_task(backend, mcp, task_text):
     task = httpx.post(f"{backend}/api/tasks", json={"text": task_text}, timeout=10)
     assert task.status_code == 201, task.text
     task_id = task.json()["id"]
-    httpx.post(f"{mcp}/admin/tasks/{task_id}/capabilities",
-               json={"capabilities": BASE_CAPABILITIES}, timeout=10).raise_for_status()
+    httpx.post(
+        f"{mcp}/admin/tasks/{task_id}/capabilities",
+        json={"capabilities": BASE_CAPABILITIES},
+        timeout=10,
+    ).raise_for_status()
     contract = wiring.contract_service().build_contract(task_id, task_text)
     assert contract.status == "ok", contract.ambiguity
     httpx.post(
@@ -144,8 +162,9 @@ def _run_task(backend, mcp, task_text):
 
 
 def _journal_rows(run_id):
-    from database import session as session_factory
     from sqlalchemy import text
+
+    from database import session as session_factory
 
     session = session_factory.session_for(session_factory.runner_engine())
     try:
@@ -154,8 +173,10 @@ def _journal_rows(run_id):
             {"rid": uuid.UUID(run_id)},
         ).all()
         attempts = session.execute(
-            text("SELECT count(*) FROM worker.action_attempts WHERE action_id IN "
-                 "(SELECT id FROM worker.actions WHERE run_id = :rid)"),
+            text(
+                "SELECT count(*) FROM worker.action_attempts WHERE action_id IN "
+                "(SELECT id FROM worker.actions WHERE run_id = :rid)"
+            ),
             {"rid": uuid.UUID(run_id)},
         ).scalar()
         audits = session.execute(
@@ -179,7 +200,8 @@ def test_s1_replacement_hero_path(live_stack):
     replacements = []
     for item_id in item_ids:
         replacements += httpx.get(
-            f"{backend}/api/read/replacements", params={"order_item_id": item_id},
+            f"{backend}/api/read/replacements",
+            params={"order_item_id": item_id},
             timeout=10,
         ).json()
     assert len(replacements) == 1, replacements

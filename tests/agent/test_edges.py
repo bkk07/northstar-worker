@@ -134,3 +134,17 @@ def test_route_verify(verdict, expected):
 def test_route_clarification(status, expected):
     """Answered re-enters the compiler; otherwise the run stays parked."""
     assert edges.route_clarification({"clarification_status": status}) == expected
+
+
+def test_blown_budgets_fail_closed_to_finalize():
+    """Spent budgets park every guarded edge at finalize (Phase 20)."""
+    blown = {"budgets": {"used": {"iterations": 41}}}
+    assert edges.route_contract(blown) == "finalize"
+    assert edges.route_validate(blown) == "finalize"
+    assert edges.route_policy(blown) == "finalize"
+    assert edges.route_approval(blown) == "finalize"
+    assert edges.route_observe(blown) == "finalize"
+    assert edges.route_recover(blown) == "finalize"
+    assert edges.route_probe(blown) == "finalize"
+    assert edges.route_verify(blown) == "finalize"
+    assert edges.route_clarification(blown) == "finalize"

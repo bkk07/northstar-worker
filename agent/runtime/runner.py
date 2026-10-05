@@ -190,6 +190,9 @@ class Runner:
             used["tool_calls"] = used.get("tool_calls", 0) + 1
         if node == "recover":
             used["recovery_attempts"] = used.get("recovery_attempts", 0) + 1
+        counters = merged.get("recovery", {}).get("counters", {})
+        used["total_retries"] = sum(counters.values()) + merged.get("validation_failures", 0)
+        used["retries_per_action"] = merged.get("failure", {}).get("count", 0)
         used["runtime_s"] = self._clock.monotonic() - wall_start
 
     def _beat(self, run_id: str) -> None:

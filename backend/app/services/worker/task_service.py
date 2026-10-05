@@ -9,8 +9,13 @@ from app.schemas.worker.tasks import TaskCreate, TaskRead
 from database.models.worker.task import Task
 
 _ALLOWED_CANCEL_FROM = frozenset(
-    {"pending", "running", "waiting_for_approval", "waiting_for_clarification",
-     "waiting_on_customer"}
+    {
+        "pending",
+        "running",
+        "waiting_for_approval",
+        "waiting_for_clarification",
+        "waiting_on_customer",
+    }
 )
 
 

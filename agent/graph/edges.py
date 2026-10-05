@@ -81,6 +81,8 @@ def route_approval(state: WorkerState) -> Route:
 
 def route_observe(state: WorkerState) -> Route:
     """Success continues, done verifies, failure classifies."""
+    if _blown(state):
+        return "finalize"
     status = state.get("observation_status", "success")
     if status == "effects_done":
         return "verify"
@@ -140,6 +142,8 @@ def route_verify(state: WorkerState) -> Route:
 
 def route_clarification(state: WorkerState) -> Route:
     """Answered re-enters the compiler; otherwise the run stays parked."""
+    if _blown(state):
+        return "finalize"
     if state.get("clarification_status", "pending") == "answered":
         return "contract"
     return "__end__"
