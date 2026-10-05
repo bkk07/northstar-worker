@@ -26,14 +26,7 @@ export function RootLayout() {
   );
 }
 
-export function WorkerLayout() {
-  return (
-    <Shell
-      title="Worker Control Center"
-      hint="Tasks, timeline, approvals, evidence, memory, environment (Phase 26)."
-    />
-  );
-}
+export { WorkerLayout } from "@/features/worker/components/WorkerLayout";
 
 export function EvaluationLayout() {
   return <Shell title="Evaluation" hint="Seeded vs held-out metrics and drilldowns (Phase 27)." />;

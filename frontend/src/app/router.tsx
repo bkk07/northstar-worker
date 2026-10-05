@@ -1,6 +1,7 @@
 import { lazy } from "react";
 import { Navigate, createBrowserRouter } from "react-router-dom";
-import { EvaluationLayout, RootLayout, WorkerLayout } from "@/app/layouts/layouts";
+import { EvaluationLayout, RootLayout } from "@/app/layouts/layouts";
+import { WorkerLayout } from "@/features/worker/components/WorkerLayout";
 import { OpsAuthLayout, OpsLayout } from "@/app/layouts/OpsLayout";
 import { ShopLayout } from "@/app/layouts/ShopLayout";
 
@@ -15,6 +16,10 @@ const TicketQueuePage = lazy(() => import("@/features/ops/tickets/pages/TicketQu
 const TicketDetailPage = lazy(() => import("@/features/ops/tickets/pages/TicketDetailPage"));
 const CustomerSearchPage = lazy(() => import("@/features/ops/customers/pages/CustomerSearchPage"));
 const OrderLookupPage = lazy(() => import("@/features/ops/orders/pages/OrderLookupPage"));
+
+const WorkerDashboardPage = lazy(() => import("@/features/worker/pages/WorkerDashboardPage"));
+const WorkerTaskDetailPage = lazy(() => import("@/features/worker/pages/WorkerTaskDetailPage"));
+const WorkerEnvironmentPage = lazy(() => import("@/features/worker/pages/WorkerEnvironmentPage"));
 
 export const routePaths = ["/shop", "/ops", "/worker", "/evaluation"] as const;
 
@@ -50,7 +55,15 @@ export const router = createBrowserRouter([
           { path: "orders/:orderCode", element: <OrderLookupPage /> },
         ],
       },
-      { path: "worker/*", element: <WorkerLayout /> },
+      {
+        path: "worker",
+        element: <WorkerLayout />,
+        children: [
+          { index: true, element: <WorkerDashboardPage /> },
+          { path: "tasks/:taskId", element: <WorkerTaskDetailPage /> },
+          { path: "environment", element: <WorkerEnvironmentPage /> },
+        ],
+      },
       { path: "evaluation/*", element: <EvaluationLayout /> },
       { path: "*", element: <Navigate to="/shop/orders" replace /> },
     ],
