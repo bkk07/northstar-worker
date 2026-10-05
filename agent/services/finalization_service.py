@@ -19,6 +19,8 @@ def final_status(state: Mapping) -> str:
         return "blocked"
     if state.get("contract_status") == "unsupported":
         return "inconclusive"
+    if state.get("probe_status") == "mismatch":
+        return "inconclusive"
     verdict = state.get("verification", {}).get("verdict", "")
     if verdict == "failed":
         return "failed"
@@ -43,7 +45,8 @@ def summarize(state: Mapping) -> list[str]:
         "blocked": "BLOCKED",
         "inconclusive": "INCONCLUSIVE",
     }[status]
-    detail = f"{rule}: {reason}" if rule else str(state.get("verification", {}).get("verdict", "no verification"))
+    verdict = str(state.get("verification", {}).get("verdict", "no verification"))
+    detail = f"{rule}: {reason}" if rule else verdict
     next_step = {
         "succeeded": "No action needed; see the journal for the committed effects.",
         "failed": "Inspect the failure type and retry or escalate to an operator.",

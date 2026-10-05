@@ -27,6 +27,7 @@ from database import session as session_factory
 if TYPE_CHECKING:
     from agent.runtime.audit_emitter import AuditEmitter
     from agent.runtime.runner import Runner
+    from agent.services.reconciliation_service import ReconciliationService
     from agent.services.recovery_service import RecoveryService
 
 
@@ -102,6 +103,13 @@ def recovery_service() -> "RecoveryService":
     from agent.services.recovery_service import RecoveryService
 
     return RecoveryService(_session_factory, system_clock())
+
+
+def reconciliation_service() -> "ReconciliationService":
+    """Probe-before-retry for unknown commit outcomes."""
+    from agent.services.reconciliation_service import ReconciliationService
+
+    return ReconciliationService(_session_factory, mcp_gateway(), system_clock())
 
 
 def runner() -> "Runner":

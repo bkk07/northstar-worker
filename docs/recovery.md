@@ -13,7 +13,8 @@ Failure type → strategy (bounds in parentheses; hits terminate the run).
 | `validation_error` | `re_observe` (2) | `decide` corrects with the 422 context |
 | `not_found` | `re_discover` (2) | `observe` fresh |
 | `browser_unavailable` | `re_observe` (2) | `observe` on a reopened session |
-| `forbidden`, `conflict_duplicate`, `policy_blocked`, `guard_violation`, `unknown_outcome` | `terminate_safely` | `finalize` (no blind retry, no duplicates) |
+| `forbidden`, `policy_blocked`, `guard_violation` | `terminate_safely` | `finalize` (no blind retry, no duplicates) |
+| `conflict_duplicate`, `unknown_outcome` | `probe` (2) | `probe_reconcile`: adopt, same-key retry, or park (Phase 19) |
 
 Fallbacks stay inside the contract's `read.fallback` scope; outside
 scope they degrade to `terminate_safely`. Every round emits

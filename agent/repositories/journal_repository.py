@@ -27,11 +27,7 @@ class JournalRepository(BaseRepository[Action]):
         """Newest `proposed` row matching tool + params (None when absent)."""
         rows = self._actions.list_by_run(run_id)
         for row in reversed(rows):
-            if (
-                row.status == "proposed"
-                and row.tool == tool
-                and row.params_hash == params_hash
-            ):
+            if row.status == "proposed" and row.tool == tool and row.params_hash == params_hash:
                 return row
         return None
 
@@ -60,9 +56,7 @@ class JournalRepository(BaseRepository[Action]):
     def begin_attempt(self, action_id: UUID, started_at) -> ActionAttempt:
         """Append one attempt row (attempt numbers are gapless per action)."""
         peak = self._session.scalar(
-            select(func.max(ActionAttempt.attempt_no)).where(
-                ActionAttempt.action_id == action_id
-            )
+            select(func.max(ActionAttempt.attempt_no)).where(ActionAttempt.action_id == action_id)
         )
         row = ActionAttempt(
             action_id=action_id,

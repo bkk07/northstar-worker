@@ -9,6 +9,7 @@ missing routing values fail closed (park or terminate, never improvise).
 from typing import Literal
 
 from agent.graph.state import WorkerState
+from agent.runtime import budgets
 
 Route = str
 
@@ -16,8 +17,15 @@ Route = str
 MAX_VALIDATION_FAILURES = 5
 
 
+def _blown(state: WorkerState) -> bool:
+    """True when a budget is already spent (edges fail closed to finalize)."""
+    return budgets.exceeded(state) is not None
+
+
 def route_contract(state: WorkerState) -> Route:
     """Compiler outcome: plan it, clarify it, or end inconclusive."""
+    if _blown(state):
+        return "finalize"
     status = state.get("contract_status", "ok")
     if status == "ambiguous":
         return "clarification"
@@ -35,6 +43,8 @@ def route_validate(state: WorkerState) -> Route:
     observe after its rounds run out, and this backstop ends runs whose
     failures somehow keep climbing.
     """
+    if _blown(state):
+        return "finalize"
     if state.get("validation_failures", 0) > MAX_VALIDATION_FAILURES:
         return "finalize"
     status = state.get("validation_status", "ok")
@@ -47,6 +57,8 @@ def route_validate(state: WorkerState) -> Route:
 
 def route_policy(state: WorkerState) -> Route:
     """Deterministic ALLOW / HUMAN_APPROVAL / BLOCK (LLM has no vote)."""
+    if _blown(state):
+        return "finalize"
     outcome = state.get("policy_decision", {}).get("outcome", "")
     if outcome == "allow":
         return "execute"
@@ -57,6 +69,8 @@ def route_policy(state: WorkerState) -> Route:
 
 def route_approval(state: WorkerState) -> Route:
     """Approved resumes; decided-against finalizes; pending parks (END)."""
+    if _blown(state):
+        return "finalize"
     status = state.get("approval_status", "pending")
     if status == "approved":
         return "execute"
@@ -79,6 +93,8 @@ def route_observe(state: WorkerState) -> Route:
 
 def route_recover(state: WorkerState) -> Route:
     """Router lookup: strategy name to the node that serves it."""
+    if _blown(state):
+        return "finalize"
     strategy = state.get("recovery", {}).get("strategy", "")
     mapping = {
         "re_observe": "observe",
@@ -98,6 +114,8 @@ def route_recover(state: WorkerState) -> Route:
 
 def route_probe(state: WorkerState) -> Route:
     """Reconciliation: found reconciles, absent retries, mismatch ends."""
+    if _blown(state):
+        return "finalize"
     status = state.get("probe_status", "exists")
     if status == "absent":
         return "execute"
@@ -110,6 +128,8 @@ def route_probe(state: WorkerState) -> Route:
 
 def route_verify(state: WorkerState) -> Route:
     """Verifier verdict: proved, retryable, or terminal."""
+    if _blown(state):
+        return "finalize"
     verdict = state.get("verification", {}).get("verdict", "")
     if verdict == "verified":
         return "finalize"

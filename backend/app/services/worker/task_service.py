@@ -1,12 +1,17 @@
-"""Worker task service: minimal task create / read (`ns_app` role)."""
+"""Worker task service: minimal task create / read / cancel (`ns_app` role)."""
 
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import NotFoundError
+from app.core.exceptions import ConflictError, NotFoundError
 from app.schemas.worker.tasks import TaskCreate, TaskRead
 from database.models.worker.task import Task
+
+_ALLOWED_CANCEL_FROM = frozenset(
+    {"pending", "running", "waiting_for_approval", "waiting_for_clarification",
+     "waiting_on_customer"}
+)
 
 
 class TaskService:
@@ -35,6 +40,19 @@ class TaskService:
         row = self._session.get(Task, task_id)
         if row is None:
             raise NotFoundError(f"task {task_id} not found")
+        return self._to_dto(row)
+
+    def cancel_task(self, task_id: UUID) -> TaskRead:
+        """Cancel a live task (409 when already terminal)."""
+        row = self._session.get(Task, task_id)
+        if row is None:
+            raise NotFoundError(f"task {task_id} not found")
+        if row.status not in _ALLOWED_CANCEL_FROM:
+            raise ConflictError(f"task {task_id} is already {row.status}")
+        row.status = "cancelled"
+        row.current_state = "cancelled"
+        self._session.commit()
+        self._session.refresh(row)
         return self._to_dto(row)
 
     @staticmethod

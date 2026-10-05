@@ -8,9 +8,7 @@ def execute(state: WorkerState) -> dict:
     """Run the validated action; stash the journaled outcome for `observe`."""
     action = dict(state.get("last_action", {}))
     attempts = action.get("attempts", 0)
-    result = wiring.execution_service().execute(
-        state["task_id"], state["run_id"], action
-    )
+    result = wiring.execution_service().execute(state["task_id"], state["run_id"], action)
     return {
         "last_action": {
             **action,

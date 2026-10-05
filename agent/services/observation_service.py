@@ -74,6 +74,7 @@ class ObservationService:
                 "effect": payload.get("effect", ""),
                 "mutation_key": str(result.get("mutation_key", "")),
                 "mutated": bool(result.get("mutated", False)),
+                "reconciled": bool(payload.get("reconciled", False)),
                 "body": str(payload.get("body", ""))[:500],
             }
             self._remember(run_id, action, result, observation, outcome="effects_done")

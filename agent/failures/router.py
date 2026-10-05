@@ -27,11 +27,11 @@ ROUTES: dict[str, tuple[str, int]] = {
     taxonomy.VALIDATION_ERROR: (RE_OBSERVE, 2),
     taxonomy.NOT_FOUND: (RE_DISCOVER, 2),
     taxonomy.BROWSER_UNAVAILABLE: (RE_OBSERVE, 2),
+    taxonomy.CONFLICT_DUPLICATE: ("probe", 2),
+    taxonomy.UNKNOWN_OUTCOME: ("probe", 2),
     taxonomy.FORBIDDEN: (TERMINATE, 0),
-    taxonomy.CONFLICT_DUPLICATE: (TERMINATE, 0),
     taxonomy.POLICY_BLOCKED: (TERMINATE, 0),
     taxonomy.GUARD_VIOLATION: (TERMINATE, 0),
-    taxonomy.UNKNOWN_OUTCOME: (TERMINATE, 0),
 }
 
 assert set(ROUTES) == taxonomy.ALL_TYPES, "router must cover all 14 types"

@@ -40,6 +40,7 @@ def test_router_covers_all_fourteen():
             "re_plan",
             "retry",
             "fallback_tool",
+            "probe",
             "terminate_safely",
         )
 
@@ -113,10 +114,10 @@ def test_stale_ref_reobserves_without_reset():
 
 
 def test_no_strategy_retries_a_submit():
-    """No recovery path duplicates a side effect (submits never retry)."""
+    """No recovery path duplicates a side effect (submits probe, never retry)."""
     for failure_type in ("unknown_outcome", "conflict_duplicate"):
         strategy, _ = router.route(failure_type, {})
-        assert strategy == "terminate_safely"
+        assert strategy == "probe"
 
 
 def test_recover_node_routes_counts_and_audits(monkeypatch):

@@ -54,6 +54,7 @@ class JournalWriter:
         params_hash: str,
         side_effect: str,
         policy_decision_id: str | None = None,
+        mutation_key: str | None = None,
     ) -> StartedAction:
         """Journal STARTED before the tool runs (journal-first)."""
         session = self._sessions()
@@ -65,13 +66,11 @@ class JournalWriter:
                 params,
                 params_hash,
                 side_effect,
-                self.new_mutation_key(),
+                mutation_key or self.new_mutation_key(),
                 UUID(policy_decision_id) if policy_decision_id else None,
             )
             session.commit()
-            return StartedAction(
-                action_id=row.id, seq=row.seq, mutation_key=row.mutation_key or ""
-            )
+            return StartedAction(action_id=row.id, seq=row.seq, mutation_key=row.mutation_key or "")
         finally:
             session.close()
 

@@ -22,3 +22,9 @@ def create_task(payload: TaskCreate, session: Session = Depends(get_db)) -> Task
 def get_task(task_id: UUID, session: Session = Depends(get_db)) -> TaskRead:
     """Read one task row (status follows the runner's lifecycle)."""
     return TaskService(session).get_task(task_id)
+
+
+@router.post("/api/tasks/{task_id}/cancel", response_model=TaskRead)
+def cancel_task(task_id: UUID, session: Session = Depends(get_db)) -> TaskRead:
+    """Cancel a live task (terminal tasks answer 409)."""
+    return TaskService(session).cancel_task(task_id)

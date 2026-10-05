@@ -17,6 +17,7 @@ from agent.adapters.mcp_gateway import MCPToolGateway
 from agent.contract.action_validator import TOOL_META
 from agent.failures.classifier import classify_failure
 from agent.ports.clock import ClockPort
+from agent.runtime import mutation_keys
 from agent.runtime.journal import JournalWriter
 from northstar_common.errors import NorthstarError
 from northstar_common.tokens import canonical_params_hash
@@ -72,12 +73,20 @@ class ExecutionService:
         action: dict,
         policy_decision_id: str | None = None,
     ) -> ExecutionResult:
-        """Journal STARTED, call the tool, journal the attempt, return."""
+        """Journal STARTED, call the tool, journal the attempt, return.
+
+        Submits carry deterministic keys (stable across retries) and run
+        search-before-create first: an existing entity is adopted without
+        a second commit. Same-key retries reuse the failed action's key.
+        """
         tool = action.get("tool", "")
         meta = TOOL_META.get(tool)
         if meta is None:
             raise ExecutionError(f"unknown tool: {tool!r}")
         params = dict(action.get("params", {}))
+        mutation_key = action.get("reuse_key") or (
+            mutation_keys.key_for(task_id, tool, params) if tool == "browser_submit" else None
+        )
         started = self._journal.start_action(
             run_id,
             meta.kind,
@@ -86,7 +95,22 @@ class ExecutionService:
             canonical_params_hash(params),
             meta.side_effect,
             policy_decision_id,
+            mutation_key,
         )
+        if tool == "browser_submit":
+            existing = self._search_before_create(task_id, params)
+            if existing is not None:
+                self._journal.finish_action(started.action_id, "reconciled")
+                return ExecutionResult(
+                    action_id=str(started.action_id),
+                    seq=started.seq,
+                    mutation_key=started.mutation_key,
+                    ok=True,
+                    payload={"ok": True, "reconciled": True, **existing},
+                    mutated=False,
+                )
+        # The adoption above journaled STARTED with zero attempts: nothing
+        # ran, so there is nothing to classify — the row tells the story.
         attempt = self._journal.begin_attempt(started.action_id)
         try:
             payload = self._dispatch(task_id, tool, params, started.mutation_key)
@@ -135,6 +159,23 @@ class ExecutionService:
             payload=payload,
             mutated=mutated,
         )
+
+    def _search_before_create(self, task_id: str, params: dict) -> dict | None:
+        """Adopt an existing entity for this effect (None when absent).
+
+        Best-effort: unreadable probes return None and the submit goes
+        ahead (probe-before-retry still guards the retry).
+        """
+        from agent.failures import probe as probe_module
+
+        try:
+            outcome = probe_module.probe_commit(self._gateway, task_id, "", dict(params))
+        except Exception:
+            return None
+        for hit in (outcome.key_hit, outcome.identity_hit):
+            if hit is not None and hit.found:
+                return {"entity_id": hit.entity_id, "kind": hit.kind, "via": hit.via}
+        return None
 
     def _dispatch(self, task_id: str, tool: str, params: dict, mutation_key: str) -> dict:
         """One validated action to its gateway call (params are bound)."""
