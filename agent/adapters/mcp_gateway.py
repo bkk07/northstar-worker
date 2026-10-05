@@ -34,10 +34,23 @@ class MCPToolGateway:
         return str(leaf) or type(leaf).__name__
 
     async def _acall(self, tool: str, args: dict) -> dict:
+        # NOTE: sse_client's timeout only bounds the SSE handshake. The
+        # call_tool await below is unbounded, so a hung tool (e.g. a cold
+        # Chromium launch inside browser_open) used to wedge `execute`
+        # until the run's runtime budget killed the whole run with no
+        # classify/recover trail. Bound it: a timeout here surfaces as a
+        # TIMEOUT failure the recovery router can retry or probe.
         async with sse_client(f"{self._url}/sse", timeout=self._timeout) as (read, write):
             async with ClientSession(read, write) as session:
                 await session.initialize()
-                result = await session.call_tool(tool, args)
+                try:
+                    result = await asyncio.wait_for(
+                        session.call_tool(tool, args), timeout=self._timeout
+                    )
+                except TimeoutError as exc:
+                    raise RuntimeError(
+                        f"tool {tool} timed out after {self._timeout}s"
+                    ) from exc
                 return _payload(tool, result)
 
     def search_customer(self, task_id: str, q: str) -> dict:
