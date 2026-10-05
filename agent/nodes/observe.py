@@ -16,6 +16,7 @@ def observe(state: WorkerState) -> dict:
     delta = {
         "last_observation": verdict.observation,
         "observation_status": verdict.status,
+        "memory": wiring.memory_store().recent(state["run_id"]),
     }
     if verdict.status == "success":
         plan = state.get("plan", [])

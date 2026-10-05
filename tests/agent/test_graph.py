@@ -166,6 +166,15 @@ class _FakeClarification:
         return {"clarification_status": "pending", "clarification_ref": {"id": "c1"}}
 
 
+class _FakeMemory:
+    """No memory in topology tests (decide brief renders empty)."""
+
+    def recent(self, run_id, limit=10):
+        """Empty working memory."""
+        _ = (run_id, limit)
+        return []
+
+
 class _FakeVerifier:
     """No database: snapshot is a no-op, verify always proves (topology only)."""
 
@@ -195,6 +204,7 @@ def _fake_wiring(monkeypatch):
     monkeypatch.setattr(wiring, "verifier_adapter", lambda: _FakeVerifier())
     monkeypatch.setattr(wiring, "approval_service", lambda: _FakeApproval())
     monkeypatch.setattr(wiring, "clarification_service", lambda: _FakeClarification())
+    monkeypatch.setattr(wiring, "memory_store", lambda: _FakeMemory())
     monkeypatch.setattr("agent.nodes.policy_check.gather_facts", lambda *args: _EmptyFacts())
 
 

@@ -21,7 +21,12 @@ from app.api.ops import (
     status_controller,
     ticket_controller,
 )
-from app.api.worker import approval_controller, clarification_controller, task_controller
+from app.api.worker import (
+    approval_controller,
+    clarification_controller,
+    memory_controller,
+    task_controller,
+)
 from app.core.exceptions import AppError, app_error_handler
 
 APP_VERSION = "0.1.0-phase6"
@@ -49,6 +54,7 @@ def create_app() -> FastAPI:
     app.include_router(task_controller.router)
     app.include_router(approval_controller.router)
     app.include_router(clarification_controller.router)
+    app.include_router(memory_controller.router)
     return app
 
 

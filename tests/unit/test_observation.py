@@ -12,6 +12,12 @@ class _FakeSession:
     def add(self, row):
         self.rows.append(row)
 
+    def flush(self):
+        pass
+
+    def refresh(self, row):
+        return row
+
     def commit(self):
         pass
 

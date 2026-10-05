@@ -75,6 +75,22 @@ def policy_scope(contract: Contract) -> dict:
     }
 
 
+def traceability(operator_amounts_paise: list[int], resolution: EntityResolution) -> dict:
+    """Fact provenance: amounts from the operator text, bindings from DB reads."""
+    return {
+        "amounts_paise": [
+            {"amount_paise": amount, "source": "operator_task_text"}
+            for amount in operator_amounts_paise
+        ],
+        "bindings": {
+            "customer_id": "database_read" if resolution.customer else "unbound",
+            "order_id": "database_read" if resolution.order else "unbound",
+            "ticket_id": "database_read" if resolution.ticket else "unbound",
+        },
+        "untrusted_inputs_ignored": ["ticket_body", "page_text"],
+    }
+
+
 def compile_contract(
     task_id: str,
     task_text: str,
@@ -118,6 +134,7 @@ def compile_contract(
     )
     contract.snapshot_scope = snapshot_scope(contract)
     contract.policy_scope = policy_scope(contract)
+    contract.traceability = traceability(operator_amounts_paise, resolution)
     return contract
 
 

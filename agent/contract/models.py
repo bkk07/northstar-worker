@@ -57,3 +57,7 @@ class Contract(BaseModel):
         default_factory=dict,
         description="Policy scope: the bindings P-CAP/P-OWN enforce",
     )
+    traceability: dict = Field(
+        default_factory=dict,
+        description="Fact provenance: where each amount and binding came from",
+    )

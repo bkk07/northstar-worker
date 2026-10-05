@@ -4,6 +4,12 @@ from agent.nodes import observe as observe_node
 from agent.runtime import wiring
 
 
+class _Memory:
+    def recent(self, run_id, limit=10):
+        _ = (run_id, limit)
+        return []
+
+
 class _Success:
     def observe(self, task_id, run_id, action, result):
         _ = (task_id, run_id, action, result)
@@ -31,6 +37,7 @@ def _state(**overrides):
 def test_success_advances_cursor(monkeypatch):
     """Reads move the plan brief forward (decide sees fresh context)."""
     monkeypatch.setattr(wiring, "observation_service", lambda: _Success())
+    monkeypatch.setattr(wiring, "memory_store", lambda: _Memory())
     delta = observe_node.observe(_state())
     assert delta["cursor"] == 1
     assert delta["observation_status"] == "success"
@@ -39,6 +46,7 @@ def test_success_advances_cursor(monkeypatch):
 def test_cursor_caps_at_plan_end(monkeypatch):
     """Cursor never overruns the plan (decide slices safely)."""
     monkeypatch.setattr(wiring, "observation_service", lambda: _Success())
+    monkeypatch.setattr(wiring, "memory_store", lambda: _Memory())
     delta = observe_node.observe(_state(cursor=2))
     assert delta["cursor"] == 2
 
@@ -46,6 +54,7 @@ def test_cursor_caps_at_plan_end(monkeypatch):
 def test_effects_done_leaves_cursor(monkeypatch):
     """Commits route to verify; the cursor is irrelevant after that."""
     monkeypatch.setattr(wiring, "observation_service", lambda: _Done())
+    monkeypatch.setattr(wiring, "memory_store", lambda: _Memory())
     delta = observe_node.observe(_state(cursor=1))
     assert delta["observation_status"] == "effects_done"
     assert "cursor" not in delta

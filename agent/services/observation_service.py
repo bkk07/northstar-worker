@@ -10,11 +10,11 @@ the verifier cross-checks them in Phase 21).
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from database.models.worker.memory import MemoryItem
+from agent.memory import injection_detector, provenance
+from agent.memory.store import MemoryStore
 
 READ_TOOLS = frozenset(
     {
@@ -39,10 +39,11 @@ class ObservationVerdict:
 
 
 class ObservationService:
-    """Normalize outcomes and persist basic memory (`ns_runner` writes)."""
+    """Normalize outcomes and persist sourced memory (`ns_runner` writes)."""
 
     def __init__(self, session_factory: Callable[[], Session]) -> None:
         self._sessions = session_factory
+        self._memory = MemoryStore(session_factory)
 
     def observe(
         self, task_id: str, run_id: str, action: dict, result: Mapping
@@ -97,27 +98,44 @@ class ObservationService:
         observation: dict,
         outcome: str,
     ) -> None:
-        """One memory row per action (provenance: tool; page data untrusted)."""
+        """One sourced memory row per action, plus injection flags."""
         tool = action.get("tool", "")
         if tool in READ_TOOLS:
-            source_type, trust = "database", "trusted"
+            source_type = "database"
+        elif tool == "browser_submit":
+            source_type = "browser"
         else:
-            source_type, trust = "browser", "untrusted"
-        session = self._sessions()
-        try:
-            session.add(
-                MemoryItem(
-                    run_id=UUID(run_id),
-                    key=f"{tool}:{action.get('seq', 0)}:{outcome}",
-                    value=_memory_value(tool, observation),
-                    source_type=source_type,
-                    source_ref=str(result.get("mutation_key", "") or action.get("ref", "")),
-                    trust=trust,
-                )
+            source_type = "browser"
+        self._memory.record(
+            run_id,
+            key=f"{tool}:{action.get('seq', 0)}:{outcome}",
+            value=_memory_value(tool, observation),
+            source_type=source_type,
+            source_ref=str(result.get("mutation_key", "") or action.get("ref", "")),
+            trust=provenance.classify(source_type),
+        )
+        flags = injection_detector.detect(_scannable_text(tool, observation))
+        if flags:
+            self._memory.record(
+                run_id,
+                key=f"injection:flag:{tool}:{action.get('seq', 0)}",
+                value={"flags": flags, "tool": tool},
+                source_type=source_type,
+                source_ref=str(result.get("mutation_key", "") or action.get("ref", "")),
+                trust=provenance.UNTRUSTED,
             )
-            session.commit()
-        finally:
-            session.close()
+
+
+def _scannable_text(tool: str, observation: dict) -> str:
+    """Customer-reachable strings in one observation (page dumps, errors)."""
+    if tool == "browser_submit":
+        return str(observation.get("body", ""))
+    payload = observation.get("payload")
+    if isinstance(payload, dict):
+        return " ".join(
+            str(payload.get(key, "")) for key in ("url", "title", "text", "body", "error")
+        )
+    return str(observation.get("error", ""))
 
 
 def _signal_bundle(action: dict, result: Mapping, observation: dict) -> dict:

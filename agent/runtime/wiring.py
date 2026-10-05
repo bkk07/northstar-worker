@@ -26,6 +26,7 @@ from database import session as session_factory
 
 if TYPE_CHECKING:
     from agent.adapters.verifier_adapter import VerifierAdapter
+    from agent.memory.store import MemoryStore
     from agent.runtime.audit_emitter import AuditEmitter
     from agent.runtime.runner import Runner
     from agent.services.approval_service import ApprovalService
@@ -154,6 +155,13 @@ def clarification_service() -> "ClarificationService":
     from agent.services.clarification_service import ClarificationService
 
     return ClarificationService(_session_factory, system_clock())
+
+
+def memory_store() -> "MemoryStore":
+    """Run-scoped sourced memory (Phase 23)."""
+    from agent.memory.store import MemoryStore
+
+    return MemoryStore(_session_factory)
 
 
 def _session_factory() -> Session:

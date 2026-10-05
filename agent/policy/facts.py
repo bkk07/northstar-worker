@@ -63,15 +63,65 @@ def _load_entities(task_id, contract, gateway, facts: Facts) -> None:
             facts,
         )
         if customer:
-            facts.customer = customer.get("customer", {})
+            facts.customer = _trusted_customer(customer.get("customer", {}))
     if contract.order_id:
         order = _safe(lambda: gateway.get_order(task_id, contract.order_id), "order", facts)
         if order:
-            facts.order = order.get("order", {})
+            facts.order = _trusted_order(order.get("order", {}))
     if contract.ticket_id:
         ticket = _safe(lambda: gateway.get_ticket(task_id, contract.ticket_id), "ticket", facts)
         if ticket:
-            facts.ticket = ticket.get("ticket", {})
+            facts.ticket = _trusted_ticket(ticket.get("ticket", {}))
+
+
+# Ownership and eligibility read IDs, linkage, statuses, and amounts —
+# never free text. The allowlists below drop customer-controlled fields
+# (bodies, subjects) at the facts boundary, so untrusted prose cannot
+# reach the engine even when a read tool returns it.
+ORDER_FIELDS = frozenset(
+    {
+        "id",
+        "code",
+        "customer_id",
+        "status",
+        "total_paise",
+        "paid_paise",
+        "placed_at",
+        "delivered_at",
+        "items",
+    }
+)
+
+ORDER_ITEM_FIELDS = frozenset({"id", "sku", "title", "qty", "unit_paise", "category"})
+
+TICKET_FIELDS = frozenset(
+    {"id", "code", "customer_id", "order_id", "category", "status", "version"}
+)
+
+CUSTOMER_FIELDS = frozenset({"id", "code", "name", "email"})
+
+
+def _trusted_order(order: dict) -> dict:
+    """Order facts minus free text (IDs, linkage, money, line structure)."""
+    kept = {key: order.get(key) for key in ORDER_FIELDS if key in order}
+    items = kept.get("items")
+    if isinstance(items, list):
+        kept["items"] = [
+            {key: item.get(key) for key in ORDER_ITEM_FIELDS if key in item}
+            for item in items
+            if isinstance(item, dict)
+        ]
+    return kept
+
+
+def _trusted_ticket(ticket: dict) -> dict:
+    """Ticket facts minus free text (bodies and subjects never enter)."""
+    return {key: ticket.get(key) for key in TICKET_FIELDS if key in ticket}
+
+
+def _trusted_customer(customer: dict) -> dict:
+    """Customer facts minus anything but identity and contact."""
+    return {key: customer.get(key) for key in CUSTOMER_FIELDS if key in customer}
 
 
 def _load_probes(task_id, action: dict, gateway, facts: Facts) -> None:
