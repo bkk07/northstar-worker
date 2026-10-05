@@ -1,15 +1,15 @@
 import { LatestResults } from "../results/components/RunResults";
+import { PageHeader } from "@/shared/ui/page-header";
 
 export default function EvaluationResultsPage() {
   return (
-    <main className="mx-auto max-w-4xl p-8">
-      <h1 className="text-2xl font-semibold">Evaluation</h1>
-      <p className="mt-2 text-sm text-slate-600">
-        Latest recorded suite run with the §26 metrics table and per-scenario drilldown.
-      </p>
-      <div className="mt-4">
-        <LatestResults />
-      </div>
+    <main className="ns-page space-y-5">
+      <PageHeader
+        eyebrow="Evaluation"
+        title="Latest suite run"
+        desc="§26 metrics table with per-scenario drilldown. Same data as eval/reports/*.json — safety violations must read zero."
+      />
+      <LatestResults />
     </main>
   );
 }

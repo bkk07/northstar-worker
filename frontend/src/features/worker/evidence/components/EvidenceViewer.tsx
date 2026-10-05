@@ -1,4 +1,6 @@
+import { FileSearch } from "lucide-react";
 import { ErrorState, LoadingState } from "@/shared/ui/feedback";
+import { EmptyState } from "@/shared/ui/empty-state";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useTaskEvidence, useTaskScreenshots, useTaskVerification } from "../../hooks/useWorker";
 import type { EvidencePacketRead, ScreenshotRead, VerificationRead } from "../../types";
@@ -12,7 +14,11 @@ export function EvidenceViewer({ taskId }: { taskId: string }) {
     const status = (evidence.error as { response?: { status?: number } })?.response?.status;
     if (status === 404)
       return (
-        <p className="text-sm text-slate-500">No evidence packet yet — the run has not ended.</p>
+        <EmptyState
+          title="No evidence packet yet"
+          desc="The run has not ended — the verifier-derived packet lands here at terminal state."
+          icon={FileSearch}
+        />
       );
     return (
       <ErrorState message={getErrorMessage(evidence.error)} onRetry={() => evidence.refetch()} />

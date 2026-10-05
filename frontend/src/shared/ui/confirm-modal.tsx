@@ -1,4 +1,10 @@
-// Confirmation modal (destructive ops mutations confirm first).
+import { motion, useReducedMotion } from "framer-motion";
+import { TriangleAlert } from "lucide-react";
+import { useEffect } from "react";
+
+// Confirmation as a right slide-over (destructive ops mutations confirm
+// first). Keeps role="alertdialog" + accessible names so e2e, unit tests,
+// and the worker's a11y-driven browser all keep working.
 export function ConfirmModal({
   title,
   body,
@@ -14,30 +20,57 @@ export function ConfirmModal({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const reduce = useReducedMotion();
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !pending) onCancel();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onCancel, pending]);
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/40">
-      <div
+    <div className="fixed inset-0 z-50">
+      <div aria-hidden onClick={pending ? undefined : onCancel} className="absolute inset-0 bg-slate-950/45" />
+      <motion.div
         role="alertdialog"
         aria-modal="true"
         aria-label={title}
-        className="w-full max-w-md rounded-md bg-white p-6"
+        initial={reduce ? { opacity: 0 } : { opacity: 0, x: 360 }}
+        animate={reduce ? { opacity: 1 } : { opacity: 1, x: 0 }}
+        transition={reduce ? { duration: 0 } : { type: "tween", duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute right-0 top-0 flex h-full w-[min(420px,100vw)] flex-col bg-white shadow-2xl"
       >
-        <h2 className="font-semibold">{title}</h2>
-        <p className="mt-2 text-sm text-slate-600">{body}</p>
-        <div className="mt-4 flex justify-end gap-2">
-          <button type="button" onClick={onCancel} className="rounded border px-4 py-2 text-sm">
+        <div className="border-b border-slate-100 px-5 py-4">
+          <p className="flex items-center gap-2 text-[15px] font-semibold tracking-tight">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+              <TriangleAlert aria-hidden className="h-4 w-4" />
+            </span>
+            {title}
+          </p>
+          <p className="mt-2 text-sm leading-6 text-slate-600">{body}</p>
+        </div>
+        <div className="mt-auto flex justify-end gap-2 border-t border-slate-100 bg-slate-50/70 px-5 py-4">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={pending}
+            className="ns-btn ns-btn-secondary"
+          >
             Cancel
           </button>
-          <button
+          <motion.button
             type="button"
             onClick={onConfirm}
             disabled={pending}
-            className="rounded bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-50"
+            whileTap={reduce ? undefined : { scale: 0.97 }}
+            className="ns-btn ns-btn-primary"
           >
             {pending ? "Working…" : confirmLabel}
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

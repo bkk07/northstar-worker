@@ -1,5 +1,8 @@
+import { motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
+import { Search } from "lucide-react";
 import { ErrorState, LoadingState } from "@/shared/ui/feedback";
+import { EmptyState } from "@/shared/ui/empty-state";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { useCustomerSearch } from "../hooks/useCustomers";
 import { useUiFlags } from "../../tickets/hooks/useTickets";
@@ -9,6 +12,7 @@ export function CustomerSearch() {
   const [query, setQuery] = useState("");
   const search = useCustomerSearch(query);
   const flags = useUiFlags();
+  const reduce = useReducedMotion();
 
   function handleSearch(event: React.FormEvent) {
     event.preventDefault();
@@ -27,33 +31,75 @@ export function CustomerSearch() {
 
   return (
     <div>
-      <form onSubmit={handleSearch} className="flex gap-2">
-        <label htmlFor="customer-search" className="sr-only">
-          Search customers
-        </label>
-        <input
-          id="customer-search"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder="Name, email, or code"
-          className="rounded border px-2 py-1"
-        />
-        <button type="submit" className="rounded-md bg-slate-900 px-4 py-1 text-sm text-white">
+      <form
+        aria-label="Find customers"
+        onSubmit={handleSearch}
+        className="flex max-w-lg gap-2"
+      >
+        <div className="relative flex-1">
+          <label htmlFor="customer-search" className="sr-only">
+            Search customers
+          </label>
+          <Search
+            aria-hidden
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+          />
+          <input
+            id="customer-search"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Name, email, or code"
+            autoComplete="off"
+            className="ns-input pl-9"
+          />
+        </div>
+        <button type="submit" className="ns-btn ns-btn-primary shrink-0">
           Search
         </button>
       </form>
       {search.isPending && query && <LoadingState what="customers" />}
       {search.isError && <ErrorState message={getErrorMessage(search.error)} />}
-      {search.data && (
-        <ul className="mt-3 space-y-2 text-sm">
-          {search.data.length === 0 && <li>No customers found.</li>}
-          {search.data.map((customer) => (
-            <li key={customer.id} className="rounded border p-2">
-              {customer.name} ({customer.code}) — {customer.email}
-            </li>
-          ))}
-        </ul>
-      )}
+      {search.data &&
+        (search.data.length === 0 ? (
+          <div className="mt-3">
+            <EmptyState title="No customers found" desc={`Nothing matches “${query}”.`} />
+          </div>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {search.data.map((customer, i) => (
+              <motion.li
+                key={customer.id}
+                initial={reduce ? false : { opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: reduce ? 0 : Math.min(i * 0.04, 0.3), duration: 0.25 }}
+                className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm"
+              >
+                <span
+                  aria-hidden
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700"
+                >
+                  {customer.name
+                    .split(" ")
+                    .map((p) => p[0])
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase()}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate font-medium text-slate-900">
+                    {customer.name}{" "}
+                    <span className="font-mono text-xs font-normal text-slate-400">
+                      ({customer.code})
+                    </span>
+                  </span>
+                  <span className="block truncate text-[13px] text-slate-500">
+                    {customer.email}
+                  </span>
+                </span>
+              </motion.li>
+            ))}
+          </ul>
+        ))}
     </div>
   );
 }

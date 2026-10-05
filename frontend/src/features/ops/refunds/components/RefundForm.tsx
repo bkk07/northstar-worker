@@ -1,3 +1,4 @@
+import { HandCoins } from "lucide-react";
 import { useState } from "react";
 import { ConfirmModal } from "@/shared/ui/confirm-modal";
 import { ErrorState } from "@/shared/ui/feedback";
@@ -33,7 +34,7 @@ export function RefundForm({
 
   const orderField = (
     <div>
-      <label htmlFor="refund-order" className="block text-sm">
+      <label htmlFor="refund-order" className="ns-label">
         {orderLabel}
       </label>
       <input
@@ -41,13 +42,15 @@ export function RefundForm({
         value={orderCode}
         onChange={(e) => setOrderCode(e.target.value)}
         required
-        className="w-full rounded border px-2 py-1"
+        placeholder="ORD-1942"
+        autoComplete="off"
+        className="ns-input"
       />
     </div>
   );
   const amountField = (
     <div>
-      <label htmlFor="refund-amount" className="block text-sm">
+      <label htmlFor="refund-amount" className="ns-label">
         {amountLabel}
       </label>
       <input
@@ -57,7 +60,8 @@ export function RefundForm({
         required
         inputMode="decimal"
         placeholder="2500.00"
-        className="w-full rounded border px-2 py-1"
+        autoComplete="off"
+        className="ns-input"
       />
     </div>
   );
@@ -85,8 +89,13 @@ export function RefundForm({
 
   return (
     <div>
-      <form aria-label="Create refund" onSubmit={handleSubmit} className="space-y-2">
-        <h3 className="font-semibold">New refund</h3>
+      <form aria-label="Create refund" onSubmit={handleSubmit} className="space-y-3">
+        <h3 className="flex items-center gap-2 text-sm font-semibold tracking-tight">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+            <HandCoins aria-hidden className="h-4 w-4" />
+          </span>
+          New refund
+        </h3>
         {drift ? (
           <>
             {amountField}
@@ -101,7 +110,7 @@ export function RefundForm({
         <button
           type="submit"
           disabled={create.isPending || paise === null}
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-50"
+          className="ns-btn ns-btn-primary"
         >
           Review refund
         </button>

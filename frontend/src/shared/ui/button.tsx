@@ -1,15 +1,31 @@
-import type { ButtonHTMLAttributes } from "react";
+import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
 import { cn } from "@/shared/lib/utils";
+import { snappyTransition } from "@/shared/ui/motion";
 
-// Minimal shadcn-style Button placeholder (full design system in later phases).
-export function Button({ className, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "success";
+type Size = "md" | "sm";
+
+const VARIANTS: Record<Variant, string> = {
+  primary: "ns-btn ns-btn-primary",
+  secondary: "ns-btn ns-btn-secondary",
+  ghost: "ns-btn ns-btn-ghost",
+  danger: "ns-btn ns-btn-danger",
+  success: "ns-btn ns-btn-success",
+};
+
+type Props = Omit<HTMLMotionProps<"button">, "children"> & {
+  variant?: Variant;
+  size?: Size;
+};
+
+export function Button({ variant = "primary", size = "md", className, ...props }: Props) {
+  const reduce = useReducedMotion();
   return (
-    <button
-      className={cn(
-        "inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium",
-        "bg-slate-900 text-white hover:bg-slate-700",
-        className,
-      )}
+    <motion.button
+      // Tap: scale 0.97 (disabled when user prefers reduced motion).
+      whileTap={reduce ? undefined : { scale: 0.97 }}
+      transition={snappyTransition}
+      className={cn(VARIANTS[variant], size === "sm" && "ns-btn-sm", className)}
       {...props}
     />
   );

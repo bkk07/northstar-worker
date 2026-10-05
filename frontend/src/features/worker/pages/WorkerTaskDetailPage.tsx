@@ -5,43 +5,70 @@ import { EvidenceViewer } from "../evidence/components/EvidenceViewer";
 import { StatusBadge } from "../tasks/components/TaskList";
 import { TaskTimeline } from "../timeline/components/TaskTimeline";
 import { MemoryTable } from "../memory/components/MemoryTable";
+import { PageHeader } from "@/shared/ui/page-header";
+import { Card, CardBody, CardHeader } from "@/shared/ui/card";
 import { useWorkerTask } from "../hooks/useWorker";
 
 export default function WorkerTaskDetailPage() {
   const { taskId } = useParams();
   const task = useWorkerTask(taskId);
-  if (task.isPending) return <LoadingState what="task" />;
+  if (task.isPending)
+    return (
+      <main className="ns-page">
+        <LoadingState what="task" />
+      </main>
+    );
   if (task.isError)
-    return <ErrorState message={getErrorMessage(task.error)} onRetry={() => task.refetch()} />;
-  if (!task.data) return <LoadingState what="task" />;
+    return (
+      <main className="ns-page">
+        <ErrorState message={getErrorMessage(task.error)} onRetry={() => task.refetch()} />
+      </main>
+    );
+  if (!task.data)
+    return (
+      <main className="ns-page">
+        <LoadingState what="task" />
+      </main>
+    );
   return (
-    <main className="mx-auto max-w-4xl p-8">
-      <Link to="/worker" className="text-sm underline">
-        ← Dashboard
+    <main className="ns-page space-y-6">
+      <Link
+        to="/worker"
+        className="inline-flex items-center gap-1 text-[13px] font-medium text-slate-500 hover:text-slate-900"
+      >
+        ← Back to dashboard
       </Link>
-      <h1 className="mt-2 text-xl font-semibold">{task.data.text}</h1>
-      <p className="mt-1 flex items-center gap-2 text-sm text-slate-600">
-        <StatusBadge status={task.data.status} />
-        <span>{task.data.current_state}</span>
-      </p>
-      <section aria-label="Timeline" className="mt-6">
-        <h2 className="text-lg font-medium">Timeline</h2>
-        <div className="mt-2">
-          <TaskTimeline taskId={task.data.id} />
+      <PageHeader
+        eyebrow={`Task ${task.data.id.slice(0, 8)} · ${task.data.current_state}`}
+        title={task.data.text}
+        desc={`Created ${new Date(task.data.created_at).toLocaleString()} — contract → plan → policy → execute → verify. Everything below is read from the audit journal.`}
+        actions={<StatusBadge status={task.data.status} />}
+      />
+      <div className="grid gap-6 lg:grid-cols-5">
+        <Card className="lg:col-span-3">
+          <CardHeader
+            title="Live timeline"
+            desc="Node transitions, tool calls, failures and recoveries in order."
+          />
+          <CardBody>
+            <TaskTimeline taskId={task.data.id} />
+          </CardBody>
+        </Card>
+        <div className="space-y-6 lg:col-span-2">
+          <Card>
+            <CardHeader title="Evidence" desc="Verifier-derived proof, not model text." />
+            <CardBody>
+              <EvidenceViewer taskId={task.data.id} />
+            </CardBody>
+          </Card>
+          <Card>
+            <CardHeader title="Memory" desc="Facts with provenance and trust level." />
+            <CardBody>
+              <MemoryTable taskId={task.data.id} />
+            </CardBody>
+          </Card>
         </div>
-      </section>
-      <section aria-label="Evidence" className="mt-6">
-        <h2 className="text-lg font-medium">Evidence</h2>
-        <div className="mt-2">
-          <EvidenceViewer taskId={task.data.id} />
-        </div>
-      </section>
-      <section aria-label="Memory" className="mt-6">
-        <h2 className="text-lg font-medium">Memory</h2>
-        <div className="mt-2">
-          <MemoryTable taskId={task.data.id} />
-        </div>
-      </section>
+      </div>
     </main>
   );
 }

@@ -1,19 +1,11 @@
 import { Suspense } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 
-// Shop layout: customer surface shell with section nav (Phase 7).
+/** Thin pass-through: AppShell owns sidebar/topbar; shop has no sub-tabs. */
 export function ShopLayout() {
   return (
-    <div className="min-h-screen bg-white text-slate-900">
-      <nav className="flex gap-4 border-b p-4 text-sm" aria-label="Shop">
-        <Link to="/shop/orders" className="font-semibold">
-          Northstar Shop
-        </Link>
-        <Link to="/shop/orders">Orders</Link>
-      </nav>
-      <Suspense fallback={<p className="p-8 text-sm">Loading…</p>}>
-        <Outlet />
-      </Suspense>
-    </div>
+    <Suspense fallback={<p className="ns-page text-sm text-slate-500">Loading…</p>}>
+      <Outlet />
+    </Suspense>
   );
 }

@@ -1,3 +1,4 @@
+import { PackagePlus } from "lucide-react";
 import { useState } from "react";
 import { ConfirmModal } from "@/shared/ui/confirm-modal";
 import { ErrorState } from "@/shared/ui/feedback";
@@ -28,7 +29,7 @@ export function ReplacementForm({
 
   const orderField = (
     <div>
-      <label htmlFor="repl-order" className="block text-sm">
+      <label htmlFor="repl-order" className="ns-label">
         {orderLabel}
       </label>
       <input
@@ -36,13 +37,15 @@ export function ReplacementForm({
         value={orderCode}
         onChange={(e) => setOrderCode(e.target.value)}
         required
-        className="w-full rounded border px-2 py-1"
+        placeholder="ORD-1942"
+        autoComplete="off"
+        className="ns-input"
       />
     </div>
   );
   const skuField = (
     <div>
-      <label htmlFor="repl-sku" className="block text-sm">
+      <label htmlFor="repl-sku" className="ns-label">
         {skuLabel}
       </label>
       <input
@@ -50,7 +53,9 @@ export function ReplacementForm({
         value={itemSku}
         onChange={(e) => setItemSku(e.target.value)}
         required
-        className="w-full rounded border px-2 py-1"
+        placeholder="CB-05"
+        autoComplete="off"
+        className="ns-input"
       />
     </div>
   );
@@ -77,8 +82,13 @@ export function ReplacementForm({
 
   return (
     <div>
-      <form aria-label="Create replacement" onSubmit={handleSubmit} className="space-y-2">
-        <h3 className="font-semibold">New replacement</h3>
+      <form aria-label="Create replacement" onSubmit={handleSubmit} className="space-y-3">
+        <h3 className="flex items-center gap-2 text-sm font-semibold tracking-tight">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700">
+            <PackagePlus aria-hidden className="h-4 w-4" />
+          </span>
+          New replacement
+        </h3>
         {drift ? (
           <>
             {skuField}
@@ -93,7 +103,7 @@ export function ReplacementForm({
         <button
           type="submit"
           disabled={create.isPending}
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-50"
+          className="ns-btn ns-btn-primary"
         >
           Review replacement
         </button>

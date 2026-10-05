@@ -1,3 +1,328 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Northstar support-console theme (Linear + Zendesk + Intercom) ──
+   Stack: React 18 + Vite + Tailwind 3.4 + Router 6 + TanStack Query.
+   Motion: framer-motion only (cards lift, page fade+slide, button tap).
+   Icons: lucide-react only. */
+
+:root {
+  /* Surfaces */
+  --ns-sidebar: #020617; /* slate-950 */
+  --ns-sidebar-hover: rgb(255 255 255 / 0.06);
+  --ns-sidebar-active: rgb(255 255 255 / 0.1);
+  --ns-content: #f1f5f9; /* slate-100 */
+  --ns-surface: #ffffff;
+  --ns-border: #e2e8f0; /* slate-200 */
+  --ns-border-soft: #f1f5f9; /* slate-100 */
+
+  /* Brand / primary */
+  --ns-primary: #4f46e5; /* indigo-600 */
+  --ns-primary-hover: #4338ca; /* indigo-700 */
+  --ns-primary-active: #3730a3; /* indigo-800 */
+  --ns-primary-soft: #eef2ff; /* indigo-50 */
+  --ns-primary-ring: #c7d2fe; /* indigo-200 */
+
+  /* Status */
+  --ns-ok-bg: #ecfdf5;
+  --ns-ok-fg: #047857;
+  --ns-ok-border: #a7f3d0;
+  --ns-ok-dot: #10b981;
+  --ns-warn-bg: #fffbeb;
+  --ns-warn-fg: #92400e;
+  --ns-warn-border: #fde68a;
+  --ns-warn-dot: #f59e0b;
+  --ns-bad-bg: #fef2f2;
+  --ns-bad-fg: #b91c1c;
+  --ns-bad-border: #fecaca;
+  --ns-bad-dot: #ef4444;
+  --ns-info-bg: #eef2ff;
+  --ns-info-fg: #3730a3;
+  --ns-info-border: #c7d2fe;
+  --ns-info-dot: #6366f1;
+
+  /* Text */
+  --ns-ink: #0f172a; /* slate-900 */
+  --ns-ink-soft: #475569; /* slate-600 */
+  --ns-ink-faint: #64748b; /* slate-500 */
+
+  /* Shape + elevation (Linear-like soft cards) */
+  --ns-radius-card: 1rem; /* rounded-2xl */
+  --ns-radius-control: 0.625rem;
+  --ns-shadow-card:
+    0 1px 2px 0 rgb(16 24 40 / 0.05), 0 1px 3px 0 rgb(16 24 40 / 0.08),
+    0 8px 24px -16px rgb(16 24 40 / 0.18);
+  --ns-shadow-pop: 0 16px 40px -16px rgb(16 24 40 / 0.3);
+
+  /* Type */
+  --ns-font-sans:
+    "Inter", ui-sans-system, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+
+  /* Skeleton */
+  --ns-skeleton: rgb(226 232 240 / 0.8); /* slate-200 */
+  --ns-skeleton-shine: rgb(255 255 255 / 0.7);
+
+  color-scheme: light;
+}
+
+/* ── Dark-mode ready tokens (opt-in via <html data-theme="dark">).
+   Light remains the default; setting data-theme="dark" remaps every
+   surface through the same var names so components need no changes. */
+[data-theme="dark"] {
+  --ns-content: #0f172a;
+  --ns-surface: #1e293b;
+  --ns-border: #334155;
+  --ns-border-soft: #1e293b;
+  --ns-primary-soft: #312e81;
+  --ns-primary-ring: #4f46e5;
+  --ns-ok-bg: #064e3b;
+  --ns-ok-fg: #a7f3d0;
+  --ns-ok-border: #065f46;
+  --ns-warn-bg: #451a03;
+  --ns-warn-fg: #fde68a;
+  --ns-warn-border: #92400e;
+  --ns-bad-bg: #450a0a;
+  --ns-bad-fg: #fecaca;
+  --ns-bad-border: #7f1d1d;
+  --ns-info-bg: #1e1b4b;
+  --ns-info-fg: #c7d2fe;
+  --ns-info-border: #3730a3;
+  --ns-ink: #f1f5f9;
+  --ns-ink-soft: #cbd5e1;
+  --ns-ink-faint: #94a3b8;
+  --ns-shadow-card:
+    0 1px 2px 0 rgb(0 0 0 / 0.4), 0 1px 3px 0 rgb(0 0 0 / 0.4),
+    0 8px 24px -16px rgb(0 0 0 / 0.5);
+  --ns-shadow-pop: 0 16px 40px -16px rgb(0 0 0 / 0.6);
+  --ns-skeleton: rgb(51 65 85 / 0.8);
+  --ns-skeleton-shine: rgb(148 163 184 / 0.25);
+
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    font-family: var(--ns-font-sans);
+    font-size: 14px; /* 13–14px base per spec */
+    line-height: 1.5;
+    letter-spacing: -0.006em; /* tight tracking */
+    background: var(--ns-content);
+    color: var(--ns-ink);
+    font-feature-settings: "cv11", "ss01", "tnum" 0;
+  }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.02em; /* tighter display tracking */
+  }
+  ::selection {
+    background: var(--ns-primary-ring);
+    color: var(--ns-info-fg);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ns-primary);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  /* Visible focus on the dark sidebar (light outline on dark chrome). */
+  aside :focus-visible,
+  [role="dialog"] :focus-visible {
+    outline-color: #a5b4fc;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 8px;
+  }
+
+  /* Respect prefers-reduced-motion globally: kill CSS keyframes;
+     framer-motion components also check useReducedMotion. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .ns-page {
+    @apply mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8;
+  }
+  .ns-page-narrow {
+    @apply mx-auto w-full max-w-4xl px-4 py-6 sm:px-6;
+  }
+
+  /* Cards — rounded-2xl per spec (kept .ns-card name for compat) */
+  .ns-card {
+    @apply border bg-white;
+    border-color: var(--ns-border);
+    border-radius: var(--ns-radius-card);
+    box-shadow: var(--ns-shadow-card);
+  }
+  .ns-card-pad {
+    @apply p-4 sm:p-5;
+  }
+  .ns-card-header {
+    @apply flex items-center justify-between gap-3 px-4 py-3 sm:px-5;
+    border-bottom: 1px solid var(--ns-border-soft);
+  }
+  .ns-card-title {
+    @apply text-sm font-semibold text-slate-900;
+    letter-spacing: -0.01em;
+  }
+  .ns-card-sub {
+    @apply mt-0.5 text-[13px] text-slate-500;
+  }
+
+  .ns-btn {
+    @apply inline-flex items-center justify-center gap-1.5 text-sm font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50;
+    border-radius: var(--ns-radius-control);
+    padding: 0.5rem 0.875rem;
+    letter-spacing: -0.006em;
+  }
+  .ns-btn-primary {
+    background: var(--ns-primary);
+    @apply text-white shadow-sm;
+  }
+  .ns-btn-primary:hover {
+    background: var(--ns-primary-hover);
+  }
+  .ns-btn-primary:active {
+    background: var(--ns-primary-active);
+  }
+  .ns-btn-secondary {
+    @apply border border-slate-300 bg-white text-slate-700 shadow-sm hover:border-slate-400 hover:bg-slate-50 active:bg-slate-100;
+  }
+  .ns-btn-ghost {
+    @apply text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+  }
+  .ns-btn-danger {
+    @apply bg-red-600 text-white shadow-sm hover:bg-red-700;
+  }
+  .ns-btn-success {
+    @apply bg-emerald-600 text-white shadow-sm hover:bg-emerald-700;
+  }
+  .ns-btn-sm {
+    @apply px-2.5 py-1.5 text-[13px];
+  }
+
+  .ns-input {
+    @apply w-full bg-white text-sm text-slate-900 placeholder:text-slate-400 shadow-sm transition-colors hover:border-slate-400 focus:outline-none;
+    border: 1px solid var(--ns-border);
+    border-radius: var(--ns-radius-control);
+    padding: 0.5rem 0.75rem;
+  }
+  .ns-input:focus {
+    border-color: var(--ns-primary);
+    box-shadow: 0 0 0 3px var(--ns-primary-soft);
+  }
+  .ns-label {
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500;
+  }
+  .ns-select {
+    @apply bg-white px-2.5 py-2 text-sm shadow-sm hover:border-slate-400 focus:outline-none;
+    border: 1px solid var(--ns-border);
+    border-radius: var(--ns-radius-control);
+  }
+  .ns-select:focus {
+    border-color: var(--ns-primary);
+    box-shadow: 0 0 0 3px var(--ns-primary-soft);
+  }
+
+  .ns-table-wrap {
+    @apply overflow-hidden bg-white;
+    border: 1px solid var(--ns-border);
+    border-radius: var(--ns-radius-card);
+    box-shadow: var(--ns-shadow-card);
+  }
+  .ns-table {
+    @apply w-full text-sm;
+  }
+  .ns-table thead th {
+    @apply bg-slate-50 px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500;
+    border-bottom: 1px solid var(--ns-border);
+  }
+  .ns-table tbody td {
+    @apply px-4 py-3 align-middle;
+    border-bottom: 1px solid var(--ns-border-soft);
+  }
+  .ns-table tbody tr {
+    @apply transition-colors last:[&>td]:border-0 hover:bg-slate-50/80;
+  }
+  /* Active (selected) row — paired with a framer-motion layoutId glow. */
+  .ns-table tbody tr.is-active {
+    @apply bg-indigo-50/60;
+  }
+  .ns-table tbody tr.is-active:hover {
+    @apply bg-indigo-50;
+  }
+
+  .ns-badge {
+    @apply inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-medium leading-5;
+    letter-spacing: -0.006em;
+  }
+
+  .ns-section-title {
+    @apply text-sm font-semibold text-slate-900;
+    letter-spacing: -0.01em;
+  }
+  .ns-section-desc {
+    @apply mt-0.5 text-[13px] leading-5 text-slate-500;
+  }
+
+  .ns-skeleton {
+    @apply relative overflow-hidden rounded-md;
+    background: var(--ns-skeleton);
+  }
+  .ns-skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, var(--ns-skeleton-shine), transparent);
+    animation: ns-shimmer 1.4s infinite;
+  }
+  @keyframes ns-shimmer {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  .ns-side-link {
+    @apply flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] font-medium text-slate-400 transition-colors hover:text-white;
+  }
+  .ns-side-link:hover {
+    background: var(--ns-sidebar-hover);
+  }
+  .ns-side-link-active {
+    background: var(--ns-sidebar-active);
+    @apply text-white;
+    box-shadow: inset 2px 0 0 0 var(--ns-primary);
+  }
+  .ns-tab {
+    @apply inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900;
+  }
+  .ns-tab-active {
+    @apply bg-white text-slate-900 ring-1 ring-slate-200;
+    box-shadow: var(--ns-shadow-card);
+  }
+}

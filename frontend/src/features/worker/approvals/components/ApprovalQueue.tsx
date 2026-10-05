@@ -1,6 +1,10 @@
+import { motion, useReducedMotion, type PanInfo } from "framer-motion";
 import { useState } from "react";
+import { Check, MessageCircleQuestion, ShieldCheck, X } from "lucide-react";
 import { ErrorState, LoadingState } from "@/shared/ui/feedback";
+import { EmptyState } from "@/shared/ui/empty-state";
 import { getErrorMessage } from "@/shared/lib/errors";
+import { Badge } from "@/shared/ui/badge";
 import {
   useAnswerClarification,
   useApprovals,
@@ -20,58 +24,85 @@ export function ApprovalQueue() {
 }
 
 // Split for testability: pure view over the pending approvals.
+// Cards swipe right to approve, left to reject (buttons always available).
 export function ApprovalQueueView({ approvals }: { approvals: ApprovalRead[] }) {
   const decided = useDecideApproval();
   const [approver, setApprover] = useState("duty-ops");
+  const reduce = useReducedMotion();
   if (approvals.length === 0)
-    return <p className="text-sm text-slate-500">No approvals waiting.</p>;
+    return (
+      <EmptyState
+        title="No approvals waiting."
+        desc="Sensitive actions pause here for an operator decision."
+        icon={ShieldCheck}
+      />
+    );
+
+  function decide(approvalId: string, decision: "approve" | "reject") {
+    if (decided.isPending) return;
+    decided.mutate({ approvalId, decision, approver });
+  }
+
+  function onDragEnd(approvalId: string) {
+    return (_: unknown, info: PanInfo) => {
+      if (info.offset.x > 90) decide(approvalId, "approve");
+      else if (info.offset.x < -90) decide(approvalId, "reject");
+    };
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      <label className="flex items-center gap-2 text-sm">
-        Approver
+      <label className="flex max-w-xs items-center gap-2 text-[13px] text-slate-600">
+        <span className="shrink-0 font-medium">Approver</span>
         <input
           value={approver}
           onChange={(event) => setApprover(event.target.value)}
-          className="rounded border px-2 py-1"
+          className="ns-input"
         />
       </label>
+      <p className="text-xs text-slate-400">Tip: swipe a card right to approve, left to reject.</p>
       {approvals.map((approval) => (
-        <article
+        <motion.article
           key={approval.id}
           aria-label={`Approval ${approval.id}`}
-          className="rounded border p-3 text-sm"
+          drag={reduce ? false : "x"}
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.6}
+          onDragEnd={onDragEnd(approval.id)}
+          whileDrag={{ scale: 1.02 }}
+          className="rounded-2xl border border-amber-200 bg-amber-50/40 p-3.5 text-sm"
         >
-          <p className="font-medium">
-            {approval.requested_action}{" "}
-            <span className="text-slate-500">· {approval.policy_rule_id}</span>
-          </p>
-          <p className="mt-1 text-slate-600">{approval.reason}</p>
-          <pre className="mt-2 overflow-x-auto rounded bg-slate-50 p-2 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-semibold">{approval.requested_action}</p>
+            <Badge tone="human_approval">{approval.policy_rule_id}</Badge>
+          </div>
+          <p className="mt-1 text-[13px] leading-5 text-slate-600">{approval.reason}</p>
+          <pre className="mt-2 overflow-x-auto rounded-xl border border-slate-200 bg-slate-950 p-2.5 font-mono text-[11px] leading-5 text-slate-100">
             {JSON.stringify(approval.params, null, 2)}
           </pre>
-          <div className="mt-2 flex gap-2">
-            <button
+          <div className="mt-2.5 flex gap-2">
+            <motion.button
               type="button"
               disabled={decided.isPending}
-              onClick={() =>
-                decided.mutate({ approvalId: approval.id, decision: "approve", approver })
-              }
-              className="rounded bg-green-700 px-3 py-1 text-white disabled:opacity-50"
+              onClick={() => decide(approval.id, "approve")}
+              whileTap={reduce ? undefined : { scale: 0.97 }}
+              className="ns-btn ns-btn-success ns-btn-sm"
             >
+              <Check aria-hidden className="h-3.5 w-3.5" />
               Approve
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               type="button"
               disabled={decided.isPending}
-              onClick={() =>
-                decided.mutate({ approvalId: approval.id, decision: "reject", approver })
-              }
-              className="rounded bg-red-700 px-3 py-1 text-white disabled:opacity-50"
+              onClick={() => decide(approval.id, "reject")}
+              whileTap={reduce ? undefined : { scale: 0.97 }}
+              className="ns-btn ns-btn-danger ns-btn-sm"
             >
+              <X aria-hidden className="h-3.5 w-3.5" />
               Reject
-            </button>
+            </motion.button>
           </div>
-        </article>
+        </motion.article>
       ))}
       {decided.isError && (
         <p role="alert" className="text-sm text-red-700">
@@ -79,7 +110,9 @@ export function ApprovalQueueView({ approvals }: { approvals: ApprovalRead[] }) 
         </p>
       )}
       {decided.isSuccess && (
-        <p className="text-sm text-green-700">Decision recorded; the task requeued.</p>
+        <p role="status" className="text-[13px] font-medium text-emerald-700">
+          Decision recorded; the task requeued.
+        </p>
       )}
     </div>
   );
@@ -106,22 +139,31 @@ export function ClarificationQueueView({
   const answered = useAnswerClarification();
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   if (clarifications.length === 0)
-    return <p className="text-sm text-slate-500">No questions waiting.</p>;
+    return (
+      <EmptyState
+        title="No questions waiting."
+        desc="Ambiguous tasks land here for a clarifying answer."
+        icon={MessageCircleQuestion}
+      />
+    );
   return (
     <div className="flex flex-col gap-3">
       {clarifications.map((item) => (
         <article
           key={item.id}
           aria-label={`Clarification ${item.id}`}
-          className="rounded border p-3 text-sm"
+          className="rounded-2xl border border-slate-200 bg-white p-3.5 text-sm shadow-sm"
         >
-          <p className="font-medium">
-            {item.kind} <span className="text-slate-500">· task {item.task_id.slice(0, 8)}</span>
+          <p className="flex flex-wrap items-center gap-2 font-medium">
+            {item.kind}
+            <span className="font-mono text-xs font-normal text-slate-400">
+              task {item.task_id.slice(0, 8)}
+            </span>
           </p>
-          <p className="mt-1">{item.question}</p>
+          <p className="mt-1 text-[13px]">{item.question}</p>
           <form
             aria-label={`Answer ${item.id}`}
-            className="mt-2 flex gap-2"
+            className="mt-2.5 flex gap-2"
             onSubmit={(event) => {
               event.preventDefault();
               const answer = (drafts[item.id] ?? "").trim();
@@ -141,12 +183,12 @@ export function ClarificationQueueView({
               value={drafts[item.id] ?? ""}
               onChange={(event) => setDrafts({ ...drafts, [item.id]: event.target.value })}
               placeholder="Type the answer…"
-              className="flex-1 rounded border px-2 py-1"
+              className="ns-input flex-1"
             />
             <button
               type="submit"
               disabled={answered.isPending}
-              className="rounded bg-slate-900 px-3 py-1 text-white disabled:opacity-50"
+              className="ns-btn ns-btn-primary ns-btn-sm shrink-0"
             >
               Answer
             </button>
@@ -159,7 +201,9 @@ export function ClarificationQueueView({
         </p>
       )}
       {answered.isSuccess && (
-        <p className="text-sm text-green-700">Answer recorded; the task requeued.</p>
+        <p role="status" className="text-[13px] font-medium text-emerald-700">
+          Answer recorded; the task requeued.
+        </p>
       )}
     </div>
   );

@@ -1,19 +1,11 @@
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ErrorState, LoadingState } from "@/shared/ui/feedback";
+import { EmptyState } from "@/shared/ui/empty-state";
 import { getErrorMessage } from "@/shared/lib/errors";
+import { Badge } from "@/shared/ui/badge";
 import { useTaskScreenshots, useTaskTimeline } from "../../hooks/useWorker";
 import { workerUiActions, useWorkerUiStore } from "../../stores/workerUiStore";
 import type { AuditEventRead, ScreenshotRead } from "../../types";
-
-// Decision/graph nodes get the highlight treatment; transitions stay quiet.
-const NODE_STYLES: Record<string, string> = {
-  contract: "bg-indigo-100 text-indigo-800",
-  policy_check: "bg-amber-100 text-amber-800",
-  verify: "bg-green-100 text-green-800",
-  human_approval: "bg-orange-100 text-orange-800",
-  clarification: "bg-orange-100 text-orange-800",
-  recover: "bg-red-100 text-red-800",
-  classify: "bg-red-100 text-red-800",
-};
 
 export function TaskTimeline({ taskId }: { taskId: string }) {
   const timeline = useTaskTimeline(taskId);
@@ -36,6 +28,7 @@ export function TaskTimeline({ taskId }: { taskId: string }) {
 }
 
 // Split for testability: pure view over events + screenshots.
+// Live feed animates in via AnimatePresence (reduced-motion safe).
 export function TaskTimelineView({
   events,
   screenshots,
@@ -49,18 +42,21 @@ export function TaskTimelineView({
   onFilter: (kind: string) => void;
   liveStatus: string;
 }) {
+  const reduce = useReducedMotion();
   const kinds = ["all", ...Array.from(new Set(events.map((event) => event.kind)))];
   const visible =
     kindFilter === "all" ? events : events.filter((event) => event.kind === kindFilter);
   return (
     <div>
-      <div className="flex items-center gap-2 text-sm">
-        <label htmlFor="timeline-filter">Kind</label>
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
+        <label htmlFor="timeline-filter" className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          Filter
+        </label>
         <select
           id="timeline-filter"
           value={kindFilter}
           onChange={(event) => onFilter(event.target.value)}
-          className="rounded border px-2 py-1"
+          className="ns-select py-1 text-[13px]"
         >
           {kinds.map((kind) => (
             <option key={kind} value={kind}>
@@ -68,70 +64,84 @@ export function TaskTimelineView({
             </option>
           ))}
         </select>
-        <span aria-live="polite" className="text-xs text-slate-500">
-          live: {liveStatus} · {visible.length} events
+        <span aria-live="polite" className="ml-auto inline-flex items-center gap-1.5 text-xs text-slate-500">
+          <span aria-hidden className="relative flex h-1.5 w-1.5">
+            <span className="absolute h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none" />
+            <span className="relative h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          </span>
+          {liveStatus} · {visible.length} events
         </span>
       </div>
       {visible.length === 0 ? (
-        <p className="mt-3 text-sm text-slate-500">No events yet — the run has not started.</p>
+        <div className="mt-3">
+          <EmptyState
+            title="No events yet"
+            desc="The run has not started. Submit the task and events stream here live."
+          />
+        </div>
       ) : (
-        <ol className="mt-3 flex flex-col gap-2">
-          {visible.map((event) => (
-            <li key={event.id} className="rounded border p-2 text-sm">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-xs text-slate-500">#{event.seq}</span>
-                {event.node && (
-                  <span
-                    className={`rounded px-1.5 py-0.5 text-xs font-medium ${NODE_STYLES[event.node] ?? "bg-slate-100 text-slate-600"}`}
-                  >
-                    {event.node}
-                  </span>
-                )}
-                <span className="font-medium">{event.kind}</span>
-                {event.kind === "failure.classified" && event.error_type && (
-                  <span
-                    role="status"
-                    className="rounded bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-800"
-                  >
-                    FAILURE: {event.error_type}
-                  </span>
-                )}
-                {(event.kind === "recovery.decided" || event.kind === "recovery.probe") && (
-                  <span
-                    role="status"
-                    className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800"
-                  >
-                    RECOVERY: {event.status ?? event.kind}
-                  </span>
-                )}
-                {event.kind === "policy.decision" && event.policy_result && (
-                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">
-                    {event.policy_result}
-                  </span>
-                )}
-                {event.kind === "verification.result" && event.verification_result && (
-                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">
-                    {event.verification_result}
-                  </span>
-                )}
-              </div>
-              <p className="mt-1 text-xs text-slate-500">
-                {new Date(event.ts).toLocaleString()}
-                {event.tool ? ` · ${event.tool}` : ""}
-                {event.retry_count > 0 ? ` · retry ${event.retry_count}` : ""}
-              </p>
-            </li>
-          ))}
+        <ol className="relative mt-4 space-y-0 border-l-2 border-slate-200 pl-0">
+          <AnimatePresence initial={false}>
+            {visible.map((event) => (
+              <motion.li
+                key={event.id}
+                layout={reduce ? undefined : "position"}
+                initial={reduce ? false : { opacity: 0, y: -10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={reduce ? undefined : { opacity: 0, scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                className="relative pb-3 pl-5 last:pb-0"
+              >
+                <span
+                  aria-hidden
+                  className="absolute -left-[5px] top-3.5 h-2 w-2 rounded-full border-2 border-white bg-slate-300 shadow"
+                />
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="font-mono text-[11px] text-slate-400">#{event.seq}</span>
+                    {event.node && <Badge tone={event.node}>{event.node}</Badge>}
+                    <span className="text-[13px] font-semibold">{event.kind}</span>
+                    {event.kind === "failure.classified" && event.error_type && (
+                      <span role="status" className="ns-badge border-red-200 bg-red-50 text-red-800">
+                        FAILURE: {event.error_type}
+                      </span>
+                    )}
+                    {(event.kind === "recovery.decided" || event.kind === "recovery.probe") && (
+                      <span role="status" className="ns-badge border-amber-200 bg-amber-50 text-amber-800">
+                        RECOVERY: {event.status ?? event.kind}
+                      </span>
+                    )}
+                    {event.kind === "policy.decision" && event.policy_result && (
+                      <Badge tone={event.policy_result}>{event.policy_result}</Badge>
+                    )}
+                    {event.kind === "verification.result" && event.verification_result && (
+                      <Badge tone={event.verification_result}>{event.verification_result}</Badge>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {new Date(event.ts).toLocaleString()}
+                    {event.tool ? ` · ${event.tool}` : ""}
+                    {event.retry_count > 0 ? ` · retry ${event.retry_count}` : ""}
+                  </p>
+                </div>
+              </motion.li>
+            ))}
+          </AnimatePresence>
         </ol>
       )}
-      <section aria-label="Screenshot gallery" className="mt-4">
-        <h3 className="text-sm font-medium">Screenshots ({screenshots.length})</h3>
+      <section aria-label="Screenshot gallery" className="mt-5 border-t border-slate-100 pt-4">
+        <h3 className="text-[13px] font-semibold uppercase tracking-wider text-slate-500">
+          Screenshots ({screenshots.length})
+        </h3>
         {screenshots.length === 0 ? (
-          <p className="mt-1 text-sm text-slate-500">No screenshots captured.</p>
+          <p className="mt-1.5 text-[13px] text-slate-500">No screenshots captured yet.</p>
         ) : (
-          <ul className="mt-2 flex flex-col gap-1 text-sm">
+          <ul className="mt-2 space-y-1.5">
             {screenshots.map((shot, index) => (
-              <li key={`${shot.run_id}-${shot.label}-${index}`} className="font-mono text-xs">
+              <li
+                key={`${shot.run_id}-${shot.label}-${index}`}
+                className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs"
+              >
                 {shot.label}: {shot.path}
               </li>
             ))}
