@@ -1,25 +1,13 @@
 """finalize node (thin): evidence packet + terminal status (Phase 24).
 
-The stub maps the run's decided outcome to the matching terminal task
-state. Later phases build the evidence packet here; the mapping stays.
+The terminal mapping lives in `FinalizationService` (pure, pinned by
+topology tests); later phases build the evidence packet here.
 """
 
 from agent.graph.state import WorkerState
+from agent.runtime import wiring
 
 
 def finalize(state: WorkerState) -> dict:
     """Fold the decided outcome into a terminal status (deterministic)."""
-    if state.get("approval_status") == "rejected":
-        return {"status": "blocked"}
-    if state.get("policy_decision", {}).get("outcome") == "block":
-        return {"status": "blocked"}
-    if state.get("contract_status") == "unsupported":
-        return {"status": "inconclusive"}
-    verdict = state.get("verification", {}).get("verdict", "")
-    if verdict == "failed":
-        return {"status": "failed"}
-    if verdict == "inconclusive":
-        return {"status": "inconclusive"}
-    if verdict == "verified":
-        return {"status": "succeeded"}
-    return {"status": "succeeded"}
+    return {"status": wiring.finalization_service().status(state)}

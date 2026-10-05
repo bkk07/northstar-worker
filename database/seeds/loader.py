@@ -26,6 +26,8 @@ from sqlalchemy.engine import Connection
 
 from database.session import admin_engine, app_engine
 
+from agent.runtime.transitions import ALLOWED_TRANSITIONS as CODE_TRANSITIONS
+
 SEED_DIR = Path(__file__).parent
 
 BIZ_TABLES = [
@@ -251,6 +253,18 @@ def seed() -> dict[str, int]:
                 {"id": _uid(f"histlog:{r['key']}"), "key": r["key"], "eid": replacement_id},
             )
         counts["history"] = len(history.get("refunds", [])) + len(history.get("replacements", []))
+
+        # Enforcement config, not world state: `reset` truncates it, so every
+        # seed restores the code table (the DB trigger reads this, not Python).
+        for frm, tos in CODE_TRANSITIONS.items():
+            for to in tos:
+                conn.execute(
+                    text(
+                        "INSERT INTO worker.allowed_transitions (from_status, to_status) "
+                        "VALUES (:frm, :to) ON CONFLICT DO NOTHING"
+                    ),
+                    {"frm": frm.value, "to": to.value},
+                )
     return counts
 
 

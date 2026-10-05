@@ -21,6 +21,7 @@ from app.api.ops import (
     status_controller,
     ticket_controller,
 )
+from app.api.worker import task_controller
 from app.core.exceptions import AppError, app_error_handler
 
 APP_VERSION = "0.1.0-phase6"
@@ -45,6 +46,7 @@ def create_app() -> FastAPI:
     app.include_router(chaos_controller.router)
     app.include_router(reset_controller.router)
     app.include_router(oracle_controller.router)
+    app.include_router(task_controller.router)
     return app
 
 

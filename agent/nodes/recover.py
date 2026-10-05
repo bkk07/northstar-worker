@@ -1,10 +1,9 @@
 """recover node (thin): router lookup + counters (Phase 18)."""
 
 from agent.graph.state import WorkerState
+from agent.runtime import wiring
 
 
 def recover(state: WorkerState) -> dict:
-    """Stub: re-observe unless the test preset a recovery strategy."""
-    if "recovery" in state:
-        return {}
-    return {"recovery": {"strategy": "re_observe", "counters": {}}}
+    """Route the typed failure, apply the strategy, audit the round."""
+    return wiring.recovery_service().recover(state["task_id"], state["run_id"], dict(state))

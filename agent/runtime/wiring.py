@@ -6,6 +6,7 @@ these factories; the runner (Phase 16) replaces them with DI.
 """
 
 import os
+from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Session
 
@@ -14,11 +15,19 @@ from agent.llm.client import MercuryClient, config_from_env
 from agent.ports.clock import ClockPort, SystemClock
 from agent.services.contract_service import ContractService
 from agent.services.decision_service import DecisionService
+from agent.services.execution_service import ExecutionService
+from agent.services.finalization_service import FinalizationService
+from agent.services.observation_service import ObservationService
 from agent.services.planning_service import PlanningService
 from agent.services.policy_service import PolicyService
 from agent.services.understanding_service import UnderstandingService
 from agent.services.validation_service import ValidationService
 from database import session as session_factory
+
+if TYPE_CHECKING:
+    from agent.runtime.audit_emitter import AuditEmitter
+    from agent.runtime.runner import Runner
+    from agent.services.recovery_service import RecoveryService
 
 
 def understanding_service() -> UnderstandingService:
@@ -64,6 +73,42 @@ def policy_service() -> PolicyService:
         os.environ.get("POLICY_TOKEN_SECRET", "local-policy-secret"),
         system_clock(),
     )
+
+
+def execution_service() -> ExecutionService:
+    """Journaled MCP dispatch (journal-first, `ns_runner` writes)."""
+    return ExecutionService(_session_factory, mcp_gateway(), system_clock())
+
+
+def observation_service() -> ObservationService:
+    """Outcome normalization plus basic memory writes."""
+    return ObservationService(_session_factory)
+
+
+def finalization_service() -> FinalizationService:
+    """Terminal mapping and evidence summaries (no persistence)."""
+    return FinalizationService()
+
+
+def audit_emitter() -> "AuditEmitter":
+    """Append-only audit access for nodes and the runner."""
+    from agent.runtime.audit_emitter import AuditEmitter
+
+    return AuditEmitter(_session_factory, system_clock())
+
+
+def recovery_service() -> "RecoveryService":
+    """Failure-type router with counters and audit."""
+    from agent.services.recovery_service import RecoveryService
+
+    return RecoveryService(_session_factory, system_clock())
+
+
+def runner() -> "Runner":
+    """Single-process runner (graph + checkpoints + audit, no leases yet)."""
+    from agent.runtime.runner import Runner
+
+    return Runner(_session_factory, system_clock())
 
 
 def new_runner_session() -> Session:

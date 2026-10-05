@@ -44,15 +44,16 @@ class ToolMeta:
     capability: str
     kind: str  # "read" | "write" (only browser_submit writes)
     side_effect: str  # "none" | "read" | "write" (actions.side_effect)
+    fallback_for: str | None = None  # Phase 18: api_get backs dead UI searches
 
 
 TOOL_META: dict[str, ToolMeta] = {
-    "search_customer": ToolMeta("search_customer", "read", "read", "none"),
-    "get_customer": ToolMeta("get_customer", "read", "read", "none"),
-    "search_order": ToolMeta("search_order", "read", "read", "none"),
-    "get_order": ToolMeta("get_order", "read", "read", "none"),
-    "get_ticket": ToolMeta("get_ticket", "read", "read", "none"),
-    "get_policy": ToolMeta("get_policy", "read", "read", "none"),
+    "search_customer": ToolMeta("search_customer", "read", "read", "none", fallback_for="api_get"),
+    "get_customer": ToolMeta("get_customer", "read", "read", "none", fallback_for="api_get"),
+    "search_order": ToolMeta("search_order", "read", "read", "none", fallback_for="api_get"),
+    "get_order": ToolMeta("get_order", "read", "read", "none", fallback_for="api_get"),
+    "get_ticket": ToolMeta("get_ticket", "read", "read", "none", fallback_for="api_get"),
+    "get_policy": ToolMeta("get_policy", "read", "read", "none", fallback_for="api_get"),
     "api_get": ToolMeta("api_get", "read.fallback", "read", "none"),
     "inspect_state": ToolMeta("inspect_state", "probe", "read", "none"),
     "browser_open": ToolMeta("browser_open", "browser", "read", "read"),

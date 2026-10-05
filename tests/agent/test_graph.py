@@ -102,6 +102,48 @@ class _PolicyResult:
         self.token = token
 
 
+class _FakeExecution:
+    """Canned tool success (topology only, no journal, no gateway)."""
+
+    def execute(self, task_id, run_id, action, policy_decision_id=None):
+        """Mirror the service shape without side effects."""
+        _ = (task_id, run_id, action, policy_decision_id)
+        return _ExecResult()
+
+
+class _ExecResult:
+    action_id = "a1"
+    mutation_key = "k1"
+
+    def to_result_dict(self):
+        """A successful observation payload for the fake observer."""
+        return {"ok": True, "payload": {}, "error": "", "mutated": False}
+
+
+class _FakeObservation:
+    """Always done (topology only, no memory, no database)."""
+
+    def observe(self, task_id, run_id, action, result):
+        """Mirror the service shape without side effects."""
+        _ = (task_id, run_id, action, result)
+        return _ObsResult()
+
+
+class _ObsResult:
+    status = "effects_done"
+    observation = {}
+
+
+class _FakeFinalization:
+    """Terminal mapping only (pure; safe for topology tests)."""
+
+    def status(self, state):
+        """Delegate to the real pure mapping (no persistence)."""
+        from agent.services.finalization_service import final_status
+
+        return final_status(state)
+
+
 class _EmptyFacts:
     """No facts needed: the fake policy ignores them."""
 
@@ -115,6 +157,9 @@ def _fake_wiring(monkeypatch):
     monkeypatch.setattr(wiring, "decision_service", lambda: _FakeDecision())
     monkeypatch.setattr(wiring, "validation_service", lambda: _FakeValidation())
     monkeypatch.setattr(wiring, "policy_service", lambda: _FakePolicy())
+    monkeypatch.setattr(wiring, "execution_service", lambda: _FakeExecution())
+    monkeypatch.setattr(wiring, "observation_service", lambda: _FakeObservation())
+    monkeypatch.setattr(wiring, "finalization_service", lambda: _FakeFinalization())
     monkeypatch.setattr("agent.nodes.policy_check.gather_facts", lambda *args: _EmptyFacts())
 
 
