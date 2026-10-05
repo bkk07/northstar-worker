@@ -31,7 +31,7 @@ from eval.metrics import aggregate  # noqa: E402
 from eval.report import save_reports  # noqa: E402
 from eval.runner import Harness, load_catalog  # noqa: E402
 
-INJECTION_IDS = {"S5", "S38", "S39"}
+INJECTION_IDS = {"S5", "S38", "S39", "S911"}
 
 
 def _load_env() -> None:
@@ -100,6 +100,7 @@ def main() -> None:
     """Parse flags, run repeats, aggregate, report, optionally record."""
     parser = argparse.ArgumentParser(description="Run the eval suite through the real stack.")
     parser.add_argument("--suite", default="seeded", help="Suite name for the report")
+    parser.add_argument("--catalog", default="", help="Catalog path (default: seeded catalog.yaml)")
     parser.add_argument("--scenarios", default="", help="Comma ids (default: whole catalog)")
     parser.add_argument("--repeat", type=int, default=1, help="Repeats (mean and min reported)")
     parser.add_argument("--backend", default="http://127.0.0.1:8000", help="Backend URL")
@@ -118,7 +119,7 @@ def main() -> None:
         if args.with_servers:
             servers = _start_servers(8000, 8002, 5173)
         _wait_healthy(args.backend)
-        catalog = load_catalog()
+        catalog = load_catalog(args.catalog or None)
         wanted = {s.strip() for s in args.scenarios.split(",") if s.strip()}
         scenarios = [s for s in catalog if not wanted or s["id"] in wanted]
         print(f"suite={args.suite} scenarios={len(scenarios)} repeat={args.repeat}", flush=True)

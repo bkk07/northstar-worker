@@ -85,13 +85,15 @@ class EvaluationService:
             ],
         )
 
-    def list_scenarios(self) -> list[EvalScenarioRead]:
-        """Seeded catalog rows (the same file the oracle derives from)."""
-        catalog = yaml.safe_load(
-            (loader.SEED_DIR.parent.parent / "eval" / "scenarios" / "catalog.yaml").read_text(
-                encoding="utf-8"
-            )
+    def list_scenarios(self, suite: str = "seeded") -> list[EvalScenarioRead]:
+        """Catalog rows for a suite (seeded or held_out; same oracle source)."""
+        root = loader.SEED_DIR.parent.parent / "eval"
+        catalog_file = (
+            root / "held_out" / "catalog.yaml"
+            if suite == "held_out"
+            else root / "scenarios" / "catalog.yaml"
         )
+        catalog = yaml.safe_load(catalog_file.read_text(encoding="utf-8"))
         return [
             EvalScenarioRead(
                 id=row["id"],

@@ -16,9 +16,9 @@ export function useEvalRun(runId?: string) {
   });
 }
 
-export function useEvalScenarios() {
+export function useEvalScenarios(suite = "seeded") {
   return useQuery({
-    queryKey: ["evaluation", "scenarios"],
-    queryFn: listEvalScenarios,
+    queryKey: ["evaluation", "scenarios", suite],
+    queryFn: () => listEvalScenarios(suite),
   });
 }

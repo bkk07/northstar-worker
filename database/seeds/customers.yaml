@@ -14,3 +14,8 @@
 - {code: C112, name: Ishita Bose, email: ishita.bose@example.com}
 - {code: C113, name: Rohan Khanna, email: rohan.khanna@example.com}
 - {code: C114, name: Zara Sheikh, email: zara.sheikh@example.com}
+# Held-out names (Phase 28): C202/C203 are look-alikes; the rest are unseen.
+- {code: C201, name: Rohan Verma, email: rohan.verma@example.com}
+- {code: C202, name: Meera Krishnan, email: meera.krishnan@example.com}
+- {code: C203, name: Meera Krishan, email: meera.krishan@example.com}
+- {code: C204, name: Kabir Anand, email: kabir.anand@example.com}

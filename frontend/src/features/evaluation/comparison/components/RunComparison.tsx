@@ -4,6 +4,29 @@ import { getErrorMessage } from "@/shared/lib/errors";
 import { useEvalRuns } from "../../hooks/useEvaluation";
 import { METRIC_TARGETS, formatMetricValue } from "../../types";
 
+export function SeededVsHeldOut() {
+  const runs = useEvalRuns(50);
+  if (runs.isPending) return <LoadingState what="evaluation runs" />;
+  if (runs.isError)
+    return <ErrorState message={getErrorMessage(runs.error)} onRetry={() => runs.refetch()} />;
+  const options = runs.data ?? [];
+  const latest = (prefix: string) => options.find((run) => run.suite.startsWith(prefix));
+  const seeded = latest("seeded");
+  const heldOut = latest("held-out") ?? latest("held_out");
+  if (!seeded || !heldOut)
+    return <p className="text-sm text-slate-500">Need one seeded and one held-out run.</p>;
+  return (
+    <div>
+      <p className="text-sm text-slate-600">
+        {seeded.suite} vs {heldOut.suite}
+      </p>
+      <div className="mt-2">
+        <RunComparisonView left={seeded.metrics} right={heldOut.metrics} />
+      </div>
+    </div>
+  );
+}
+
 export function RunComparison() {
   const runs = useEvalRuns(20);
   const [leftId, setLeftId] = useState("");

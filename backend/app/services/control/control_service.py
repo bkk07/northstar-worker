@@ -81,6 +81,14 @@ class OracleService:
             None,
         )
         if scenario is None:
+            held_out = yaml.safe_load(
+                (root / "eval" / "held_out" / "catalog.yaml").read_text(encoding="utf-8")
+            )
+            scenario = next(
+                (s for s in held_out if s["id"] == entity or s["ticket_code"] == entity),
+                None,
+            )
+        if scenario is None:
             raise NotFoundError(f"no scenario for {entity!r}")
         verdict = derive_expected(
             scenario, scenario.get("intended_effects", []), load_thresholds(policies)

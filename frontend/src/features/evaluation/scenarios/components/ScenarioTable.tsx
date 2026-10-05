@@ -3,8 +3,8 @@ import { getErrorMessage } from "@/shared/lib/errors";
 import { useEvalScenarios } from "../../hooks/useEvaluation";
 import type { EvalScenarioRead } from "../../types";
 
-export function ScenarioTable() {
-  const scenarios = useEvalScenarios();
+export function ScenarioTable({ suite = "seeded" }: { suite?: string }) {
+  const scenarios = useEvalScenarios(suite);
   if (scenarios.isPending) return <LoadingState what="scenarios" />;
   if (scenarios.isError)
     return (

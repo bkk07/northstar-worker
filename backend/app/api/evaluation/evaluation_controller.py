@@ -39,6 +39,9 @@ def get_run(run_id: UUID, session: Session = Depends(get_db)) -> EvalRunDetail:
 
 
 @router.get("/api/eval/scenarios", response_model=list[EvalScenarioRead])
-def list_scenarios(session: Session = Depends(get_db)) -> list[EvalScenarioRead]:
-    """Seeded catalog rows (the same file the oracle derives from)."""
-    return EvaluationService(session).list_scenarios()
+def list_scenarios(
+    suite: str = Query(default="seeded"),
+    session: Session = Depends(get_db),
+) -> list[EvalScenarioRead]:
+    """Catalog rows for a suite (seeded or held_out)."""
+    return EvaluationService(session).list_scenarios(suite=suite)

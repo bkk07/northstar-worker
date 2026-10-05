@@ -14,7 +14,9 @@ export async function getEvalRun(runId: string): Promise<EvalRunDetail> {
   return data;
 }
 
-export async function listEvalScenarios(): Promise<EvalScenarioRead[]> {
-  const { data } = await axiosClient.get<EvalScenarioRead[]>("/api/eval/scenarios");
+export async function listEvalScenarios(suite = "seeded"): Promise<EvalScenarioRead[]> {
+  const { data } = await axiosClient.get<EvalScenarioRead[]>("/api/eval/scenarios", {
+    params: { suite },
+  });
   return data;
 }

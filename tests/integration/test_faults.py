@@ -281,7 +281,7 @@ def test_seed_and_oracle_endpoints(client):
     """Seed returns counts+hash; oracle derives per scenario and ticket."""
     seeded = client.post("/api/control/seed", headers=_auth())
     assert seeded.status_code == 200
-    assert seeded.json()["counts"]["tickets"] == 45
+    assert seeded.json()["counts"]["tickets"] == 60
     assert len(seeded.json()["world_hash"]) == 64
     hero = client.get("/api/control/oracle/S1", headers=_auth()).json()
     assert hero["expected_outcome"] == "AUTO_RESOLVE"

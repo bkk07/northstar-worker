@@ -300,3 +300,94 @@
   delivered_days_ago: 8
   items:
     - {sku: ST-29, title: Laptop Stand, qty: 1, unit_paise: 110000, category: electronics}
+# Held-out orders (Phase 28): C201+ entities for S901+.
+- code: ORD-2001
+  customer: C201
+  status: delivered
+  total_paise: 9200000
+  paid_paise: 9200000
+  placed_days_ago: 6
+  delivered_days_ago: 5
+  items:
+    - {sku: LP-30, title: Aero Laptop 15, qty: 1, unit_paise: 9200000, category: electronics}
+- code: ORD-2002
+  customer: C201
+  status: delivered
+  total_paise: 1800000
+  paid_paise: 1800000
+  placed_days_ago: 6
+  delivered_days_ago: 5
+  items:
+    - {sku: TV-31, title: Vista TV 43, qty: 1, unit_paise: 1800000, category: electronics}
+- code: ORD-2004
+  customer: C202
+  status: delivered
+  total_paise: 640000
+  paid_paise: 640000
+  placed_days_ago: 40
+  delivered_days_ago: 10
+  items:
+    - {sku: KM-32, title: Handloom Kurta, qty: 1, unit_paise: 640000, category: apparel}
+- code: ORD-2005
+  customer: C202
+  status: delivered
+  total_paise: 1200000
+  paid_paise: 1200000
+  placed_days_ago: 8
+  delivered_days_ago: 7
+  items:
+    - {sku: SP-33, title: Studio Speaker, qty: 1, unit_paise: 1200000, category: electronics}
+- code: ORD-2006
+  customer: C202
+  status: delivered
+  total_paise: 950000
+  paid_paise: 950000
+  placed_days_ago: 7
+  delivered_days_ago: 6
+  items:
+    - {sku: SP-34, title: Mini Speaker, qty: 1, unit_paise: 950000, category: electronics}
+- code: ORD-2007
+  customer: C203
+  status: delivered
+  total_paise: 90000
+  paid_paise: 90000
+  placed_days_ago: 6
+  delivered_days_ago: 5
+  items:
+    - {sku: SW-35, title: Wool Shawl, qty: 1, unit_paise: 90000, category: apparel}
+- code: ORD-2008
+  customer: C202
+  status: delivered
+  total_paise: 4500000
+  paid_paise: 4500000
+  placed_days_ago: 6
+  delivered_days_ago: 5
+  items:
+    - {sku: HT-36, title: Home Theatre 5.1, qty: 1, unit_paise: 4500000, category: electronics}
+- code: ORD-2009
+  customer: C204
+  status: delivered
+  total_paise: 6000000
+  paid_paise: 6000000
+  placed_days_ago: 6
+  delivered_days_ago: 5
+  items:
+    - {sku: NP-37, title: Nova Phone, qty: 1, unit_paise: 6000000, category: electronics}
+- code: ORD-2010
+  customer: C204
+  status: delivered
+  total_paise: 2500000
+  paid_paise: 2500000
+  placed_days_ago: 6
+  delivered_days_ago: 5
+  items:
+    - {sku: EB-38, title: Pulse Earbuds, qty: 1, unit_paise: 2500000, category: electronics}
+- code: ORD-2014
+  customer: C202
+  status: delivered
+  total_paise: 8500000
+  paid_paise: 8500000
+  placed_days_ago: 6
+  delivered_days_ago: 5
+  items:
+    - {sku: HT-39, title: Grand Home Theatre, qty: 1, unit_paise: 8500000, category: electronics}

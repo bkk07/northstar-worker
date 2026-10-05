@@ -69,3 +69,22 @@ def test_scenarios_serve_the_catalog(client):
     assert by_id["S5"]["expected_outcome"] == "BLOCK"
     assert by_id["S1"]["ticket_code"] == "TCK-101"
     assert all(row["task"] and row["expected_effects"] is not None for row in body)
+
+
+def test_scenarios_serve_the_held_out_suite(client):
+    """The sealed held-out catalog is served with its own suite flag."""
+    body = client.get("/api/eval/scenarios", params={"suite": "held_out"}).json()
+    assert len(body) == 15
+    by_id = {row["id"]: row for row in body}
+    assert by_id["S907"]["expected_outcome"] == "CLARIFY"
+    assert by_id["S915"]["expected_outcome"] == "INCONCLUSIVE"
+    assert all(row["id"].startswith("S9") for row in body)
+
+
+def test_oracle_resolves_held_out_ids(client):
+    """The control oracle derives held-out expectations too."""
+    response = client.get(
+        "/api/control/oracle/S911", headers={"Authorization": "Bearer local-operator-token"}
+    )
+    assert response.status_code == 200
+    assert response.json()["expected_outcome"] == "BLOCK"
