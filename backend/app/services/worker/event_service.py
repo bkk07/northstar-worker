@@ -21,6 +21,10 @@ class EventService:
     def __init__(self, session: Session) -> None:
         self._session = session
 
+    def task_exists(self, task_id: UUID) -> bool:
+        """Presence check before opening a stream (404s stay 404s, not truncations)."""
+        return self._session.get(Task, task_id) is not None
+
     def history_for_task(self, task_id: UUID) -> list[AuditEventRead]:
         """Every event for the task, oldest first (404 when absent)."""
         if self._session.get(Task, task_id) is None:
@@ -32,6 +36,28 @@ class EventService:
             .all()
         )
         return [self._to_dto(row) for row in rows]
+
+    def backfill(self, task_id: UUID, after_seq: int = 0, limit: int = 500) -> list[AuditEventRead]:
+        """Missed rows after a sequence number (SSE replay, oldest first)."""
+        if self._session.get(Task, task_id) is None:
+            raise NotFoundError(f"task {task_id} not found")
+        rows = (
+            self._session.query(AuditEvent)
+            .filter(AuditEvent.task_id == task_id, AuditEvent.seq > after_seq)
+            .order_by(AuditEvent.seq.asc())
+            .limit(max(limit, 1))
+            .all()
+        )
+        return [self._to_dto(row) for row in rows]
+
+    def event_by_seq(self, task_id: UUID, seq: int) -> AuditEventRead | None:
+        """One row by sequence number (live tail fetch; None when absent)."""
+        row = (
+            self._session.query(AuditEvent)
+            .filter(AuditEvent.task_id == task_id, AuditEvent.seq == seq)
+            .first()
+        )
+        return self._to_dto(row) if row is not None else None
 
     @staticmethod
     def _to_dto(row: AuditEvent) -> AuditEventRead:
