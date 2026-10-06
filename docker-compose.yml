@@ -33,7 +33,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/northstar
-      JWT_SECRET: ${JWT_SECRET:-local-jwt-secret}
+      JWT_SECRET: ${JWT_SECRET:-local-dev-jwt-secret-change-me-please}
       DELIVERY_DELAY_SECONDS: ${DELIVERY_DELAY_SECONDS:-60}
     ports:
       - "8000:8000"

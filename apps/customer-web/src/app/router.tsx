@@ -1,10 +1,22 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { Navigate, createBrowserRouter, useLocation } from "react-router-dom";
+import type { ReactNode } from "react";
 import { Shell } from "@/components/layout";
+import { Spinner } from "@/components/ui";
+import { useAuth } from "@/stores/auth-store";
 import { HomePage } from "@/pages/home/HomePage";
 import { ProductsPage, ProductDetailPage } from "@/pages/products/ProductsPage";
 import { CartPage } from "@/pages/cart/CartPage";
 import { OrdersPage, OrderDetailPage } from "@/pages/orders/OrdersPage";
 import { LoginPage, SignupPage, SupportPage, TicketDetailPage } from "@/pages/auth-support/AuthSupportPages";
+
+function Protected({ children }: { children: ReactNode }) {
+  const user = useAuth((s) => s.user);
+  const booted = useAuth((s) => s.booted);
+  const location = useLocation();
+  if (!booted) return <Spinner label="Restoring session…" />;
+  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  return <>{children}</>;
+}
 
 export const router = createBrowserRouter([
   {
@@ -16,11 +28,11 @@ export const router = createBrowserRouter([
       { path: "signup", element: <SignupPage /> },
       { path: "products", element: <ProductsPage /> },
       { path: "products/:id", element: <ProductDetailPage /> },
-      { path: "cart", element: <CartPage /> },
-      { path: "orders", element: <OrdersPage /> },
-      { path: "orders/:id", element: <OrderDetailPage /> },
-      { path: "support", element: <SupportPage /> },
-      { path: "tickets/:id", element: <TicketDetailPage /> },
+      { path: "cart", element: <Protected><CartPage /></Protected> },
+      { path: "orders", element: <Protected><OrdersPage /></Protected> },
+      { path: "orders/:id", element: <Protected><OrderDetailPage /></Protected> },
+      { path: "support", element: <Protected><SupportPage /></Protected> },
+      { path: "tickets/:id", element: <Protected><TicketDetailPage /></Protected> },
       { path: "*", element: <Navigate to="/" replace /> },
     ],
   },

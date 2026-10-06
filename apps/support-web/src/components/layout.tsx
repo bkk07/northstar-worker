@@ -1,10 +1,15 @@
-import { NavLink, Outlet, Link } from "react-router-dom";
+import { NavLink, Outlet, Link, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Inbox, Headset } from "lucide-react";
+import { useStaffAuth } from "@/stores/auth-store";
 
 const link = ({ isActive }: { isActive: boolean }) =>
   isActive ? "sp-side-link is-active" : "sp-side-link";
 
 export function ConsoleShell() {
+  const user = useStaffAuth((s) => s.user);
+  const logout = useStaffAuth((s) => s.logout);
+  const nav = useNavigate();
+
   return (
     <div className="sp-app">
       <aside className="sp-sidebar" aria-label="Support navigation">
@@ -21,13 +26,25 @@ export function ConsoleShell() {
           </NavLink>
         </nav>
         <div className="sp-side-foot">
-          <span className="sp-muted">Phase 1 shell · AI in Phase 8+</span>
+          <span className="sp-muted">Phase 2 auth · AI in Phase 8+</span>
         </div>
       </aside>
       <div className="sp-main-col">
         <header className="sp-topbar">
           <span className="sp-muted">Internal console</span>
-          <span className="sp-badge sp-badge-info">admin@shop.local</span>
+          <span className="flex items-center gap-2">
+            <span className="sp-badge sp-badge-info">{user?.email ?? "staff"}</span>
+            <button
+              className="sp-btn sp-btn-secondary"
+              style={{ padding: "0.25rem 0.625rem", fontSize: 12 }}
+              onClick={() => {
+                logout();
+                nav("/login");
+              }}
+            >
+              Log out
+            </button>
+          </span>
         </header>
         <main className="sp-main">
           <Outlet />

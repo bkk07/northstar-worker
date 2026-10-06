@@ -26,6 +26,12 @@ class Settings(BaseSettings):
     # Optional: wired in later phases (DB roles, operator token, LLM).
     database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5433/northstar"
     operator_token: str = "local-operator-token"
+
+    # Phase 2 (10-phase spec §17): JWT identity + demo console admin.
+    jwt_secret: str = "local-dev-jwt-secret-change-me-please"
+    delivery_delay_seconds: int = 60
+    support_admin_email: str = "admin@shop.local"
+    support_admin_password: str = "admin"
     inception_api_key: str = ""
     inception_model: str = ""
     inception_base_url: str = "https://api.inceptionlabs.ai/v1"
