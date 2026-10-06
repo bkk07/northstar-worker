@@ -34,10 +34,11 @@ def main() -> None:
                 text(
                     "INSERT INTO biz.products (id, name, slug, description, category, brand, "
                     "price_paise, image_url, stock, is_active) VALUES (:id, :name, :slug, "
-                    ":desc, :cat, :brand, :price, '', :stock, true) "
+                    ":desc, :cat, :brand, :price, :img, :stock, true) "
                     "ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, "
                     "description = EXCLUDED.description, category = EXCLUDED.category, "
                     "brand = EXCLUDED.brand, price_paise = EXCLUDED.price_paise, "
+                    "image_url = EXCLUDED.image_url, "
                     "stock = EXCLUDED.stock, is_active = true"
                 ),
                 {
@@ -48,6 +49,7 @@ def main() -> None:
                     "cat": p["category"],
                     "brand": p.get("brand", ""),
                     "price": p["price_paise"],
+                    "img": p.get("image_url", ""),
                     "stock": p.get("stock", 0),
                 },
             )

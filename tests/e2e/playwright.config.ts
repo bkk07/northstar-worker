@@ -15,7 +15,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   projects: [
-    { name: "customer", testMatch: /customer\.spec\.ts/ },
-    { name: "support", testMatch: /support\.spec\.ts/ },
+    { name: "customer", testMatch: /customer.*\.spec\.ts/ },
+    { name: "support", testMatch: /support.*\.spec\.ts/ },
   ],
 });

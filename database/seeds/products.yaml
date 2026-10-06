@@ -1,6 +1,7 @@
 # Phase 3 storefront seed: products + per-product policies.
 # Prices in paise (repo money convention). Displayed as ₹ in the UI.
 - slug: aura-wireless-headphones
+  image_url: https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop
   name: Aura Wireless Headphones
   description: Over-ear Bluetooth headphones with active noise cancellation, 40-hour battery, and memory-foam earcups.
   category: Audio
@@ -17,6 +18,7 @@
     warranty_days: 365
     policy_text: 7-day returns and replacement; 1-year warranty against manufacturing defects.
 - slug: pulse-smartwatch-s2
+  image_url: https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800&auto=format&fit=crop
   name: Pulse Smartwatch S2
   description: AMOLED display, heart-rate and SpO2 tracking, 10-day battery, 5ATM water resistance.
   category: Wearables
@@ -33,6 +35,7 @@
     warranty_days: 365
     policy_text: 7-day returns and replacement; 1-year warranty. Straps are non-returnable once worn.
 - slug: ember-ceramic-mug-set
+  image_url: https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?q=80&w=800&auto=format&fit=crop
   name: Ember Ceramic Mug Set (4)
   description: Hand-glazed stoneware mugs, 350ml each, dishwasher and microwave safe.
   category: Home
@@ -49,6 +52,7 @@
     warranty_days: 0
     policy_text: 7-day returns for unused items in original packaging.
 - slug: drift-mechanical-keyboard
+  image_url: https://images.unsplash.com/photo-1587829741301-dc798b83add3?q=80&w=800&auto=format&fit=crop
   name: Drift Mechanical Keyboard
   description: 75% hot-swappable keyboard with linear switches, PBT keycaps, and USB-C/Bluetooth.
   category: Accessories
@@ -65,6 +69,7 @@
     warranty_days: 180
     policy_text: 7-day returns; 6-month warranty on switches and electronics.
 - slug: halo-desk-lamp
+  image_url: https://images.unsplash.com/photo-1507473885765-e6ed057f782c?q=80&w=800&auto=format&fit=crop
   name: Halo Desk Lamp
   description: Minimal aluminium desk lamp with warm-to-cool dimming and USB-C charging port.
   category: Home
@@ -81,6 +86,7 @@
     warranty_days: 180
     policy_text: 7-day returns; 6-month warranty on the LED driver.
 - slug: stride-running-shoes
+  image_url: https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop
   name: Stride Running Shoes
   description: Lightweight daily trainers with responsive foam and breathable knit upper.
   category: Footwear
@@ -97,6 +103,7 @@
     warranty_days: 90
     policy_text: 7-day returns for unworn shoes; 90-day sole warranty.
 - slug: volt-power-bank-20k
+  image_url: https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?q=80&w=800&auto=format&fit=crop
   name: Volt Power Bank 20K
   description: 20000mAh power bank with 65W fast charging, dual USB-C and LED display.
   category: Accessories
@@ -113,6 +120,7 @@
     warranty_days: 180
     policy_text: 7-day replacement for defective units; cancellations not allowed once shipped.
 - slug: terra-cotton-tee
+  image_url: https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=800&auto=format&fit=crop
   name: Terra Cotton Tee
   description: Heavyweight 220 GSM organic cotton t-shirt, pre-shrunk, unisex fit.
   category: Apparel

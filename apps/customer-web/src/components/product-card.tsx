@@ -13,10 +13,22 @@ const tileColors = [
 
 export function ProductImage({ product, size = "md" }: { product: Product; size?: "md" | "lg" }) {
   const tone = tileColors[product.name.length % tileColors.length];
+  const cls =
+    size === "lg" ? "aspect-[4/3] rounded-2xl" : "ns-product-img";
+  if (product.image_url) {
+    return (
+      <img
+        src={product.image_url}
+        alt={product.name}
+        loading="lazy"
+        className={`${cls} object-cover`}
+      />
+    );
+  }
   return (
     <div
       className={`flex items-center justify-center bg-gradient-to-br ${tone} ${
-        size === "lg" ? "aspect-[4/3] rounded-2xl text-6xl" : "ns-product-img text-4xl"
+        size === "lg" ? `${cls} text-6xl` : `${cls} text-4xl`
       } font-bold text-indigo-900/30`}
       role="img"
       aria-label={product.name}
