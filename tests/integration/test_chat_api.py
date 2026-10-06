@@ -118,6 +118,62 @@ def test_chat_list_tickets(app_conn):
     assert chain["code"] in response.json()["reply"]
 
 
+def test_chat_ticket_detail_reports_order_and_policy(app_conn):
+    """'Tell me about TCK-...' narrates ticket + order + refund policy."""
+    chain = _insert_ticket(app_conn, "detail")
+    client = TestClient(create_app())
+    response = client.post("/api/chat", json={"message": f"tell me about {chain['code']}"})
+    assert response.status_code == 200
+    body = response.json()
+    assert chain["order_code"] in body["reply"]
+    assert "Refund policy" in body["reply"]
+    assert any(a["kind"] == "solve" for a in body["actions"])
+
+
+def test_chat_order_detail_reports_items(app_conn):
+    """'Show order ORD-...' summarizes state and items with policy pointers."""
+    chain = _insert_ticket(app_conn, "orderq")
+    client = TestClient(create_app())
+    response = client.post("/api/chat", json={"message": f"show order {chain['order_code']}"})
+    assert response.status_code == 200
+    assert "delivered" in response.json()["reply"]
+    assert any(a["kind"] == "order" for a in response.json()["actions"])
+
+
+def test_chat_order_detail_unknown_code():
+    """Unknown orders answer cleanly."""
+    client = TestClient(create_app())
+    response = client.post("/api/chat", json={"message": "show order ORD-0000"})
+    assert response.status_code == 200
+    assert "can't find" in response.json()["reply"]
+
+
+def test_chat_product_detail_quotes_policies():
+    """'Policy for HP-01' names the product and its refund policy."""
+    client = TestClient(create_app())
+    response = client.post("/api/chat", json={"message": "what is the policy for HP-01?"})
+    assert response.status_code == 200
+    body = response.json()
+    assert "Studio Headphones" in body["reply"]
+    assert "Auto-approve" in body["reply"]
+
+
+def test_chat_policy_answer_headlines():
+    """Bare policy questions headline the refund rules."""
+    client = TestClient(create_app())
+    response = client.post("/api/chat", json={"message": "what is the refund policy?"})
+    assert response.status_code == 200
+    assert "P-REF-001" in response.json()["reply"]
+
+
+def test_chat_approvals_list_empty():
+    """No pending approvals answers cleanly (buttons appear when present)."""
+    client = TestClient(create_app())
+    response = client.post("/api/chat", json={"message": "anything waiting for approval?"})
+    assert response.status_code == 200
+    assert "waiting" in response.json()["reply"].lower()
+
+
 def test_mark_cancelled_parks_task_instead_of_pending():
     """Background crashes land the task in `cancelled`, never stuck pending."""
     client = TestClient(create_app())

@@ -8,7 +8,7 @@ Docs: /docs (Swagger), /openapi.json (DTO source for the frontend).
 from fastapi import FastAPI
 
 from app.api import health_controller
-from app.api.commerce import read_controller, shop_controller
+from app.api.commerce import catalog_controller, read_controller, shop_controller
 from app.api.control import chaos_controller, oracle_controller, reset_controller
 from app.api.evaluation import evaluation_controller
 from app.api.ops import (
@@ -44,6 +44,7 @@ def create_app() -> FastAPI:
     app.add_exception_handler(AppError, app_error_handler)
     app.include_router(health_controller.router)
     app.include_router(read_controller.router)
+    app.include_router(catalog_controller.router)
     app.include_router(shop_controller.router)
     app.include_router(auth_controller.router)
     app.include_router(ticket_controller.router)

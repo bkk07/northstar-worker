@@ -12,12 +12,18 @@ class ChatRequest(BaseModel):
 
 
 class ChatAction(BaseModel):
-    """A follow-up affordance rendered under the reply (link, never a decision)."""
+    """A follow-up affordance rendered under the reply.
+
+    Links navigate; approval actions render inline Approve/Reject buttons
+    that call the approvals API explicitly — typed chat text never decides.
+    """
 
     kind: str
     label: str
     task_id: uuid.UUID | None = None
     href: str | None = None
+    approval_id: uuid.UUID | None = None
+    decision: str | None = None
 
 
 class ChatReply(BaseModel):

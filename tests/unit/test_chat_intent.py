@@ -68,3 +68,35 @@ def test_help_and_unknown():
     """Help asks and gibberish both answer with guidance."""
     assert parse_intent("what can you do?").kind == "help"
     assert parse_intent("hello there, bot").kind == "unknown"
+
+
+def test_ticket_detail_questions():
+    """Detail questions about a ticket route to the rich summary."""
+    assert parse_intent("tell me about TCK-ABC123").kind == "ticket_detail"
+    assert parse_intent("show me TCK-102 with its order").kind == "ticket_detail"
+    assert parse_intent("TCK-ABC123").kind == "ticket_status"
+
+
+def test_order_detail_lookup():
+    """Order codes route to the order summary."""
+    intent = parse_intent("show order ORD-1943")
+    assert intent.kind == "order_detail"
+    assert intent.order_code == "ORD-1943"
+
+
+def test_product_detail_lookup():
+    """SKUs route to the product + policy summary."""
+    intent = parse_intent("what is the policy for HP-01?")
+    assert intent.kind == "product_detail"
+    assert intent.sku == "HP-01"
+
+
+def test_policy_answer():
+    """Bare policy questions route to the headline policies."""
+    assert parse_intent("what is the refund policy?").kind == "policy_answer"
+
+
+def test_approvals_list():
+    """Approval-queue questions route to the pending list."""
+    assert parse_intent("anything waiting for approval?").kind == "approvals_list"
+    assert parse_intent("show pending approvals").kind == "approvals_list"
