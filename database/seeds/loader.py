@@ -30,6 +30,14 @@ from database.session import admin_engine, app_engine
 SEED_DIR = Path(__file__).parent
 
 BIZ_TABLES = [
+    "shop_payments",
+    "shop_order_items",
+    "shop_orders",
+    "cart_items",
+    "carts",
+    "product_policies",
+    "products",
+    "app_users",
     "ticket_notes",
     "refunds",
     "replacements",
@@ -87,6 +95,7 @@ def reset() -> None:
 def seed() -> dict[str, int]:
     """Load all YAML seeds idempotently; return per-table row counts."""
     customers = {c["code"]: c for c in _load("customers.yaml")}
+    shop_products = _load("products.yaml")
     orders = {o["code"]: o for o in _load("orders.yaml")}
     tickets = {t["code"]: t for t in _load("tickets.yaml")}
     policies = _load("policies.yaml")
@@ -105,6 +114,61 @@ def seed() -> dict[str, int]:
                 {"id": _uid(code), "code": code, "name": c["name"], "email": c["email"]},
             )
         counts["customers"] = len(customers)
+
+        for p in shop_products:
+            pid = _uid(f"product:{p['slug']}")
+            conn.execute(
+                text(
+                    "INSERT INTO biz.products (id, name, slug, description, category, brand, "
+                    "price_paise, image_url, stock, is_active) VALUES (:id, :name, :slug, "
+                    ":desc, :cat, :brand, :price, '', :stock, true) "
+                    "ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, "
+                    "description = EXCLUDED.description, category = EXCLUDED.category, "
+                    "brand = EXCLUDED.brand, price_paise = EXCLUDED.price_paise, "
+                    "stock = EXCLUDED.stock, is_active = true"
+                ),
+                {
+                    "id": pid,
+                    "name": p["name"],
+                    "slug": p["slug"],
+                    "desc": p.get("description", ""),
+                    "cat": p["category"],
+                    "brand": p.get("brand", ""),
+                    "price": p["price_paise"],
+                    "stock": p.get("stock", 0),
+                },
+            )
+            pol = p.get("policy", {})
+            conn.execute(
+                text(
+                    "INSERT INTO biz.product_policies (id, product_id, return_allowed, "
+                    "return_window_days, refund_allowed, replacement_allowed, "
+                    "replacement_window_days, cancellation_allowed, warranty_days, "
+                    "policy_text) VALUES (:id, :pid, :ret, :retw, :ref, :rep, :repw, "
+                    ":can, :war, :text) "
+                    "ON CONFLICT (product_id) DO UPDATE SET return_allowed = "
+                    "EXCLUDED.return_allowed, return_window_days = "
+                    "EXCLUDED.return_window_days, refund_allowed = EXCLUDED.refund_allowed, "
+                    "replacement_allowed = EXCLUDED.replacement_allowed, "
+                    "replacement_window_days = EXCLUDED.replacement_window_days, "
+                    "cancellation_allowed = EXCLUDED.cancellation_allowed, "
+                    "warranty_days = EXCLUDED.warranty_days, "
+                    "policy_text = EXCLUDED.policy_text"
+                ),
+                {
+                    "id": _uid(f"policy:{p['slug']}"),
+                    "pid": pid,
+                    "ret": pol.get("return_allowed", True),
+                    "retw": pol.get("return_window_days", 7),
+                    "ref": pol.get("refund_allowed", True),
+                    "rep": pol.get("replacement_allowed", True),
+                    "repw": pol.get("replacement_window_days", 7),
+                    "can": pol.get("cancellation_allowed", True),
+                    "war": pol.get("warranty_days", 0),
+                    "text": pol.get("policy_text", ""),
+                },
+            )
+        counts["products"] = len(shop_products)
 
         item_ids: dict[str, uuid.UUID] = {}
         for code, o in orders.items():
@@ -289,6 +353,12 @@ def compute_world_hash(conn: Connection) -> str:
         "JOIN biz.customers c ON c.id = r.customer_id "
         "JOIN biz.tickets t ON t.id = r.ticket_id ORDER BY r.mutation_key",
         "SELECT rule_key, params::text, version FROM biz.policies ORDER BY rule_key",
+        "SELECT slug, name, category, brand, price_paise, stock FROM biz.products "
+        "ORDER BY slug",
+        "SELECT p.slug, pp.return_allowed, pp.return_window_days, pp.refund_allowed, "
+        "pp.replacement_allowed, pp.replacement_window_days, pp.cancellation_allowed, "
+        "pp.warranty_days FROM biz.product_policies pp JOIN biz.products p "
+        "ON p.id = pp.product_id ORDER BY p.slug",
     ]
     digest = hashlib.sha256()
     for query in queries:

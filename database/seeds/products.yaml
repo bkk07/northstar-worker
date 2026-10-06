@@ -1,0 +1,130 @@
+# Phase 3 storefront seed: products + per-product policies.
+# Prices in paise (repo money convention). Displayed as ₹ in the UI.
+- slug: aura-wireless-headphones
+  name: Aura Wireless Headphones
+  description: Over-ear Bluetooth headphones with active noise cancellation, 40-hour battery, and memory-foam earcups.
+  category: Audio
+  brand: Aura
+  price_paise: 499900
+  stock: 42
+  policy:
+    return_allowed: true
+    return_window_days: 7
+    refund_allowed: true
+    replacement_allowed: true
+    replacement_window_days: 7
+    cancellation_allowed: true
+    warranty_days: 365
+    policy_text: 7-day returns and replacement; 1-year warranty against manufacturing defects.
+- slug: pulse-smartwatch-s2
+  name: Pulse Smartwatch S2
+  description: AMOLED display, heart-rate and SpO2 tracking, 10-day battery, 5ATM water resistance.
+  category: Wearables
+  brand: Pulse
+  price_paise: 799900
+  stock: 25
+  policy:
+    return_allowed: true
+    return_window_days: 7
+    refund_allowed: true
+    replacement_allowed: true
+    replacement_window_days: 7
+    cancellation_allowed: true
+    warranty_days: 365
+    policy_text: 7-day returns and replacement; 1-year warranty. Straps are non-returnable once worn.
+- slug: ember-ceramic-mug-set
+  name: Ember Ceramic Mug Set (4)
+  description: Hand-glazed stoneware mugs, 350ml each, dishwasher and microwave safe.
+  category: Home
+  brand: Ember
+  price_paise: 129900
+  stock: 120
+  policy:
+    return_allowed: true
+    return_window_days: 7
+    refund_allowed: true
+    replacement_allowed: true
+    replacement_window_days: 7
+    cancellation_allowed: true
+    warranty_days: 0
+    policy_text: 7-day returns for unused items in original packaging.
+- slug: drift-mechanical-keyboard
+  name: Drift Mechanical Keyboard
+  description: 75% hot-swappable keyboard with linear switches, PBT keycaps, and USB-C/Bluetooth.
+  category: Accessories
+  brand: Drift
+  price_paise: 649900
+  stock: 18
+  policy:
+    return_allowed: true
+    return_window_days: 7
+    refund_allowed: true
+    replacement_allowed: true
+    replacement_window_days: 7
+    cancellation_allowed: true
+    warranty_days: 180
+    policy_text: 7-day returns; 6-month warranty on switches and electronics.
+- slug: halo-desk-lamp
+  name: Halo Desk Lamp
+  description: Minimal aluminium desk lamp with warm-to-cool dimming and USB-C charging port.
+  category: Home
+  brand: Halo
+  price_paise: 249900
+  stock: 60
+  policy:
+    return_allowed: true
+    return_window_days: 7
+    refund_allowed: true
+    replacement_allowed: true
+    replacement_window_days: 7
+    cancellation_allowed: true
+    warranty_days: 180
+    policy_text: 7-day returns; 6-month warranty on the LED driver.
+- slug: stride-running-shoes
+  name: Stride Running Shoes
+  description: Lightweight daily trainers with responsive foam and breathable knit upper.
+  category: Footwear
+  brand: Stride
+  price_paise: 399900
+  stock: 0
+  policy:
+    return_allowed: true
+    return_window_days: 7
+    refund_allowed: true
+    replacement_allowed: true
+    replacement_window_days: 7
+    cancellation_allowed: true
+    warranty_days: 90
+    policy_text: 7-day returns for unworn shoes; 90-day sole warranty.
+- slug: volt-power-bank-20k
+  name: Volt Power Bank 20K
+  description: 20000mAh power bank with 65W fast charging, dual USB-C and LED display.
+  category: Accessories
+  brand: Volt
+  price_paise: 299900
+  stock: 85
+  policy:
+    return_allowed: true
+    return_window_days: 7
+    refund_allowed: true
+    replacement_allowed: true
+    replacement_window_days: 7
+    cancellation_allowed: false
+    warranty_days: 180
+    policy_text: 7-day replacement for defective units; cancellations not allowed once shipped.
+- slug: terra-cotton-tee
+  name: Terra Cotton Tee
+  description: Heavyweight 220 GSM organic cotton t-shirt, pre-shrunk, unisex fit.
+  category: Apparel
+  brand: Terra
+  price_paise: 89900
+  stock: 200
+  policy:
+    return_allowed: true
+    return_window_days: 7
+    refund_allowed: true
+    replacement_allowed: true
+    replacement_window_days: 7
+    cancellation_allowed: true
+    warranty_days: 0
+    policy_text: 7-day size-exchange or return for unworn items with tags.

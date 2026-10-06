@@ -4,9 +4,8 @@ import { Shell } from "@/components/layout";
 import { Spinner } from "@/components/ui";
 import { useAuth } from "@/stores/auth-store";
 import { HomePage } from "@/pages/home/HomePage";
-import { ProductsPage, ProductDetailPage } from "@/pages/products/ProductsPage";
-import { CartPage } from "@/pages/cart/CartPage";
-import { OrdersPage, OrderDetailPage } from "@/pages/orders/OrdersPage";
+import { CartPage, ProductDetailPage, ProductsPage } from "@/pages/shop/ShopPages";
+import { CheckoutPage, OrderDetailPage, OrdersPage } from "@/pages/orders/OrdersPage";
 import { LoginPage, SignupPage, SupportPage, TicketDetailPage } from "@/pages/auth-support/AuthSupportPages";
 
 function Protected({ children }: { children: ReactNode }) {
@@ -29,6 +28,7 @@ export const router = createBrowserRouter([
       { path: "products", element: <ProductsPage /> },
       { path: "products/:id", element: <ProductDetailPage /> },
       { path: "cart", element: <Protected><CartPage /></Protected> },
+      { path: "checkout", element: <Protected><CheckoutPage /></Protected> },
       { path: "orders", element: <Protected><OrdersPage /></Protected> },
       { path: "orders/:id", element: <Protected><OrderDetailPage /></Protected> },
       { path: "support", element: <Protected><SupportPage /></Protected> },

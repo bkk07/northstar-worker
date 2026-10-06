@@ -24,6 +24,8 @@ from app.api.ops import (
     status_controller,
     ticket_controller,
 )
+from app.api.orders import orders_controller as phase4_orders_controller
+from app.api.products import products_controller as phase3_products_controller
 from app.api.worker import (
     approval_controller,
     chat_controller,
@@ -45,6 +47,8 @@ def create_app() -> FastAPI:
     app = FastAPI(title="northstar-worker-backend", version=APP_VERSION)
     app.add_exception_handler(AppError, app_error_handler)
     app.include_router(phase2_auth_controller.router)
+    app.include_router(phase3_products_controller.router)
+    app.include_router(phase4_orders_controller.router)
     app.include_router(health_controller.router)
     app.include_router(direct_controller.router)
     app.include_router(read_controller.router)
