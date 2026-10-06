@@ -159,6 +159,29 @@ def test_missing_params_name_missing_and_received():
     assert outcome.errors == ["params: inspect_state needs ['key'] together (got ['kind'])"]
 
 
+def test_refund_probe_needs_extra_order_id():
+    """Refund probes carry the order id inside `extra` (tool contract)."""
+    outcome = validate_action(
+        {
+            "tool": "inspect_state",
+            "params": {"kind": "refund", "key": "t-101"},
+            "rationale": "probe",
+        },
+        _contract(),
+    )
+    assert not outcome.valid
+    assert "extra.order_id" in outcome.errors[0]
+    fixed = validate_action(
+        {
+            "tool": "inspect_state",
+            "params": {"kind": "refund", "key": "t-101", "extra": {"order_id": "o-1942"}},
+            "rationale": "probe",
+        },
+        _contract(),
+    )
+    assert fixed.valid
+
+
 def test_valid_read_passes():
     """Contract-bound reads flow to policy."""
     outcome = validate_action(

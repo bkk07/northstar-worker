@@ -162,6 +162,14 @@ def _check_required_params(proposal: NextAction) -> str | None:
         # swap one param for another instead of merging them.
         got = sorted(k for k in required if proposal.params.get(k) not in (None, ""))
         return f"params: {proposal.tool} needs {sorted(missing)} together (got {got})"
+    if proposal.tool == "inspect_state" and proposal.params.get("kind") == "refund":
+        extra = proposal.params.get("extra")
+        if not isinstance(extra, dict) or not extra.get("order_id"):
+            return (
+                "params: inspect_state refund needs extra.order_id together "
+                "(send params {kind: refund, key: <ticket_id>, "
+                "extra: {order_id: <order_id>}})"
+            )
     return None
 
 
