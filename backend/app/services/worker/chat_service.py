@@ -21,6 +21,7 @@ from app.services.commerce.shop_service import ShopService
 from app.services.ops.ticket_service import OpsTicketService
 from app.services.worker.approval_service import ApprovalService
 from app.services.worker.chat_intent import ChatIntent, parse_intent
+from app.services.worker.chat_narrator import narrate
 from app.services.worker.task_service import TaskService
 from database.models.biz.order import Order
 
@@ -57,8 +58,22 @@ class ChatService:
     def reply(
         self, message: str, start_run: Callable[[str, str], None] | None = None
     ) -> ChatReply:
-        """Route the message to its intent handler."""
+        """Route the message to its intent handler (model-phrased reply)."""
         intent = parse_intent(message)
+        if intent.kind == "approve_attempt":
+            # Safety text stays byte-exact — never model-phrased.
+            return ChatReply(reply=APPROVE_REFUSAL)
+        result = self._route(intent, start_run)
+        return ChatReply(
+            reply=narrate(message, result.reply),
+            task_id=result.task_id,
+            actions=result.actions,
+        )
+
+    def _route(
+        self, intent: ChatIntent, start_run: Callable[[str, str], None] | None
+    ) -> ChatReply:
+        """Deterministic intent handling (draft replies + side effects)."""
         if intent.kind == "solve_ticket":
             return self._solve(intent, start_run)
         if intent.kind == "ticket_status":

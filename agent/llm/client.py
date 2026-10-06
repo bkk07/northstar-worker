@@ -180,6 +180,39 @@ class MercuryClient:
             f"no schema-valid {model_cls.__name__} after {attempts} attempts ({last_error})"
         )
 
+    def complete(self, system: str, user: str, timeout_s: float | None = None) -> str:
+        """Free-text completion (chat narration, not structured proposals)."""
+        body: dict[str, Any] = {
+            "model": self._config.model,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            "temperature": 0,
+        }
+        if self._config.reasoning_effort:
+            body["reasoning_effort"] = self._config.reasoning_effort
+        client = self._http if timeout_s is None else httpx.Client(
+            base_url=self._config.base_url.rstrip("/"),
+            timeout=timeout_s,
+            headers={"Authorization": f"Bearer {self._config.api_key}"},
+        )
+        try:
+            try:
+                response = client.post("/chat/completions", json=body)
+            except httpx.HTTPError as exc:
+                raise LLMError(f"transport error: {exc}") from exc
+            if response.status_code >= 400:
+                raise LLMError(f"HTTP {response.status_code}: {response.text[:500]}")
+            try:
+                payload = response.json()
+                return payload["choices"][0]["message"]["content"]
+            except (ValueError, KeyError, IndexError, TypeError) as exc:
+                raise LLMError(f"unreadable chat payload: {exc}") from exc
+        finally:
+            if client is not self._http:
+                client.close()
+
     def _chat(self, messages: list[dict[str, str]], model_cls: type[BaseModel]) -> str:
         body: dict[str, Any] = {
             "model": self._config.model,

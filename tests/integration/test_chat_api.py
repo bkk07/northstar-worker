@@ -1,13 +1,21 @@
 """Chat endpoint: intent routing over live Postgres (run launch stubbed)."""
 
+import os
 import uuid
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 
 from app.main import create_app
 from app.services.worker import chat_runner
 from app.services.worker.chat_runner import _mark_cancelled
+
+
+@pytest.fixture(autouse=True)
+def _deterministic_replies(monkeypatch):
+    """Pin chat to deterministic drafts (narration needs no model here)."""
+    monkeypatch.setenv("CHAT_USE_MODEL", "0")
 
 
 def _insert_ticket(conn, tag: str) -> dict:
