@@ -114,7 +114,7 @@ export default function SupportConsolePage() {
             narration={narration}
             taskStatus={taskStatus}
             activeTaskId={activeTaskId}
-            busy={busy || timeline.isPending}
+            busy={busy || timeline.isLoading}
             error={error}
             deciding={decide.isPending ? (decide.variables?.approvalId ?? null) : null}
             onRetry={retry}
