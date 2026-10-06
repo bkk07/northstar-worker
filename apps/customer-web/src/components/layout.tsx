@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { ShoppingBag, ShoppingCart, LifeBuoy, Package } from "lucide-react";
 import { useAuth } from "@/stores/auth-store";
+import { Toaster } from "@/components/toaster";
 
 const link = ({ isActive }: { isActive: boolean }) =>
   isActive ? "ns-navlink is-active" : "ns-navlink";
@@ -61,6 +62,7 @@ export function Shell() {
           </span>
         </div>
       </footer>
+      <Toaster />
     </div>
   );
 }

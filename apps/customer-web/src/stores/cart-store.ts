@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { addCartItem, fetchCart, removeCartItem, updateCartItem } from "@/services/shop-api";
+import { toast } from "@/stores/toast-store";
 import type { Cart } from "@/types";
 
 type CartState = {
@@ -32,8 +33,10 @@ export const useCart = create<CartState>((set) => ({
     set({ error: null });
     try {
       set({ cart: await addCartItem(productId, quantity) });
+      toast.ok("Added to cart.");
     } catch {
       set({ error: "Could not add to cart. Please try again." });
+      toast.bad("Could not add to cart. Please try again.");
       throw new Error("add-to-cart-failed");
     }
   },

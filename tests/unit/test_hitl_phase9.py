@@ -71,6 +71,25 @@ def test_trace_pending_approval_active() -> None:
     assert "Ticket resolved" not in [s["label"] for s in steps]
 
 
+def test_trace_tool_step_carries_argument_detail() -> None:
+    tools = [
+        {
+            "id": "c1",
+            "tool_name": "get_order",
+            "status": "DONE",
+            "arguments": {"order_id": "ord-1"},
+            "created_at": "t",
+        },
+        {"id": "c2", "tool_name": "search_knowledge", "status": "DONE", "created_at": "t"},
+    ]
+    steps = build_trace(_run(), tools, [], "OPEN")
+    with_args = next(s for s in steps if s["key"] == "tool-c1")
+    without_args = next(s for s in steps if s["key"] == "tool-c2")
+    assert with_args["detail"] == "order_id=ord-1"
+    assert with_args["at"] == "t"
+    assert "detail" not in without_args
+
+
 def test_jsonable_coercion() -> None:
     assert _jsonable({"a": ("x", 1, None)}) == {"a": ["x", 1, None]}
     assert _jsonable(object()) .startswith("<")

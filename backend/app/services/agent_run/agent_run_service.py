@@ -71,6 +71,20 @@ def _jsonable(value):
     return str(value)
 
 
+def _compact_args(arguments: dict | None) -> str | None:
+    """Short `key=value` summary of tool arguments for the timeline."""
+    if not arguments:
+        return None
+    parts = []
+    for key, value in _jsonable(arguments).items():
+        text = str(value)
+        if len(text) > 28:
+            text = text[:25] + "…"
+        parts.append(f"{key}={text}")
+    summary = ", ".join(parts)
+    return summary if len(summary) <= 120 else summary[:117] + "…"
+
+
 def build_trace(
     run: dict | None,
     tool_calls: list[dict],
@@ -80,8 +94,12 @@ def build_trace(
     """AI activity timeline from persisted rows (pure, unit-testable)."""
     steps: list[dict] = []
 
-    def add(key: str, label: str, state: str, at: str | None = None) -> None:
-        steps.append({"key": key, "label": label, "state": state, "at": at})
+    def add(key: str, label: str, state: str, at: str | None = None,
+            detail: str | None = None) -> None:
+        step: dict = {"key": key, "label": label, "state": state, "at": at}
+        if detail is not None:
+            step["detail"] = detail
+        steps.append(step)
 
     if run is None:
         add("idle", "AI has not run on this ticket yet", "todo")
@@ -91,7 +109,13 @@ def build_trace(
         add("classified", f"Ticket classified as {run['intent']}", "done")
     for call in tool_calls:
         label = _TOOL_LABELS.get(call["tool_name"], call["tool_name"])
-        add(f"tool-{call['id']}", label, "done" if call["status"] == "DONE" else "todo")
+        add(
+            f"tool-{call['id']}",
+            label,
+            "done" if call["status"] == "DONE" else "todo",
+            call.get("created_at"),
+            _compact_args(call.get("arguments")),
+        )
     pending = next((a for a in approvals if a["status"] == "PENDING"), None)
     decided = next(
         (a for a in approvals if a["status"] in (APPROVAL_APPROVED, APPROVAL_REJECTED)),
@@ -411,6 +435,7 @@ def get_trace(session: Session, *, ticket_id: str) -> dict:
                 "id": str(c.id),
                 "tool_name": c.tool_name,
                 "status": c.status,
+                "arguments": _jsonable(c.arguments or {}),
                 "created_at": c.created_at.isoformat(),
             }
             for c in calls
@@ -452,6 +477,14 @@ def get_trace(session: Session, *, ticket_id: str) -> dict:
                 "human_note": a.human_note,
             }
             for a in approvals
+        ],
+        "audits": [
+            {
+                "event": a.event_type,
+                "actor": a.actor_type,
+                "at": a.created_at.isoformat(),
+            }
+            for a in repo.list_audits(ticket.id)
         ],
     }
 

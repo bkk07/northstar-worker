@@ -100,7 +100,15 @@ export type SolveResponse = {
   approval_id: string | null;
 };
 
-export type TraceStep = { key: string; label: string; state: string; at: string | null };
+export type TraceStep = {
+  key: string;
+  label: string;
+  state: string;
+  at: string | null;
+  detail?: string | null;
+};
+
+export type AuditEvent = { event: string; actor: string; at: string };
 
 export type TraceApproval = {
   id: string;
@@ -120,6 +128,7 @@ export type TicketTrace = {
   run: { id: string; status: string; intent: string | null; decision: string | null } | null;
   steps: TraceStep[];
   approvals: TraceApproval[];
+  audits: AuditEvent[];
 };
 
 export async function solveTicket(id: string): Promise<SolveResponse> {

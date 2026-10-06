@@ -17,6 +17,7 @@ import { apiErrorMessage } from "@/lib/api-client";
 import { formatPaise } from "@/lib/format";
 import { checkout, getOrder, listOrders } from "@/services/shop-api";
 import { useCart } from "@/stores/cart-store";
+import { toast } from "@/stores/toast-store";
 import type { Order, OrderDetail, OrderStatus } from "@/types";
 
 function statusTone(status: OrderStatus): "info" | "ok" | "warn" | "bad" {
@@ -285,9 +286,11 @@ export function CheckoutPage() {
       setPlaced(order);
       setStage("success");
       void refreshCart();
+      toast.ok(`Order ${order.order_number} placed.`);
     } catch (err) {
       setStage("form");
       setError(apiErrorMessage(err, "Payment failed. Please try again."));
+      toast.bad("Payment failed. Please try again.");
     }
   }
 

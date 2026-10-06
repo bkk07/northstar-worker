@@ -69,4 +69,13 @@
   .ns-form { @apply mx-auto w-full max-w-md; }
   .ns-form-card { @apply mt-6; }
   .ns-row-between { @apply flex items-center justify-between gap-3; }
+
+  .ns-toasts { @apply fixed bottom-4 right-4 z-50 flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-2; }
+  .ns-toast { @apply flex items-center gap-2 rounded-xl border bg-white px-3 py-2.5 text-sm shadow-lg; border-color: var(--c-border); animation: ns-toast-in .18s ease-out; }
+  .ns-toast-ok { @apply border-emerald-200 bg-emerald-50 text-emerald-900; }
+  .ns-toast-info { @apply border-indigo-200 bg-indigo-50 text-indigo-900; }
+  .ns-toast-bad { @apply border-red-200 bg-red-50 text-red-900; }
+  .ns-toast-msg { @apply flex-1; }
+  .ns-toast-x { @apply rounded p-0.5 opacity-60 hover:opacity-100; }
+  @keyframes ns-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 }

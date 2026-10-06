@@ -197,6 +197,15 @@ class TraceStep(BaseModel):
     label: str
     state: str
     at: str | None = None
+    detail: str | None = None
+
+
+class AuditEvent(BaseModel):
+    """One actor event from the ticket audit trail."""
+
+    event: str
+    actor: str
+    at: str
 
 
 class TraceRun(BaseModel):
@@ -216,6 +225,7 @@ class TraceResponse(BaseModel):
     run: TraceRun | None = None
     steps: list[TraceStep]
     approvals: list[ApprovalRead]
+    audits: list[AuditEvent] = []
 
 
 class TakeoverResult(BaseModel):

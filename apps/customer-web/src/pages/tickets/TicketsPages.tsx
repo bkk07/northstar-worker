@@ -7,6 +7,7 @@ import { Badge, Button, Card, EmptyState, ErrorState, Input, Skeleton } from "@/
 import { apiErrorMessage } from "@/lib/api-client";
 import { listOrders } from "@/services/shop-api";
 import { getTicket, listTickets, raiseTicket, replyToTicket } from "@/services/tickets-api";
+import { toast } from "@/stores/toast-store";
 import { TICKET_CATEGORIES, type TicketDetail } from "@/types";
 
 function formatDate(iso: string): string {
@@ -133,8 +134,10 @@ export function RaiseTicketPage() {
         order_id: orderId || null,
       });
       nav(`/tickets/${ticket.id}`);
+      toast.ok("Ticket raised. Support will reply here.");
     } catch (err) {
       setError(apiErrorMessage(err, "Could not raise the ticket. Please try again."));
+      toast.bad("Could not raise the ticket. Please try again.");
     } finally {
       setPending(false);
     }
@@ -256,8 +259,10 @@ export function TicketDetailPage() {
       setDraft("");
       await qc.invalidateQueries({ queryKey: ["ticket", id] });
       await qc.invalidateQueries({ queryKey: ["tickets"] });
+      toast.ok("Message sent.");
     } catch (err) {
       setSendError(apiErrorMessage(err, "Could not send the message."));
+      toast.bad("Could not send the message.");
     } finally {
       setSending(false);
     }

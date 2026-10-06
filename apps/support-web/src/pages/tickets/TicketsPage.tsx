@@ -238,6 +238,11 @@ function AICopilot({
               </div>
               <p className={`pb-2.5 text-[13px] ${step.state === "todo" ? "text-slate-400" : "font-medium"}`}>
                 {step.label}
+                {step.detail ? (
+                  <span className="mt-0.5 block font-mono text-xs font-normal text-slate-500">
+                    {step.detail}
+                  </span>
+                ) : null}
               </p>
             </li>
           ))}
@@ -249,16 +254,37 @@ function AICopilot({
           <ApprovalCard approval={a} onDecided={refreshAll} />
         </div>
       ))}
+
+      {(trace.data?.audits ?? []).length > 0 ? (
+        <details className="mt-3 rounded-lg bg-slate-50 px-3 py-2">
+          <summary className="cursor-pointer text-[13px] font-medium text-slate-600">
+            Audit trail ({trace.data?.audits.length})
+          </summary>
+          <ul className="mt-1.5 flex flex-col gap-1">
+            {(trace.data?.audits ?? []).map((a, i) => (
+              <li key={`${a.event}-${i}`} className="flex items-center justify-between gap-2 text-xs text-slate-500">
+                <span>
+                  <span className="font-medium text-slate-700">{a.event.replaceAll("_", " ")}</span>
+                  {" "}· {a.actor.replaceAll("_", " ").toLowerCase()}
+                </span>
+                <span className="shrink-0">{formatDate(a.at)}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
     </Card>
   );
 }
 
 export function TicketsPage() {
   const [params, setParams] = useSearchParams();
+  const nav = useNavigate();
   const tab = (params.get("status") ?? "ALL").toUpperCase();
   const priority = (params.get("priority") ?? "ALL").toUpperCase();
   const q = params.get("q") ?? "";
   const [draft, setDraft] = useState(q);
+  const [sel, setSel] = useState(0);
 
   const queue = useQuery({
     queryKey: ["support-queue", { tab, priority, q }],
@@ -277,7 +303,29 @@ export function TicketsPage() {
       else next.delete(k);
     }
     setParams(next);
+    setSel(0);
   }
+
+  const rows = queue.data ?? [];
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "SELECT" || el.tagName === "TEXTAREA")) return;
+      if (rows.length === 0) return;
+      if (e.key === "j") {
+        e.preventDefault();
+        setSel((s) => Math.min(s + 1, rows.length - 1));
+      } else if (e.key === "k") {
+        e.preventDefault();
+        setSel((s) => Math.max(s - 1, 0));
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        nav(`/tickets/${rows[Math.min(sel, rows.length - 1)].id}`);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [rows, sel, nav]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -349,11 +397,12 @@ export function TicketsPage() {
       ) : (
         <Card className="!p-2">
           <ul className="flex flex-col">
-            {(queue.data ?? []).map((t) => (
+            {(queue.data ?? []).map((t, i) => (
               <li key={t.id}>
                 <Link
                   to={`/tickets/${t.id}`}
-                  className="ns-row-between gap-3 rounded-lg px-3 py-2.5 hover:bg-slate-50"
+                  onMouseEnter={() => setSel(i)}
+                  className={`ns-row-between gap-3 rounded-lg px-3 py-2.5 hover:bg-slate-50 ${i === sel ? "bg-indigo-50/60" : ""}`}
                 >
                   <span className="flex min-w-0 items-center gap-2.5">
                     <LifeBuoy size={15} aria-hidden className="shrink-0 text-slate-400" />
@@ -376,6 +425,9 @@ export function TicketsPage() {
           </ul>
         </Card>
       )}
+      {(queue.data ?? []).length > 0 ? (
+        <p className="sp-muted text-xs">Tip: press <kbd className="rounded border border-slate-200 bg-white px-1">j</kbd>/<kbd className="rounded border border-slate-200 bg-white px-1">k</kbd> to move, <kbd className="rounded border border-slate-200 bg-white px-1">Enter</kbd> to open.</p>
+      ) : null}
     </div>
   );
 }

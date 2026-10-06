@@ -163,6 +163,63 @@ def test_tool_failure_routes_to_human() -> None:
     assert out["approval_required"] is True
 
 
+def _swap_tools(*, eligible=True):
+    """Eligibility-check + mock fakes for replacement/cancellation workflows."""
+    calls = {"mock": [], "checks": 0}
+
+    def check(order_id):
+        calls["checks"] += 1
+        ok = eligible and calls["checks"] == 1
+        return {
+            "ok": True,
+            "eligible": ok,
+            "reasons": [] if ok else ["outside the eligibility window"],
+            "order_number": "ORD-1",
+        }
+
+    def mock(order_id, key, ticket_id):
+        calls["mock"].append((order_id, key, ticket_id))
+        return {"ok": True, "action": {"id": "a9", "status": "DONE"}}
+
+    return calls, {
+        "check_replacement_eligibility": check,
+        "mock_replace": mock,
+        "check_cancellation_eligibility": check,
+        "mock_cancel_order": mock,
+    }
+
+
+def test_replacement_eligible_resolves() -> None:
+    calls, tools = _swap_tools()
+    out = workflows.replacement_workflow(fresh_state("t1"), "o1", 0.95, tools)
+    assert out["decision"] == "resolved_ready"
+    [(order_id, key, ticket_id)] = calls["mock"]
+    assert (order_id, key, ticket_id) == ("o1", "agent:t1:replace", "t1")
+    assert out["resolution"].startswith("Your replacement is arranged")
+
+
+def test_replacement_ineligible_acts_nothing() -> None:
+    calls, tools = _swap_tools(eligible=False)
+    out = workflows.replacement_workflow(fresh_state("t1"), "o1", 0.95, tools)
+    assert out["decision"] == "ineligible"
+    assert calls["mock"] == []
+
+
+def test_cancellation_eligible_resolves() -> None:
+    calls, tools = _swap_tools()
+    out = workflows.cancellation_workflow(fresh_state("t1"), "o1", 0.95, tools)
+    assert out["decision"] == "resolved_ready"
+    assert calls["mock"] and out["resolution"].startswith("Your order is cancelled")
+
+
+def test_ambiguous_low_confidence_pauses_for_approval() -> None:
+    calls, tools = _refund_tools(total=100)
+    out = workflows.refund_workflow(fresh_state("t1"), "o1", 0.5, tools, llm=FakeLLM())
+    assert out["decision"] == "awaiting_approval"
+    assert out["approval_required"] is True
+    assert calls["mock"] == []
+
+
 def test_tracking_and_general_answers() -> None:
     tools = {
         "get_order_tracking": lambda oid: {
