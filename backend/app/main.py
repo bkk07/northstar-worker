@@ -6,6 +6,7 @@ Docs: /docs (Swagger), /openapi.json (DTO source for the frontend).
 """
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import health_controller
 from app.api.agent import direct_controller
@@ -48,6 +49,18 @@ APP_VERSION = "0.1.0-phase6"
 def create_app() -> FastAPI:
     """Assemble the FastAPI app with every commerce router."""
     app = FastAPI(title="northstar-worker-backend", version=APP_VERSION)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "http://localhost:5174",
+            "http://localhost:5175",
+            "http://127.0.0.1:5174",
+            "http://127.0.0.1:5175",
+        ],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     app.add_exception_handler(AppError, app_error_handler)
     app.include_router(phase2_auth_controller.router)
     app.include_router(phase3_products_controller.router)

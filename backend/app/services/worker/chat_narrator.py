@@ -6,8 +6,8 @@ is the ground truth: the prompt forbids inventing codes, amounts, or actions,
 and any model failure silently falls back to the draft (never an error).
 """
 
-from collections.abc import Callable
 import os
+from collections.abc import Callable
 
 from agent.llm.client import LLMError, MercuryClient, config_from_env
 

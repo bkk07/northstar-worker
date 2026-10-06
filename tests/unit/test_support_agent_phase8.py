@@ -76,6 +76,15 @@ def _refund_tools(*, total=129900, eligible_first=True, fail_check=False):
     }
 
 
+def test_default_tools_cover_live_runner_needs() -> None:
+    """Regression: the live path must include get_ticket or every real
+    solve bails to needs_human before classifying."""
+    tools = workflows.default_tools()
+    assert callable(tools["get_ticket"])
+    for name in ("check_refund_eligibility", "mock_refund", "search_knowledge"):
+        assert callable(tools[name])
+
+
 def test_groq_config_wins_when_key_set() -> None:
     config = config_from_env({"GROQ_API_KEY": "gsk-test"})
     assert config.model == "llama-3.3-70b-versatile"

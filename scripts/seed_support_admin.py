@@ -2,7 +2,7 @@
 
 Usage: `python scripts/seed_support_admin.py`
 Creates `SUPPORT_ADMIN_EMAIL` / `SUPPORT_ADMIN_PASSWORD` (default
-admin@shop.local / admin) with role SUPPORT_AGENT if missing.
+admin@northstar.shop / admin) with role SUPPORT_AGENT if missing.
 """
 
 import sys

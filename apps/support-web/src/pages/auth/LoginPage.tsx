@@ -6,11 +6,11 @@ import { staffApiErrorMessage } from "@/lib/api-client";
 import { useStaffAuth } from "@/stores/auth-store";
 
 // Internal staff login — deliberately different from the storefront.
-// Demo credentials: admin@shop.local / admin (password is `admin`).
+// Demo credentials: admin@northstar.shop / admin (password is `admin`).
 export function LoginPage() {
   const nav = useNavigate();
   const login = useStaffAuth((s) => s.login);
-  const [email, setEmail] = useState("admin@shop.local");
+  const [email, setEmail] = useState("admin@northstar.shop");
   const [password, setPassword] = useState("admin");
   const [show, setShow] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -65,7 +65,7 @@ export function LoginPage() {
           </Button>
           {submitError ? <p className="text-sm text-red-600" role="alert">{submitError}</p> : null}
           <Button type="submit" disabled={pending}>{pending ? "Signing in…" : "Log in to console"}</Button>
-          <p className="sp-muted text-center">Demo: admin@shop.local / admin</p>
+          <p className="sp-muted text-center">Demo: admin@northstar.shop / admin</p>
         </form>
       </Card>
     </div>

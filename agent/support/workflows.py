@@ -14,6 +14,7 @@ from mcp_server.support import (
     knowledge_tools,
     order_tools,
     policy_tools,
+    ticket_tools,
 )
 
 _Response = str
@@ -22,6 +23,7 @@ _Response = str
 def default_tools() -> dict:
     """Live tool map: local calls into the Phase 7 business tools."""
     return {
+        "get_ticket": ticket_tools.get_ticket,
         "check_refund_eligibility": policy_tools.check_refund_eligibility,
         "check_return_eligibility": policy_tools.check_return_eligibility,
         "check_replacement_eligibility": policy_tools.check_replacement_eligibility,

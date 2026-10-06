@@ -5,5 +5,5 @@ from the storefront; dashboard + ticket shells only. Manual + AI resolution
 arrive in Phases 6–9.
 
 - Dev: `npm install && npm run dev` → http://localhost:5175
-- Demo login: `admin@shop.local` / `admin` (prefilled on the login page)
+- Demo login: `admin@northstar.shop` / `admin` (prefilled on the login page)
 - Routes: `/login /dashboard /tickets /tickets/:id`

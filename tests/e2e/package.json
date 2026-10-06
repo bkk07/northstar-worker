@@ -1,0 +1,14 @@
+{
+  "name": "northstar-e2e",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:customer": "playwright test --project=customer",
+    "test:support": "playwright test --project=support"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0"
+  }
+}

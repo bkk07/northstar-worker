@@ -53,7 +53,7 @@ def test_role_guard_forbids_customer_on_admin_route() -> None:
     guard = auth_core.require_roles("SUPPORT_AGENT")
     with pytest.raises(ForbiddenError):
         guard({"sub": "u1", "email": "a@b.co", "role": "CUSTOMER"})
-    allowed = guard({"sub": "u2", "email": "admin@shop.local", "role": "SUPPORT_AGENT"})
+    allowed = guard({"sub": "u2", "email": "admin@northstar.shop", "role": "SUPPORT_AGENT"})
     assert allowed["role"] == "SUPPORT_AGENT"
 
 

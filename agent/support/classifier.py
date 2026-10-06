@@ -46,8 +46,15 @@ def mock_classify(subject: str, description: str, category: str) -> IntentClassi
 
 
 def classify(subject: str, description: str, category: str, llm=None) -> IntentClassification:
-    """Classify a ticket (live Groq proposal, or mock when `llm=None`)."""
+    """Classify a ticket (live Groq proposal, or mock when `llm=None`).
+
+    A live failure (bad key, retired model, outage) falls back to the
+    deterministic mock so the ticket still flows instead of 500ing.
+    """
     if llm is None:
         return mock_classify(subject, description, category)
     user = f"Subject: {subject}\nCategory hint: {category}\nDescription: {description}"
-    return llm.propose(IntentClassification, _CLASSIFY_SYSTEM, user)
+    try:
+        return llm.propose(IntentClassification, _CLASSIFY_SYSTEM, user)
+    except Exception:
+        return mock_classify(subject, description, category)

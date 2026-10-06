@@ -64,7 +64,7 @@ class CustomerTicket(UUIDPk, CreatedAt, Base):
     description: Mapped[str] = mapped_column(Text, nullable=False)
     category: Mapped[str] = mapped_column(String(32), nullable=False)
     priority: Mapped[str] = mapped_column(String(16), nullable=False, default="NORMAL")
-    status: Mapped[str] = mapped_column(String(16), nullable=False, default=TICKET_OPEN)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default=TICKET_OPEN)
     resolution: Mapped[str | None] = mapped_column(Text, nullable=True)
     resolved_at: Mapped[datetime.datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
