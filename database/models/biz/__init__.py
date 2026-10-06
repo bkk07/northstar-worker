@@ -2,6 +2,10 @@
 
 from database.models.biz.app_user import AppUser  # noqa: F401
 from database.models.biz.customer import Customer  # noqa: F401
+from database.models.biz.customer_ticket import (  # noqa: F401
+    CustomerTicket,
+    CustomerTicketMessage,
+)
 from database.models.biz.financial import Refund, Replacement  # noqa: F401
 from database.models.biz.ops import FaultPlan, MutationLog, OpsSession  # noqa: F401
 from database.models.biz.order import Order, OrderItem  # noqa: F401
@@ -15,6 +19,8 @@ __all__ = [
     "Cart",
     "CartItem",
     "Customer",
+    "CustomerTicket",
+    "CustomerTicketMessage",
     "FaultPlan",
     "MutationLog",
     "OpsSession",

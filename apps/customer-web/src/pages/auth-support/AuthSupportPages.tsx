@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { Card, Badge, Button, Input, EmptyState } from "@/components/ui";
+import { Link, useNavigate } from "react-router-dom";
+import { Card, Button, Input } from "@/components/ui";
 import { apiErrorMessage } from "@/lib/api-client";
 import { useAuth } from "@/stores/auth-store";
 
@@ -146,29 +146,4 @@ export function SignupPage() {
   );
 }
 
-export function SupportPage() {
-  return (
-    <Card>
-      <div className="ns-row-between">
-        <h1 className="ns-title">Support tickets</h1>
-        <Badge>Phase 5</Badge>
-      </div>
-      <EmptyState
-        title="No tickets yet"
-        hint="After delivery you can raise a ticket (refund, replacement, return, cancellation, delivery, payment, general)."
-        action={<Link to="/orders" className="ns-btn ns-btn-secondary ns-btn-sm">View orders</Link>}
-      />
-    </Card>
-  );
-}
 
-export function TicketDetailPage() {
-  const { id } = useParams();
-  return (
-    <Card>
-      <Badge>Phase 5{id ? ` · ${id}` : ""}</Badge>
-      <h1 className="ns-title mt-2">Ticket conversation</h1>
-      <p className="ns-muted">Status, messages, and support responses arrive in Phase 5.</p>
-    </Card>
-  );
-}

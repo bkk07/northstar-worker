@@ -235,7 +235,17 @@ export function OrderDetailPage() {
         </div>
       </div>
 
-      <p className="ns-muted">Need help with this order? Ticket CTA arrives in Phase 5.</p>
+      <Card>
+        <div className="ns-row-between">
+          <div>
+            <p className="text-sm font-semibold">Need help with this order?</p>
+            <p className="ns-muted">Raise a ticket — refund, replacement, return, delivery, or payment.</p>
+          </div>
+          <Link to={`/tickets/new?order_id=${o.id}`} className="ns-btn ns-btn-secondary ns-btn-sm">
+            Raise a ticket
+          </Link>
+        </div>
+      </Card>
     </div>
   );
 }

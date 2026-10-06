@@ -6,7 +6,8 @@ import { useAuth } from "@/stores/auth-store";
 import { HomePage } from "@/pages/home/HomePage";
 import { CartPage, ProductDetailPage, ProductsPage } from "@/pages/shop/ShopPages";
 import { CheckoutPage, OrderDetailPage, OrdersPage } from "@/pages/orders/OrdersPage";
-import { LoginPage, SignupPage, SupportPage, TicketDetailPage } from "@/pages/auth-support/AuthSupportPages";
+import { LoginPage, SignupPage } from "@/pages/auth-support/AuthSupportPages";
+import { RaiseTicketPage, SupportPage, TicketDetailPage } from "@/pages/tickets/TicketsPages";
 
 function Protected({ children }: { children: ReactNode }) {
   const user = useAuth((s) => s.user);
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
       { path: "orders", element: <Protected><OrdersPage /></Protected> },
       { path: "orders/:id", element: <Protected><OrderDetailPage /></Protected> },
       { path: "support", element: <Protected><SupportPage /></Protected> },
+      { path: "tickets/new", element: <Protected><RaiseTicketPage /></Protected> },
       { path: "tickets/:id", element: <Protected><TicketDetailPage /></Protected> },
       { path: "*", element: <Navigate to="/" replace /> },
     ],

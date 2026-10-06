@@ -92,4 +92,62 @@ export type OrderDetail = Order & {
   timeline: TimelineStep[];
 };
 
-export type TicketStatus = "OPEN" | "RESOLVED";
+export type TicketStatus = "OPEN" | "RESOLVED" | "CLOSED";
+
+export type TicketCategory =
+  | "REFUND"
+  | "REPLACEMENT"
+  | "RETURN"
+  | "CANCELLATION"
+  | "DELIVERY"
+  | "PAYMENT"
+  | "GENERAL";
+
+export const TICKET_CATEGORIES: TicketCategory[] = [
+  "REFUND",
+  "REPLACEMENT",
+  "RETURN",
+  "CANCELLATION",
+  "DELIVERY",
+  "PAYMENT",
+  "GENERAL",
+];
+
+export type TicketMessage = {
+  id: string;
+  sender_type: "CUSTOMER" | "SUPPORT_AGENT" | "AI_AGENT" | "SYSTEM";
+  message: string;
+  created_at: string;
+};
+
+export type Ticket = {
+  id: string;
+  ticket_number: string;
+  subject: string;
+  category: string;
+  priority: string;
+  status: TicketStatus;
+  order_number: string | null;
+  message_count: number;
+  created_at: string;
+};
+
+export type TicketDetail = {
+  id: string;
+  ticket_number: string;
+  subject: string;
+  description: string;
+  category: string;
+  priority: string;
+  status: TicketStatus;
+  resolution: string | null;
+  created_at: string;
+  related_order: {
+    id: string;
+    order_number: string;
+    status: string;
+    total_display: string;
+    item_count: number;
+  } | null;
+  messages: TicketMessage[];
+};
