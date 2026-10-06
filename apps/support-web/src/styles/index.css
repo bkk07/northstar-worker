@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Phase 1 support theme: dense SaaS console, same Inter + indigo system. */
+:root {
+  --s-bg: #f1f5f9;
+  --s-surface: #ffffff;
+  --s-border: #e2e8f0;
+  --s-ink: #0f172a;
+  --s-primary: #4f46e5;
+  --s-primary-soft: #eef2ff;
+  color-scheme: light;
+}
+
+@layer base {
+  html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  body { font-family: "Inter", ui-sans-system, system-ui, sans-serif; font-size: 13.5px; line-height: 1.5; background: var(--s-bg); color: var(--s-ink); }
+  :focus-visible { outline: 2px solid var(--s-primary); outline-offset: 2px; border-radius: 6px; }
+}
+
+@layer components {
+  .sp-app { @apply flex min-h-screen; }
+  .sp-sidebar { @apply flex w-60 shrink-0 flex-col border-r bg-white; border-color: var(--s-border); }
+  .sp-brand { @apply flex items-center gap-2 px-4 py-4 text-sm font-bold tracking-tight; }
+  .sp-side-nav { @apply flex flex-col gap-1 px-3; }
+  .sp-side-link { @apply flex items-center gap-2.5 rounded-lg px-3 py-2 font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900; }
+  .sp-side-link.is-active { @apply bg-indigo-50 text-indigo-800; box-shadow: inset 2px 0 0 0 var(--s-primary); }
+  .sp-side-foot { @apply mt-auto px-4 py-4 text-xs text-slate-400; }
+  .sp-main-col { @apply flex min-w-0 flex-1 flex-col; }
+  .sp-topbar { @apply flex h-14 items-center justify-between border-b bg-white px-4 sm:px-6; border-color: var(--s-border); }
+  .sp-main { @apply mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6; }
+
+  .sp-btn { @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors disabled:opacity-50; }
+  .sp-btn-primary { @apply bg-indigo-600 text-white shadow-sm hover:bg-indigo-700; }
+  .sp-btn-secondary { @apply border bg-white text-slate-700 hover:bg-slate-50; border-color: var(--s-border); }
+  .sp-btn-ghost { @apply text-slate-600 hover:bg-slate-100; }
+  .sp-btn-danger { @apply bg-red-600 text-white hover:bg-red-700; }
+  .sp-input { @apply w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none; border-color: var(--s-border); }
+  .sp-input:focus { border-color: var(--s-primary); box-shadow: 0 0 0 3px var(--s-primary-soft); }
+  .sp-label { @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500; }
+  .sp-card { @apply rounded-2xl border bg-white; border-color: var(--s-border); box-shadow: 0 1px 2px rgb(16 24 40 / .05), 0 8px 24px -16px rgb(16 24 40 / .18); }
+  .sp-card-pad { @apply p-4 sm:p-5; }
+  .sp-badge { @apply inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium; }
+  .sp-badge-info { @apply border-indigo-200 bg-indigo-50 text-indigo-800; }
+  .sp-badge-ok { @apply border-emerald-200 bg-emerald-50 text-emerald-800; }
+  .sp-badge-warn { @apply border-amber-200 bg-amber-50 text-amber-900; }
+  .sp-badge-bad { @apply border-red-200 bg-red-50 text-red-800; }
+  .sp-title { @apply text-base font-semibold tracking-tight; }
+  .sp-muted { @apply text-sm text-slate-500; }
+  .sp-center { @apply flex flex-col items-center justify-center gap-2 py-12 text-center; }
+  .sp-spinner { @apply h-6 w-6 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-600; }
+  .sp-auth-wrap { @apply mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4; }
+}

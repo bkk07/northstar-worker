@@ -1,0 +1,8 @@
+{
+  "name": "@northstar/shared-types",
+  "private": true,
+  "version": "0.1.0-phase1",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts"
+}

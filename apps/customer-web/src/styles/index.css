@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Phase 1 customer theme: clean ecommerce, Inter, indigo primary. */
+:root {
+  --c-bg: #f8fafc;
+  --c-surface: #ffffff;
+  --c-border: #e2e8f0;
+  --c-ink: #0f172a;
+  --c-soft: #475569;
+  --c-faint: #64748b;
+  --c-primary: #4f46e5;
+  --c-primary-hover: #4338ca;
+  --c-primary-soft: #eef2ff;
+  color-scheme: light;
+}
+
+@layer base {
+  html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  body {
+    font-family: "Inter", ui-sans-system, system-ui, sans-serif;
+    font-size: 14px; line-height: 1.5; background: var(--c-bg); color: var(--c-ink);
+  }
+  :focus-visible { outline: 2px solid var(--c-primary); outline-offset: 2px; border-radius: 6px; }
+}
+
+@layer components {
+  .ns-app { @apply min-h-screen flex flex-col; }
+  .ns-shell { @apply mx-auto w-full max-w-6xl px-4 sm:px-6; }
+  .ns-header { @apply sticky top-0 z-10 border-b bg-white/90 backdrop-blur; border-color: var(--c-border); }
+  .ns-header-row { @apply flex h-16 items-center justify-between gap-4; }
+  .ns-brand { @apply flex items-center gap-2 text-base font-bold tracking-tight; }
+  .ns-nav { @apply hidden items-center gap-1 sm:flex; }
+  .ns-navlink { @apply rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900; }
+  .ns-navlink.is-active { @apply bg-indigo-50 text-indigo-800; }
+  .ns-header-actions { @apply flex items-center gap-2; }
+  .ns-iconbtn { @apply inline-flex h-9 w-9 items-center justify-center rounded-lg border text-slate-600 hover:bg-slate-50; border-color: var(--c-border); }
+  .ns-main { @apply flex-1 py-8; }
+  .ns-footer { @apply border-t bg-white; border-color: var(--c-border); }
+  .ns-footer-row { @apply flex items-center justify-between py-4 text-[13px]; }
+  .ns-footer-links { @apply hidden gap-4 sm:flex; }
+  .ns-inline { @apply inline-flex items-center gap-1.5; }
+
+  .ns-btn { @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors disabled:opacity-50; }
+  .ns-btn-primary { @apply bg-indigo-600 text-white shadow-sm hover:bg-indigo-700; }
+  .ns-btn-secondary { @apply border bg-white text-slate-700 hover:bg-slate-50; border-color: var(--c-border); }
+  .ns-btn-ghost { @apply text-slate-600 hover:bg-slate-100; }
+  .ns-btn-sm { @apply px-2.5 py-1.5 text-[13px]; }
+  .ns-input { @apply w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm placeholder:text-slate-400 focus:outline-none; border-color: var(--c-border); }
+  .ns-input:focus { border-color: var(--c-primary); box-shadow: 0 0 0 3px var(--c-primary-soft); }
+  .ns-label { @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500; }
+  .ns-card { @apply rounded-2xl border bg-white; border-color: var(--c-border); box-shadow: 0 1px 2px rgb(16 24 40 / .05), 0 8px 24px -16px rgb(16 24 40 / .18); }
+  .ns-card-pad { @apply p-4 sm:p-5; }
+  .ns-badge { @apply inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium; }
+  .ns-badge-info { @apply border-indigo-200 bg-indigo-50 text-indigo-800; }
+  .ns-badge-ok { @apply border-emerald-200 bg-emerald-50 text-emerald-800; }
+  .ns-badge-warn { @apply border-amber-200 bg-amber-50 text-amber-900; }
+  .ns-badge-bad { @apply border-red-200 bg-red-50 text-red-800; }
+
+  .ns-title { @apply text-lg font-semibold tracking-tight; }
+  .ns-muted { @apply text-sm text-slate-500; }
+  .ns-center { @apply flex flex-col items-center justify-center gap-2 py-12 text-center; }
+  .ns-stack { @apply gap-2; }
+  .ns-grid-products { @apply grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4; }
+  .ns-product-img { @apply aspect-square w-full rounded-xl bg-slate-100 object-cover; }
+  .ns-skeleton { @apply relative overflow-hidden rounded-md bg-slate-200/80; }
+  .ns-spinner { @apply h-6 w-6 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-600; }
+  .ns-form { @apply mx-auto w-full max-w-md; }
+  .ns-form-card { @apply mt-6; }
+  .ns-row-between { @apply flex items-center justify-between gap-3; }
+}

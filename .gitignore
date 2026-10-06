@@ -46,3 +46,11 @@ frontend/test-results/
 
 # Local planning docs (not part of the deliverable)
 NORTHSTAR_WORKER_FINAL_PLAN.md
+customer_support_ai_prototype_10_phases.md
+
+# Phase 1 — two separate frontends (spec §4, §27)
+apps/customer-web/node_modules/
+apps/customer-web/dist/
+apps/support-web/node_modules/
+apps/support-web/dist/
+packages/shared-types/dist/

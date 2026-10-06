@@ -1,16 +1,15 @@
-# Phase 2: local infrastructure. Single Postgres 16 container; no Kafka,
-# Redis, or other services per plan non-goals (NORTHSTAR_WORKER_FINAL_PLAN §4).
-# Roles, schemas, and migrations arrive in Phase 4.
-# Phase 11: the MCP tool server (typed boundary the agent can never bypass).
+# Phase 1 (10-phase prototype spec §6, §17): Dockerized PostgreSQL 16 +
+# pgvector is the source of truth. No Kafka/Redis/Celery per non-goals.
+# Customer UI :5174, Support UI :5175, API :8000, MCP :8002.
 services:
   postgres:
-    image: postgres:16
+    image: pgvector/pgvector:pg16
     container_name: northstar-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: northstar
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-northstar}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
 # Host port 5433: a native Windows PostgreSQL often occupies 5432.
 # All repo URLs (session.py, alembic.ini, .env.example) use 5433.
     ports:
@@ -22,6 +21,22 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    container_name: northstar-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/northstar
+      JWT_SECRET: ${JWT_SECRET:-local-jwt-secret}
+      DELIVERY_DELAY_SECONDS: ${DELIVERY_DELAY_SECONDS:-60}
+    ports:
+      - "8000:8000"
 
   mcp:
     build:
