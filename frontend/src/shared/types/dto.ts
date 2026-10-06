@@ -4,1774 +4,4028 @@
  */
 
 export interface paths {
-  "/api/health": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Health
+         * @description Liveness probe used by Phase 1 manual verification.
+         */
+        get: operations["get_health_api_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Get Health
-     * @description Liveness probe used by Phase 1 manual verification.
-     */
-    get: operations["get_health_api_health_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/read/customers": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/read/customers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search Customers
+         * @description Search customers (look-alikes included).
+         */
+        get: operations["search_customers_api_read_customers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Search Customers
-     * @description Search customers (look-alikes included).
-     */
-    get: operations["search_customers_api_read_customers_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/read/customers/{customer_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/read/customers/{customer_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Customer
+         * @description One customer.
+         */
+        get: operations["get_customer_api_read_customers__customer_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Get Customer
-     * @description One customer.
-     */
-    get: operations["get_customer_api_read_customers__customer_id__get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/read/orders": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/read/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Orders
+         * @description Orders of one customer.
+         */
+        get: operations["list_orders_api_read_orders_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * List Orders
-     * @description Orders of one customer.
-     */
-    get: operations["list_orders_api_read_orders_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/read/orders/{order_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/read/orders/{order_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Order
+         * @description One order with items.
+         */
+        get: operations["get_order_api_read_orders__order_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Get Order
-     * @description One order with items.
-     */
-    get: operations["get_order_api_read_orders__order_id__get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/read/tickets/{ticket_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/read/tickets/{ticket_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ticket
+         * @description One ticket.
+         */
+        get: operations["get_ticket_api_read_tickets__ticket_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Get Ticket
-     * @description One ticket.
-     */
-    get: operations["get_ticket_api_read_tickets__ticket_id__get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/read/replacements": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/read/replacements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Replacements
+         * @description Replacements for one order item.
+         */
+        get: operations["list_replacements_api_read_replacements_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * List Replacements
-     * @description Replacements for one order item.
-     */
-    get: operations["list_replacements_api_read_replacements_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/read/refunds": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/read/refunds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Refunds
+         * @description Refunds by ticket, customer window, or order (duplicate-trap facts).
+         */
+        get: operations["list_refunds_api_read_refunds_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * List Refunds
-     * @description Refunds linked to one ticket.
-     */
-    get: operations["list_refunds_api_read_refunds_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/read/policies": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/read/policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Policies
+         * @description All policy rules.
+         */
+        get: operations["list_policies_api_read_policies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * List Policies
-     * @description All policy rules.
-     */
-    get: operations["list_policies_api_read_policies_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/read/probe/mutation/{key}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/read/probe/mutation/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Probe Mutation
+         * @description Probe an idempotency key (found with identity, or not found).
+         */
+        get: operations["probe_mutation_api_read_probe_mutation__key__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Probe Mutation
-     * @description Probe an idempotency key (found with identity, or not found).
-     */
-    get: operations["probe_mutation_api_read_probe_mutation__key__get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/shop/orders": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/read/probe/replacement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Probe Replacement
+         * @description Probe the active replacement for an order item (business identity).
+         */
+        get: operations["probe_replacement_api_read_probe_replacement_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * List Orders
-     * @description Customer orders, optionally filtered by customer code.
-     */
-    get: operations["list_orders_api_shop_orders_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/shop/orders/{order_code}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/read/probe/refund": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Probe Refund
+         * @description Probe the active refund for a (ticket, order) identity.
+         */
+        get: operations["probe_refund_api_read_probe_refund_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Get Order
-     * @description Order detail.
-     */
-    get: operations["get_order_api_shop_orders__order_code__get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/shop/tickets": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/catalog/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Products
+         * @description Dummy product catalog (distinct SKUs across orders).
+         */
+        get: operations["list_products_api_catalog_products_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Create Ticket
-     * @description Raise a ticket from the shop.
-     */
-    post: operations["create_ticket_api_shop_tickets_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/shop/tickets/{ticket_code}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/catalog/products/{sku}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Product
+         * @description One product with the policies that apply to it.
+         */
+        get: operations["get_product_api_catalog_products__sku__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Get Ticket
-     * @description Ticket status for the customer.
-     */
-    get: operations["get_ticket_api_shop_tickets__ticket_code__get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/ops/auth/login": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/catalog/policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Policies
+         * @description Every policy rule with a human-readable summary.
+         */
+        get: operations["list_policies_api_catalog_policies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Login
-     * @description Sandbox login: mint a session and set the cookie.
-     */
-    post: operations["login_api_ops_auth_login_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/ops/auth/logout": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/shop/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Orders
+         * @description Customer orders, optionally filtered by customer code.
+         */
+        get: operations["list_orders_api_shop_orders_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Logout
-     * @description Revoke the session and clear the cookie.
-     */
-    post: operations["logout_api_ops_auth_logout_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/ops/tickets": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/shop/orders/{order_code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Order
+         * @description Order detail.
+         */
+        get: operations["get_order_api_shop_orders__order_code__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * List Tickets
-     * @description Paginated ticket queue.
-     */
-    get: operations["list_tickets_api_ops_tickets_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/ops/tickets/{ticket_code}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/shop/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Ticket
+         * @description Raise a ticket from the shop.
+         */
+        post: operations["create_ticket_api_shop_tickets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Get Ticket
-     * @description Ticket detail.
-     */
-    get: operations["get_ticket_api_ops_tickets__ticket_code__get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/ops/ui-flags": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/shop/tickets/{ticket_code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ticket
+         * @description Ticket status for the customer.
+         */
+        get: operations["get_ticket_api_shop_tickets__ticket_code__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Get Ui Flags
-     * @description UI behavior switches armed via fault plans.
-     */
-    get: operations["get_ui_flags_api_ops_ui_flags_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/ops/customers": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/ops/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Login
+         * @description Sandbox login: mint a session and set the cookie.
+         */
+        post: operations["login_api_ops_auth_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Search Customers
-     * @description Customer search (look-alikes included).
-     */
-    get: operations["search_customers_api_ops_customers_get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/ops/orders/{order_code}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/ops/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Logout
+         * @description Revoke the session and clear the cookie.
+         */
+        post: operations["logout_api_ops_auth_logout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Get Order
-     * @description Order detail with items.
-     */
-    get: operations["get_order_api_ops_orders__order_code__get"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/ops/replacements": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/ops/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Tickets
+         * @description Paginated ticket queue.
+         */
+        get: operations["list_tickets_api_ops_tickets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Create Replacement
-     * @description Commit a replacement (201) or replay it (200) for a known key.
-     */
-    post: operations["create_replacement_api_ops_replacements_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/ops/refunds": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/ops/tickets/{ticket_code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ticket
+         * @description Ticket detail.
+         */
+        get: operations["get_ticket_api_ops_tickets__ticket_code__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Create Refund
-     * @description Commit a refund (201) or replay it (200) for a known key.
-     */
-    post: operations["create_refund_api_ops_refunds_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/ops/tickets/{ticket_code}/notes": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/ops/ui-flags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Ui Flags
+         * @description UI behavior switches armed via fault plans.
+         */
+        get: operations["get_ui_flags_api_ops_ui_flags_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Create Note
-     * @description Attach an internal note (201) or replay it (200).
-     */
-    post: operations["create_note_api_ops_tickets__ticket_code__notes_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/ops/tickets/{ticket_code}/reply": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/ops/customers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search Customers
+         * @description Customer search (look-alikes included).
+         */
+        get: operations["search_customers_api_ops_customers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Create Reply
-     * @description Send a customer reply (201) or replay it (200).
-     */
-    post: operations["create_reply_api_ops_tickets__ticket_code__reply_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/ops/tickets/{ticket_code}/status": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/api/ops/orders/{order_code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Order
+         * @description Order detail with items.
+         */
+        get: operations["get_order_api_ops_orders__order_code__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Update Status
-     * @description Change ticket status (201) or replay it (200).
-     */
-    post: operations["update_status_api_ops_tickets__ticket_code__status_post"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
+    "/api/ops/replacements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Replacement
+         * @description Commit a replacement (201) or replay it (200) for a known key.
+         */
+        post: operations["create_replacement_api_ops_replacements_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ops/refunds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Refund
+         * @description Commit a refund (201) or replay it (200) for a known key.
+         */
+        post: operations["create_refund_api_ops_refunds_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ops/tickets/{ticket_code}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Note
+         * @description Attach an internal note (201) or replay it (200).
+         */
+        post: operations["create_note_api_ops_tickets__ticket_code__notes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ops/tickets/{ticket_code}/reply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Reply
+         * @description Send a customer reply (201) or replay it (200).
+         */
+        post: operations["create_reply_api_ops_tickets__ticket_code__reply_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ops/tickets/{ticket_code}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update Status
+         * @description Change ticket status (201) or replay it (200).
+         */
+        post: operations["update_status_api_ops_tickets__ticket_code__status_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/control/chaos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Arm Fault
+         * @description Arm one reproducible fault.
+         */
+        post: operations["arm_fault_api_control_chaos_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/control/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset World
+         * @description Truncate biz + worker (clears faults, seeds, and test rows).
+         */
+        post: operations["reset_world_api_control_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/control/seed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Seed World
+         * @description Load the deterministic seed world.
+         */
+        post: operations["seed_world_api_control_seed_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/control/oracle/{entity}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Query Oracle
+         * @description Oracle verdict for a scenario id (S1) or ticket code (TCK-101).
+         */
+        get: operations["query_oracle_api_control_oracle__entity__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/eval/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Runs
+         * @description Newest runs first (metrics ledgers for the comparison UI).
+         */
+        get: operations["list_runs_api_eval_runs_get"];
+        put?: never;
+        /**
+         * Record Run
+         * @description Record one suite run with its metrics and per-scenario scores.
+         */
+        post: operations["record_run_api_eval_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/eval/runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Run
+         * @description One run with its per-scenario drilldown rows.
+         */
+        get: operations["get_run_api_eval_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/eval/scenarios": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Scenarios
+         * @description Catalog rows for a suite (seeded or held_out).
+         */
+        get: operations["list_scenarios_api_eval_scenarios_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Tasks
+         * @description Newest tasks first, optionally filtered to one lifecycle state.
+         */
+        get: operations["list_tasks_api_tasks_get"];
+        put?: never;
+        /**
+         * Create Task
+         * @description Submit one operator task (starts `pending`; the runner executes).
+         */
+        post: operations["create_task_api_tasks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tasks/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Task
+         * @description Read one task row (status follows the runner's lifecycle).
+         */
+        get: operations["get_task_api_tasks__task_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tasks/{task_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel Task
+         * @description Cancel a live task (terminal tasks answer 409).
+         */
+        post: operations["cancel_task_api_tasks__task_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Chat
+         * @description Answer one chat message (may launch a background task run).
+         */
+        post: operations["post_chat_api_chat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/approvals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Approvals
+         * @description Pending approvals with action, params, reason, and rule.
+         */
+        get: operations["list_approvals_api_approvals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/approvals/{approval_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve Approval
+         * @description Approve once and requeue the parked task (409 unless pending).
+         */
+        post: operations["approve_approval_api_approvals__approval_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/approvals/{approval_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reject Approval
+         * @description Reject once and requeue the task (the graph finalizes BLOCKED).
+         */
+        post: operations["reject_approval_api_approvals__approval_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/clarifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Clarifications
+         * @description Pending clarifications with kind, question, and queue.
+         */
+        get: operations["list_clarifications_api_clarifications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/clarifications/{clarification_id}/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Answer Clarification
+         * @description Answer once and requeue the parked task (409 unless pending).
+         */
+        post: operations["answer_clarification_api_clarifications__clarification_id__answer_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tasks/{task_id}/memory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Task Memory
+         * @description Working memory with fact, provenance, timestamp, and run ID.
+         */
+        get: operations["list_task_memory_api_tasks__task_id__memory_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/environment/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Environment Status
+         * @description Stack liveness plus queue depths for the dashboard cards.
+         */
+        get: operations["environment_status_api_environment_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/environment/faults": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Arm Environment Fault
+         * @description Arm one reproducible fault for the demo.
+         */
+        post: operations["arm_environment_fault_api_environment_faults_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/environment/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset Environment
+         * @description Truncate biz + worker (clears faults, seeds, and test rows).
+         */
+        post: operations["reset_environment_api_environment_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/environment/seed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Seed Environment
+         * @description Load the deterministic seed world.
+         */
+        post: operations["seed_environment_api_environment_seed_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tasks/{task_id}/events/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Task Event History
+         * @description Audit events in replay order (the run's chain, oldest first).
+         */
+        get: operations["task_event_history_api_tasks__task_id__events_history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tasks/{task_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Task Event Stream Endpoint
+         * @description Live audit stream (SSE; `Last-Event-ID` resumes from a sequence).
+         */
+        get: operations["task_event_stream_endpoint_api_tasks__task_id__events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tasks/{task_id}/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Task Evidence
+         * @description Latest terminal packet (404 when the task never reached terminal).
+         */
+        get: operations["task_evidence_api_tasks__task_id__evidence_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tasks/{task_id}/evidence/screenshots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Task Screenshots
+         * @description Screenshot index for the task's evidence trail, oldest first.
+         */
+        get: operations["task_screenshots_api_tasks__task_id__evidence_screenshots_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tasks/{task_id}/verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Task Verification
+         * @description Persisted verifier verdicts across the task's runs, oldest first.
+         */
+        get: operations["task_verification_api_tasks__task_id__verification_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    /**
-     * CustomerRead
-     * @description Customer as seen by read APIs and the shop.
-     */
-    CustomerRead: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /** Code */
-      code: string;
-      /** Name */
-      name: string;
-      /** Email */
-      email: string;
+    schemas: {
+        /**
+         * ApprovalDecide
+         * @description Approve or reject a pending approval (single-use, bound, expiring).
+         */
+        ApprovalDecide: {
+            /** Approver */
+            approver: string;
+        };
+        /**
+         * ApprovalRead
+         * @description One approval request with the action, params, reason, and rule.
+         */
+        ApprovalRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Task Id
+             * Format: uuid
+             */
+            task_id: string;
+            /** Requested Action */
+            requested_action: string;
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            /** Params Hash */
+            params_hash: string;
+            /** Reason */
+            reason: string;
+            /** Policy Rule Id */
+            policy_rule_id: string;
+            /** Status */
+            status: string;
+            /** Approver */
+            approver: string | null;
+            /** Resolved At */
+            resolved_at: string | null;
+            /** Expires At */
+            expires_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * ArmFault
+         * @description Arm one fault: reproducible from type + target + trigger spec.
+         */
+        ArmFault: {
+            /** Fault Type */
+            fault_type: string;
+            /** Target */
+            target: string;
+            /** Trigger */
+            trigger?: {
+                [key: string]: unknown;
+            };
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * AuditEventRead
+         * @description One audit row in replay order (seq is gapless per DB).
+         */
+        AuditEventRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Task Id
+             * Format: uuid
+             */
+            task_id: string;
+            /** Run Id */
+            run_id: string | null;
+            /** Seq */
+            seq: number;
+            /**
+             * Ts
+             * Format: date-time
+             */
+            ts: string;
+            /** Node */
+            node: string | null;
+            /** Tool */
+            tool: string | null;
+            /** Kind */
+            kind: string;
+            /** Status */
+            status: string | null;
+            /** Error Type */
+            error_type: string | null;
+            /** Retry Count */
+            retry_count: number;
+            /** Duration Ms */
+            duration_ms: number | null;
+            /** Policy Result */
+            policy_result: string | null;
+            /** Verification Result */
+            verification_result: string | null;
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * ChatAction
+         * @description A follow-up affordance rendered under the reply.
+         *
+         *     Links navigate; approval actions render inline Approve/Reject buttons
+         *     that call the approvals API explicitly — typed chat text never decides.
+         */
+        ChatAction: {
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: string;
+            /** Task Id */
+            task_id?: string | null;
+            /** Href */
+            href?: string | null;
+            /** Approval Id */
+            approval_id?: string | null;
+            /** Decision */
+            decision?: string | null;
+        };
+        /**
+         * ChatReply
+         * @description Assistant reply plus optional task binding and follow-up actions.
+         */
+        ChatReply: {
+            /** Reply */
+            reply: string;
+            /** Task Id */
+            task_id?: string | null;
+            /** Actions */
+            actions?: components["schemas"]["ChatAction"][];
+        };
+        /**
+         * ChatRequest
+         * @description A single operator chat message.
+         */
+        ChatRequest: {
+            /** Message */
+            message: string;
+        };
+        /**
+         * ClarificationAnswer
+         * @description Answer a pending clarification (requeues the parked task).
+         */
+        ClarificationAnswer: {
+            /** Answer */
+            answer: string;
+            /** Answered By */
+            answered_by: string;
+        };
+        /**
+         * ClarificationRead
+         * @description One clarification request with its kind, question, and answer.
+         */
+        ClarificationRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Task Id
+             * Format: uuid
+             */
+            task_id: string;
+            /** Kind */
+            kind: string;
+            /** Question */
+            question: string;
+            /** Answer */
+            answer: string | null;
+            /** Answered By */
+            answered_by: string | null;
+            /** Status */
+            status: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * CustomerRead
+         * @description Customer as seen by read APIs and the shop.
+         */
+        CustomerRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Email */
+            email: string;
+        };
+        /**
+         * EnvironmentStatus
+         * @description Liveness plus queue depths (drives the dashboard cards).
+         */
+        EnvironmentStatus: {
+            /** Backend */
+            backend: string;
+            /** Database */
+            database: string;
+            /** Pending Tasks */
+            pending_tasks: number;
+            /** Pending Approvals */
+            pending_approvals: number;
+            /** Pending Clarifications */
+            pending_clarifications: number;
+        };
+        /**
+         * EvalResultCreate
+         * @description One scored scenario inside a run.
+         */
+        EvalResultCreate: {
+            /** Scenario Id */
+            scenario_id: string;
+            /** Expected Outcome */
+            expected_outcome: string;
+            /** Actual Outcome */
+            actual_outcome: string;
+            /**
+             * Outcome Ok
+             * @default false
+             */
+            outcome_ok: boolean;
+            /** Scores */
+            scores?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * EvalResultRead
+         * @description One stored scenario score.
+         */
+        EvalResultRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Scenario Id */
+            scenario_id: string;
+            /** Expected Outcome */
+            expected_outcome: string;
+            /** Actual Outcome */
+            actual_outcome: string;
+            /** Outcome Ok */
+            outcome_ok: boolean;
+            /** Scores */
+            scores: {
+                [key: string]: unknown;
+            };
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * EvalRunCreate
+         * @description Record a suite run with its metrics and per-scenario scores.
+         */
+        EvalRunCreate: {
+            /** Suite */
+            suite: string;
+            /**
+             * Scenario Count
+             * @default 0
+             */
+            scenario_count: number;
+            /** Metrics */
+            metrics?: {
+                [key: string]: unknown;
+            };
+            /** Results */
+            results?: components["schemas"]["EvalResultCreate"][];
+            /**
+             * Report Md
+             * @default
+             */
+            report_md: string;
+        };
+        /**
+         * EvalRunDetail
+         * @description A run with its per-scenario drilldown rows.
+         */
+        EvalRunDetail: {
+            run: components["schemas"]["EvalRunRead"];
+            /** Results */
+            results: components["schemas"]["EvalResultRead"][];
+        };
+        /**
+         * EvalRunRead
+         * @description One stored suite run (metrics ledger for the table).
+         */
+        EvalRunRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Suite */
+            suite: string;
+            /** Scenario Count */
+            scenario_count: number;
+            /** Metrics */
+            metrics: {
+                [key: string]: unknown;
+            };
+            /** Report Md */
+            report_md: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * EvalScenarioRead
+         * @description One catalog scenario (outcome + effects; facts stay server-side).
+         */
+        EvalScenarioRead: {
+            /** Id */
+            id: string;
+            /** Category */
+            category: string;
+            /** Mode */
+            mode: string;
+            /** Ticket Code */
+            ticket_code: string;
+            /** Task */
+            task: string;
+            /** Expected Outcome */
+            expected_outcome: string;
+            /** Expected Effects */
+            expected_effects: {
+                [key: string]: unknown;
+            }[];
+        };
+        /**
+         * EvidencePacketRead
+         * @description Latest terminal packet for a task (summary is the 3-line brief).
+         */
+        EvidencePacketRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Task Id
+             * Format: uuid
+             */
+            task_id: string;
+            /** Packet */
+            packet: {
+                [key: string]: unknown;
+            };
+            /** Summary */
+            summary: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * FaultPlanRead
+         * @description Armed fault plan.
+         */
+        FaultPlanRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Fault Type */
+            fault_type: string;
+            /** Target */
+            target: string;
+            /** Trigger */
+            trigger: {
+                [key: string]: unknown;
+            };
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            /** Armed */
+            armed: boolean;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HealthResponse */
+        HealthResponse: {
+            /**
+             * Status
+             * @default ok
+             */
+            status: string;
+            /**
+             * Service
+             * @default northstar-worker-backend
+             */
+            service: string;
+            /**
+             * Version
+             * @default 0.1.0-phase1
+             */
+            version: string;
+        };
+        /**
+         * LoginRequest
+         * @description Sandbox login (dummy credential accepted; real auth out of scope).
+         */
+        LoginRequest: {
+            /** Agent Name */
+            agent_name: string;
+            /**
+             * Password
+             * @default
+             */
+            password: string;
+        };
+        /**
+         * LoginResponse
+         * @description Issued session (token also set as httponly cookie).
+         */
+        LoginResponse: {
+            /** Agent Name */
+            agent_name: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+        };
+        /**
+         * LogoutResponse
+         * @description Logout acknowledgement.
+         */
+        LogoutResponse: {
+            /**
+             * Ok
+             * @default true
+             */
+            ok: boolean;
+        };
+        /**
+         * MemoryItemRead
+         * @description One memory fact with provenance, timestamp, and run.
+         */
+        MemoryItemRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /** Key */
+            key: string;
+            /** Value */
+            value: {
+                [key: string]: unknown;
+            };
+            /** Source Type */
+            source_type: string;
+            /** Source Ref */
+            source_ref: string | null;
+            /** Trust */
+            trust: string;
+            /** Confidence */
+            confidence: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * NoteCreate
+         * @description Internal note (never customer-visible).
+         */
+        NoteCreate: {
+            /**
+             * Kind
+             * @default internal
+             */
+            kind: string;
+            /** Body */
+            body: string;
+            /**
+             * Author
+             * @default ops-agent
+             */
+            author: string;
+        };
+        /**
+         * NoteRead
+         * @description Ticket note row.
+         */
+        NoteRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Ticket Id
+             * Format: uuid
+             */
+            ticket_id: string;
+            /** Kind */
+            kind: string;
+            /** Body */
+            body: string;
+            /** Author */
+            author: string;
+            /** Mutation Key */
+            mutation_key: string | null;
+        };
+        /**
+         * OracleResult
+         * @description Independent expectation for one scenario (derived, never agent-made).
+         */
+        OracleResult: {
+            /** Scenario Id */
+            scenario_id: string;
+            /** Ticket Code */
+            ticket_code: string;
+            /** Expected Outcome */
+            expected_outcome: string;
+            /** Expected Effects */
+            expected_effects: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Resolved At
+             * Format: date-time
+             */
+            resolved_at: string;
+        };
+        /**
+         * OrderItemRead
+         * @description One order line.
+         */
+        OrderItemRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Sku */
+            sku: string;
+            /** Title */
+            title: string;
+            /** Qty */
+            qty: number;
+            /** Unit Paise */
+            unit_paise: number;
+            /** Category */
+            category: string;
+        };
+        /**
+         * OrderRead
+         * @description Order with its items.
+         */
+        OrderRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /**
+             * Customer Id
+             * Format: uuid
+             */
+            customer_id: string;
+            /** Status */
+            status: string;
+            /** Total Paise */
+            total_paise: number;
+            /** Paid Paise */
+            paid_paise: number;
+            /**
+             * Placed At
+             * Format: date-time
+             */
+            placed_at: string;
+            /** Delivered At */
+            delivered_at: string | null;
+            /**
+             * Items
+             * @default []
+             */
+            items: components["schemas"]["OrderItemRead"][];
+        };
+        /**
+         * ProbeResult
+         * @description Mutation probe: found + identity when present, never an error.
+         */
+        ProbeResult: {
+            /** Found */
+            found: boolean;
+            /** Kind */
+            kind?: string | null;
+            /** Entity Id */
+            entity_id?: string | null;
+        };
+        /**
+         * ProductDetailRead
+         * @description Product plus the policies that apply to it.
+         */
+        ProductDetailRead: {
+            product: components["schemas"]["ProductRead"];
+            /** Policies */
+            policies: components["schemas"]["app__schemas__commerce__catalog__PolicyRead"][];
+        };
+        /**
+         * ProductRead
+         * @description One catalog product (distinct SKU across seeded order items).
+         */
+        ProductRead: {
+            /** Sku */
+            sku: string;
+            /** Title */
+            title: string;
+            /** Category */
+            category: string;
+            /** Unit Paise */
+            unit_paise: number;
+            /** Orders Count */
+            orders_count: number;
+        };
+        /**
+         * RefundCreate
+         * @description Refund request in integer paise.
+         */
+        RefundCreate: {
+            /** Order Code */
+            order_code: string;
+            /** Ticket Code */
+            ticket_code: string;
+            /** Amount Paise */
+            amount_paise: number;
+        };
+        /**
+         * RefundRead
+         * @description Refund row.
+         */
+        RefundRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Order Id
+             * Format: uuid
+             */
+            order_id: string;
+            /**
+             * Customer Id
+             * Format: uuid
+             */
+            customer_id: string;
+            /**
+             * Ticket Id
+             * Format: uuid
+             */
+            ticket_id: string;
+            /** Amount Paise */
+            amount_paise: number;
+            /** Status */
+            status: string;
+            /** Mutation Key */
+            mutation_key: string;
+        };
+        /**
+         * ReplacementCreate
+         * @description Replacement request, addressed by human codes (UI-friendly).
+         */
+        ReplacementCreate: {
+            /** Order Code */
+            order_code: string;
+            /** Item Sku */
+            item_sku: string;
+            /** Ticket Code */
+            ticket_code: string;
+            /** Reason */
+            reason?: string | null;
+        };
+        /**
+         * ReplacementRead
+         * @description Replacement row.
+         */
+        ReplacementRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Order Id
+             * Format: uuid
+             */
+            order_id: string;
+            /**
+             * Order Item Id
+             * Format: uuid
+             */
+            order_item_id: string;
+            /**
+             * Customer Id
+             * Format: uuid
+             */
+            customer_id: string;
+            /**
+             * Ticket Id
+             * Format: uuid
+             */
+            ticket_id: string;
+            /** Status */
+            status: string;
+            /** Mutation Key */
+            mutation_key: string;
+        };
+        /**
+         * ReplyCreate
+         * @description Customer-visible reply (stored as a customer_reply note).
+         */
+        ReplyCreate: {
+            /** Body */
+            body: string;
+        };
+        /**
+         * ResetResult
+         * @description World reset acknowledgement with the (empty) world hash.
+         */
+        ResetResult: {
+            /**
+             * Ok
+             * @default true
+             */
+            ok: boolean;
+            /** World Hash */
+            world_hash: string;
+        };
+        /**
+         * ScreenshotRead
+         * @description One indexed screenshot path for the run's evidence trail.
+         */
+        ScreenshotRead: {
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /** Label */
+            label: string;
+            /** Path */
+            path: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * SeedResult
+         * @description Seed acknowledgement with counts and the world hash.
+         */
+        SeedResult: {
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /** World Hash */
+            world_hash: string;
+        };
+        /**
+         * ShopTicketCreate
+         * @description Raise-ticket form: customer-identified, optionally order-linked.
+         */
+        ShopTicketCreate: {
+            /** Customer Code */
+            customer_code: string;
+            /** Order Code */
+            order_code?: string | null;
+            /** Subject */
+            subject: string;
+            /** Body */
+            body: string;
+            /**
+             * Category
+             * @default general
+             */
+            category: string;
+        };
+        /**
+         * StatusUpdate
+         * @description Ticket status transition.
+         */
+        StatusUpdate: {
+            /** To Status */
+            to_status: string;
+        };
+        /**
+         * TaskCreate
+         * @description Submit one operator task (explicit text or free-form).
+         */
+        TaskCreate: {
+            /** Text */
+            text: string;
+            /**
+             * Mode
+             * @default explicit
+             */
+            mode: string;
+            /** Scenario Ref */
+            scenario_ref?: string | null;
+        };
+        /**
+         * TaskRead
+         * @description One task row (lifecycle owned by the runner).
+         */
+        TaskRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Text */
+            text: string;
+            /** Mode */
+            mode: string;
+            /** Status */
+            status: string;
+            /** Current State */
+            current_state: string;
+            /** Scenario Ref */
+            scenario_ref: string | null;
+            /** Created By */
+            created_by: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * TicketListResponse
+         * @description Paginated ticket queue (the worker must paginate).
+         */
+        TicketListResponse: {
+            /** Items */
+            items: components["schemas"]["TicketRead"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /**
+         * TicketRead
+         * @description Support ticket.
+         */
+        TicketRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /**
+             * Customer Id
+             * Format: uuid
+             */
+            customer_id: string;
+            /** Order Id */
+            order_id: string | null;
+            /** Subject */
+            subject: string;
+            /** Body */
+            body: string;
+            /** Category */
+            category: string;
+            /** Status */
+            status: string;
+            /** Version */
+            version: number;
+        };
+        /**
+         * UiFlags
+         * @description `/ops` behavior switches armed via fault plans (Phase 9 owns faults).
+         */
+        UiFlags: {
+            /**
+             * Removed Search Field
+             * @default false
+             */
+            removed_search_field: boolean;
+            /**
+             * Dom Drift
+             * @default false
+             */
+            dom_drift: boolean;
+            /**
+             * Stale Rerender
+             * @default false
+             */
+            stale_rerender: boolean;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
+        };
+        /**
+         * VerificationRead
+         * @description One persisted verifier verdict for a task run.
+         */
+        VerificationRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /** Verdict */
+            verdict: string;
+            /** Invariants */
+            invariants: {
+                [key: string]: unknown;
+            };
+            /** Diff */
+            diff: {
+                [key: string]: unknown;
+            };
+            /**
+             * Computed At
+             * Format: date-time
+             */
+            computed_at: string;
+        };
+        /**
+         * PolicyRead
+         * @description One policy rule with a human-readable summary for the console.
+         */
+        app__schemas__commerce__catalog__PolicyRead: {
+            /** Rule Key */
+            rule_key: string;
+            /** Summary */
+            summary: string;
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            /** Version */
+            version: number;
+        };
+        /**
+         * PolicyRead
+         * @description Versioned policy rule with its params.
+         */
+        app__schemas__commerce__policy__PolicyRead: {
+            /** Rule Key */
+            rule_key: string;
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            /** Version */
+            version: number;
+        };
     };
-    /** HTTPValidationError */
-    HTTPValidationError: {
-      /** Detail */
-      detail?: components["schemas"]["ValidationError"][];
-    };
-    /** HealthResponse */
-    HealthResponse: {
-      /**
-       * Status
-       * @default ok
-       */
-      status: string;
-      /**
-       * Service
-       * @default northstar-worker-backend
-       */
-      service: string;
-      /**
-       * Version
-       * @default 0.1.0-phase1
-       */
-      version: string;
-    };
-    /**
-     * LoginRequest
-     * @description Sandbox login (dummy credential accepted; real auth out of scope).
-     */
-    LoginRequest: {
-      /** Agent Name */
-      agent_name: string;
-      /**
-       * Password
-       * @default
-       */
-      password: string;
-    };
-    /**
-     * LoginResponse
-     * @description Issued session (token also set as httponly cookie).
-     */
-    LoginResponse: {
-      /** Agent Name */
-      agent_name: string;
-      /**
-       * Expires At
-       * Format: date-time
-       */
-      expires_at: string;
-    };
-    /**
-     * LogoutResponse
-     * @description Logout acknowledgement.
-     */
-    LogoutResponse: {
-      /**
-       * Ok
-       * @default true
-       */
-      ok: boolean;
-    };
-    /**
-     * NoteCreate
-     * @description Internal note (never customer-visible).
-     */
-    NoteCreate: {
-      /**
-       * Kind
-       * @default internal
-       */
-      kind: string;
-      /** Body */
-      body: string;
-      /**
-       * Author
-       * @default ops-agent
-       */
-      author: string;
-    };
-    /**
-     * NoteRead
-     * @description Ticket note row.
-     */
-    NoteRead: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /**
-       * Ticket Id
-       * Format: uuid
-       */
-      ticket_id: string;
-      /** Kind */
-      kind: string;
-      /** Body */
-      body: string;
-      /** Author */
-      author: string;
-      /** Mutation Key */
-      mutation_key: string | null;
-    };
-    /**
-     * OrderItemRead
-     * @description One order line.
-     */
-    OrderItemRead: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /** Sku */
-      sku: string;
-      /** Title */
-      title: string;
-      /** Qty */
-      qty: number;
-      /** Unit Paise */
-      unit_paise: number;
-      /** Category */
-      category: string;
-    };
-    /**
-     * OrderRead
-     * @description Order with its items.
-     */
-    OrderRead: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /** Code */
-      code: string;
-      /**
-       * Customer Id
-       * Format: uuid
-       */
-      customer_id: string;
-      /** Status */
-      status: string;
-      /** Total Paise */
-      total_paise: number;
-      /** Paid Paise */
-      paid_paise: number;
-      /**
-       * Placed At
-       * Format: date-time
-       */
-      placed_at: string;
-      /** Delivered At */
-      delivered_at: string | null;
-      /**
-       * Items
-       * @default []
-       */
-      items: components["schemas"]["OrderItemRead"][];
-    };
-    /**
-     * PolicyRead
-     * @description Versioned policy rule with its params.
-     */
-    PolicyRead: {
-      /** Rule Key */
-      rule_key: string;
-      /** Params */
-      params: {
-        [key: string]: unknown;
-      };
-      /** Version */
-      version: number;
-    };
-    /**
-     * ProbeResult
-     * @description Mutation probe: found + identity when present, never an error.
-     */
-    ProbeResult: {
-      /** Found */
-      found: boolean;
-      /** Kind */
-      kind?: string | null;
-      /** Entity Id */
-      entity_id?: string | null;
-    };
-    /**
-     * RefundCreate
-     * @description Refund request in integer paise.
-     */
-    RefundCreate: {
-      /** Order Code */
-      order_code: string;
-      /** Ticket Code */
-      ticket_code: string;
-      /** Amount Paise */
-      amount_paise: number;
-    };
-    /**
-     * RefundRead
-     * @description Refund row.
-     */
-    RefundRead: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /**
-       * Order Id
-       * Format: uuid
-       */
-      order_id: string;
-      /**
-       * Customer Id
-       * Format: uuid
-       */
-      customer_id: string;
-      /**
-       * Ticket Id
-       * Format: uuid
-       */
-      ticket_id: string;
-      /** Amount Paise */
-      amount_paise: number;
-      /** Status */
-      status: string;
-      /** Mutation Key */
-      mutation_key: string;
-    };
-    /**
-     * ReplacementCreate
-     * @description Replacement request, addressed by human codes (UI-friendly).
-     */
-    ReplacementCreate: {
-      /** Order Code */
-      order_code: string;
-      /** Item Sku */
-      item_sku: string;
-      /** Ticket Code */
-      ticket_code: string;
-      /** Reason */
-      reason?: string | null;
-    };
-    /**
-     * ReplacementRead
-     * @description Replacement row.
-     */
-    ReplacementRead: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /**
-       * Order Id
-       * Format: uuid
-       */
-      order_id: string;
-      /**
-       * Order Item Id
-       * Format: uuid
-       */
-      order_item_id: string;
-      /**
-       * Customer Id
-       * Format: uuid
-       */
-      customer_id: string;
-      /**
-       * Ticket Id
-       * Format: uuid
-       */
-      ticket_id: string;
-      /** Status */
-      status: string;
-      /** Mutation Key */
-      mutation_key: string;
-    };
-    /**
-     * ReplyCreate
-     * @description Customer-visible reply (stored as a customer_reply note).
-     */
-    ReplyCreate: {
-      /** Body */
-      body: string;
-    };
-    /**
-     * ShopTicketCreate
-     * @description Raise-ticket form: customer-identified, optionally order-linked.
-     */
-    ShopTicketCreate: {
-      /** Customer Code */
-      customer_code: string;
-      /** Order Code */
-      order_code?: string | null;
-      /** Subject */
-      subject: string;
-      /** Body */
-      body: string;
-      /**
-       * Category
-       * @default general
-       */
-      category: string;
-    };
-    /**
-     * StatusUpdate
-     * @description Ticket status transition.
-     */
-    StatusUpdate: {
-      /** To Status */
-      to_status: string;
-    };
-    /**
-     * TicketListResponse
-     * @description Paginated ticket queue (the worker must paginate).
-     */
-    TicketListResponse: {
-      /** Items */
-      items: components["schemas"]["TicketRead"][];
-      /** Page */
-      page: number;
-      /** Page Size */
-      page_size: number;
-      /** Total */
-      total: number;
-    };
-    /**
-     * TicketRead
-     * @description Support ticket.
-     */
-    TicketRead: {
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /** Code */
-      code: string;
-      /**
-       * Customer Id
-       * Format: uuid
-       */
-      customer_id: string;
-      /** Order Id */
-      order_id: string | null;
-      /** Subject */
-      subject: string;
-      /** Body */
-      body: string;
-      /** Category */
-      category: string;
-      /** Status */
-      status: string;
-      /** Version */
-      version: number;
-    };
-    /**
-     * UiFlags
-     * @description `/ops` behavior switches armed via fault plans (Phase 9 owns faults).
-     */
-    UiFlags: {
-      /**
-       * Removed Search Field
-       * @default false
-       */
-      removed_search_field: boolean;
-      /**
-       * Dom Drift
-       * @default false
-       */
-      dom_drift: boolean;
-      /**
-       * Stale Rerender
-       * @default false
-       */
-      stale_rerender: boolean;
-    };
-    /** ValidationError */
-    ValidationError: {
-      /** Location */
-      loc: (string | number)[];
-      /** Message */
-      msg: string;
-      /** Error Type */
-      type: string;
-    };
-  };
-  responses: never;
-  parameters: never;
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  get_health_api_health_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    get_health_api_health_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    search_customers_api_read_customers_get: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["HealthResponse"];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
     };
-  };
-  search_customers_api_read_customers_get: {
-    parameters: {
-      query: {
-        q: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
+    get_customer_api_read_customers__customer_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    list_orders_api_read_orders_get: {
+        parameters: {
+            query: {
+                customer_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["CustomerRead"][];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  get_customer_api_read_customers__customer_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        customer_id: string;
-      };
-      cookie?: never;
+    get_order_api_read_orders__order_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    get_ticket_api_read_tickets__ticket_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticket_id: string;
+            };
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["CustomerRead"];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  list_orders_api_read_orders_get: {
-    parameters: {
-      query: {
-        customer_id: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
+    list_replacements_api_read_replacements_get: {
+        parameters: {
+            query: {
+                order_item_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReplacementRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    list_refunds_api_read_refunds_get: {
+        parameters: {
+            query?: {
+                ticket_id?: string | null;
+                customer_id?: string | null;
+                order_id?: string | null;
+                window_days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["OrderRead"][];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefundRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  get_order_api_read_orders__order_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        order_id: string;
-      };
-      cookie?: never;
+    list_policies_api_read_policies_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__schemas__commerce__policy__PolicyRead"][];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    probe_mutation_api_read_probe_mutation__key__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["OrderRead"];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProbeResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  get_ticket_api_read_tickets__ticket_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        ticket_id: string;
-      };
-      cookie?: never;
+    probe_replacement_api_read_probe_replacement_get: {
+        parameters: {
+            query: {
+                order_item_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProbeResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    probe_refund_api_read_probe_refund_get: {
+        parameters: {
+            query: {
+                ticket_id: string;
+                order_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["TicketRead"];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProbeResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  list_replacements_api_read_replacements_get: {
-    parameters: {
-      query: {
-        order_item_id: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
+    list_products_api_catalog_products_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductRead"][];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    get_product_api_catalog_products__sku__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sku: string;
+            };
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["ReplacementRead"][];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductDetailRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  list_refunds_api_read_refunds_get: {
-    parameters: {
-      query: {
-        ticket_id: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
+    list_policies_api_catalog_policies_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__schemas__commerce__catalog__PolicyRead"][];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    list_orders_api_shop_orders_get: {
+        parameters: {
+            query?: {
+                customer_code?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["RefundRead"][];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  list_policies_api_read_policies_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    get_order_api_shop_orders__order_code__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    create_ticket_api_shop_tickets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["PolicyRead"][];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShopTicketCreate"];
+            };
         };
-      };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-  };
-  probe_mutation_api_read_probe_mutation__key__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        key: string;
-      };
-      cookie?: never;
+    get_ticket_api_shop_tickets__ticket_code__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticket_code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    login_api_ops_auth_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["ProbeResult"];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  list_orders_api_shop_orders_get: {
-    parameters: {
-      query?: {
-        customer_code?: string | null;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
+    logout_api_ops_auth_logout_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                ops_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogoutResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    list_tickets_api_ops_tickets_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                ops_session?: string | null;
+            };
         };
-        content: {
-          "application/json": components["schemas"]["OrderRead"][];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  get_order_api_shop_orders__order_code__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        order_code: string;
-      };
-      cookie?: never;
+    get_ticket_api_ops_tickets__ticket_code__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticket_code: string;
+            };
+            cookie?: {
+                ops_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    get_ui_flags_api_ops_ui_flags_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                ops_session?: string | null;
+            };
         };
-        content: {
-          "application/json": components["schemas"]["OrderRead"];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UiFlags"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  create_ticket_api_shop_tickets_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    search_customers_api_ops_customers_get: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                ops_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ShopTicketCreate"];
-      };
+    get_order_api_ops_orders__order_code__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_code: string;
+            };
+            cookie?: {
+                ops_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
+    create_replacement_api_ops_replacements_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: {
+                ops_session?: string | null;
+            };
         };
-        content: {
-          "application/json": components["schemas"]["TicketRead"];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplacementCreate"];
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReplacementRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  get_ticket_api_shop_tickets__ticket_code__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        ticket_code: string;
-      };
-      cookie?: never;
+    create_refund_api_ops_refunds_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: {
+                ops_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefundCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefundRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    create_note_api_ops_tickets__ticket_code__notes_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                ticket_code: string;
+            };
+            cookie?: {
+                ops_session?: string | null;
+            };
         };
-        content: {
-          "application/json": components["schemas"]["TicketRead"];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NoteCreate"];
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NoteRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  login_api_ops_auth_login_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    create_reply_api_ops_tickets__ticket_code__reply_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                ticket_code: string;
+            };
+            cookie?: {
+                ops_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplyCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NoteRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["LoginRequest"];
-      };
+    update_status_api_ops_tickets__ticket_code__status_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                ticket_code: string;
+            };
+            cookie?: {
+                ops_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StatusUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    arm_fault_api_control_chaos_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["LoginResponse"];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ArmFault"];
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FaultPlanRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  logout_api_ops_auth_logout_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: {
-        ops_session?: string | null;
-      };
+    reset_world_api_control_reset_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResetResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    seed_world_api_control_seed_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["LogoutResponse"];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeedResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  list_tickets_api_ops_tickets_get: {
-    parameters: {
-      query?: {
-        page?: number;
-        page_size?: number;
-      };
-      header?: never;
-      path?: never;
-      cookie?: {
-        ops_session?: string | null;
-      };
+    query_oracle_api_control_oracle__entity__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                entity: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OracleResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    list_runs_api_eval_runs_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["TicketListResponse"];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvalRunRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  get_ticket_api_ops_tickets__ticket_code__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        ticket_code: string;
-      };
-      cookie?: {
-        ops_session?: string | null;
-      };
+    record_run_api_eval_runs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvalRunCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvalRunRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    get_run_api_eval_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["TicketRead"];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvalRunDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  get_ui_flags_api_ops_ui_flags_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: {
-        ops_session?: string | null;
-      };
+    list_scenarios_api_eval_scenarios_get: {
+        parameters: {
+            query?: {
+                suite?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvalScenarioRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    list_tasks_api_tasks_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                status?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["UiFlags"];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  search_customers_api_ops_customers_get: {
-    parameters: {
-      query: {
-        q: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: {
-        ops_session?: string | null;
-      };
+    create_task_api_tasks_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    get_task_api_tasks__task_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["CustomerRead"][];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  get_order_api_ops_orders__order_code__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        order_code: string;
-      };
-      cookie?: {
-        ops_session?: string | null;
-      };
+    cancel_task_api_tasks__task_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    post_chat_api_chat_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["OrderRead"];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatRequest"];
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatReply"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  create_replacement_api_ops_replacements_post: {
-    parameters: {
-      query?: never;
-      header: {
-        "Idempotency-Key": string;
-      };
-      path?: never;
-      cookie?: {
-        ops_session?: string | null;
-      };
+    list_approvals_api_approvals_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalRead"][];
+                };
+            };
+        };
     };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ReplacementCreate"];
-      };
+    approve_approval_api_approvals__approval_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                approval_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApprovalDecide"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    reject_approval_api_approvals__approval_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                approval_id: string;
+            };
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["ReplacementRead"];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApprovalDecide"];
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  create_refund_api_ops_refunds_post: {
-    parameters: {
-      query?: never;
-      header: {
-        "Idempotency-Key": string;
-      };
-      path?: never;
-      cookie?: {
-        ops_session?: string | null;
-      };
+    list_clarifications_api_clarifications_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClarificationRead"][];
+                };
+            };
+        };
     };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["RefundCreate"];
-      };
+    answer_clarification_api_clarifications__clarification_id__answer_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                clarification_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClarificationAnswer"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClarificationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    list_task_memory_api_tasks__task_id__memory_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["RefundRead"];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryItemRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  create_note_api_ops_tickets__ticket_code__notes_post: {
-    parameters: {
-      query?: never;
-      header: {
-        "Idempotency-Key": string;
-      };
-      path: {
-        ticket_code: string;
-      };
-      cookie?: {
-        ops_session?: string | null;
-      };
+    environment_status_api_environment_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                ops_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnvironmentStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["NoteCreate"];
-      };
+    arm_environment_fault_api_environment_faults_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                ops_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ArmFault"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FaultPlanRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    reset_environment_api_environment_reset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                ops_session?: string | null;
+            };
         };
-        content: {
-          "application/json": components["schemas"]["NoteRead"];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResetResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  create_reply_api_ops_tickets__ticket_code__reply_post: {
-    parameters: {
-      query?: never;
-      header: {
-        "Idempotency-Key": string;
-      };
-      path: {
-        ticket_code: string;
-      };
-      cookie?: {
-        ops_session?: string | null;
-      };
+    seed_environment_api_environment_seed_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                ops_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeedResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ReplyCreate"];
-      };
+    task_event_history_api_tasks__task_id__events_history_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditEventRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    task_event_stream_endpoint_api_tasks__task_id__events_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["NoteRead"];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
-  update_status_api_ops_tickets__ticket_code__status_post: {
-    parameters: {
-      query?: never;
-      header: {
-        "Idempotency-Key": string;
-      };
-      path: {
-        ticket_code: string;
-      };
-      cookie?: {
-        ops_session?: string | null;
-      };
+    task_evidence_api_tasks__task_id__evidence_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvidencePacketRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["StatusUpdate"];
-      };
+    task_screenshots_api_tasks__task_id__evidence_screenshots_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScreenshotRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
     };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    task_verification_api_tasks__task_id__verification_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["TicketRead"];
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HTTPValidationError"];
-        };
-      };
     };
-  };
 }

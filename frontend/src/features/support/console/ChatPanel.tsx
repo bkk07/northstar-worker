@@ -2,34 +2,48 @@ import { motion, useReducedMotion } from "framer-motion";
 import { Bot, Send, UserRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import type { AssistantMessage } from "@/features/worker/assistant/useAssistant";
+import type { AssistantAction } from "@/features/worker/assistant/assistantApi";
+import type { ChatMessage } from "@/features/worker/chat/components/TaskChat";
 import { Card, CardBody, CardHeader } from "@/shared/ui/card";
-import SupportConsolePage from "@/features/support/console/SupportConsolePage";
-import { type ChatMessage } from "../chat/components/TaskChat";
-import { type AssistantMessage } from "../assistant/useAssistant";
 
-/** The /worker/assistant route is the chatbot-first support console. */
-export default function WorkerAssistantPage() {
-  return <SupportConsolePage />;
-}
-
-/**
- * ChatGPT-style operator bot view (kept for its unit tests): one thread,
- * suggestion chips, a typing indicator, and a live run panel. The route
- * itself renders the full support console (see default export below).
- */
-const SUGGESTIONS = ["Show open tickets", "What can you do?", "Status of my last task"] as const;
+const SUGGESTIONS = [
+  "Show open tickets",
+  "Anything waiting for approval?",
+  "What's the refund policy?",
+  "Status of my last task",
+] as const;
 
 const TERMINAL = new Set(["succeeded", "failed", "cancelled"]);
 
-export function AssistantView({
+/** Group inline approval actions by their approval id. */
+function approvalGroups(actions: AssistantAction[]): AssistantAction[][] {
+  const byId = new Map<string, AssistantAction[]>();
+  for (const action of actions) {
+    if (action.kind !== "approval" || !action.approval_id) continue;
+    const group = byId.get(action.approval_id) ?? [];
+    group.push(action);
+    byId.set(action.approval_id, group);
+  }
+  return [...byId.values()];
+}
+
+/**
+ * Bot thread: user/bot bubbles, inline Approve/Reject buttons bound to
+ * approval ids (explicit POSTs — typed text never decides), link actions,
+ * and the live run narration for the bound task.
+ */
+export function ChatPanel({
   messages,
   narration,
   taskStatus,
   activeTaskId,
   busy,
   error,
+  deciding,
   onRetry,
   onSend,
+  onDecide,
 }: {
   messages: AssistantMessage[];
   narration: ChatMessage[];
@@ -37,10 +51,13 @@ export function AssistantView({
   activeTaskId: string | null;
   busy: boolean;
   error: string | null;
+  deciding: string | null;
   onRetry: () => void;
   onSend: (text: string) => void;
+  onDecide: (approvalId: string, decision: "approve" | "reject") => void;
 }) {
   const [draft, setDraft] = useState("");
+  const [decidedIds, setDecidedIds] = useState<string[]>([]);
   const reduce = useReducedMotion();
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -58,15 +75,20 @@ export function AssistantView({
     setDraft("");
   }
 
+  function decide(approvalId: string, decision: "approve" | "reject") {
+    setDecidedIds((previous) => [...previous, approvalId]);
+    onDecide(approvalId, decision);
+  }
+
   const statusLabel = taskStatus?.split("_").join(" ");
   const needsDecision =
     taskStatus === "waiting_for_approval" || taskStatus === "waiting_for_clarification";
 
   return (
-    <Card lift={false}>
+    <Card lift={false} className="flex min-h-0 flex-1 flex-col">
       <CardHeader
         title="Support bot"
-        desc="You chat — it does the work and reports back."
+        desc="Ask anything — or hand me a ticket and watch it get solved."
         actions={
           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
             <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
@@ -75,8 +97,8 @@ export function AssistantView({
           </span>
         }
       />
-      <CardBody>
-        <div aria-label="Assistant conversation" role="log" className="flex flex-col gap-3">
+      <CardBody className="flex min-h-0 flex-1 flex-col">
+        <div aria-label="Assistant conversation" role="log" className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-0.5">
           {messages.map((message) =>
             message.from === "you" ? (
               <div key={message.id} className="flex items-start justify-end gap-2.5">
@@ -114,25 +136,56 @@ export function AssistantView({
                   <p className="mt-1 text-[11px] text-slate-400">
                     {new Date(message.ts).toLocaleTimeString()}
                   </p>
-                  {(message.actions ?? []).length > 0 && (
+                  {(message.actions ?? []).filter((a) => a.kind !== "approval").length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {message.actions!.map((action) => (
-                        <Link
-                          key={`${action.kind}-${action.label}`}
-                          to={action.href ?? "/worker"}
-                          className="ns-btn ns-btn-secondary ns-btn-sm"
-                        >
-                          {action.label}
-                        </Link>
-                      ))}
+                      {message.actions!
+                        .filter((action) => action.kind !== "approval")
+                        .map((action) => (
+                          <Link
+                            key={`${action.kind}-${action.label}`}
+                            to={action.href ?? "/worker/assistant"}
+                            className="ns-btn ns-btn-secondary ns-btn-sm"
+                          >
+                            {action.label}
+                          </Link>
+                        ))}
                     </div>
+                  )}
+                  {approvalGroups(message.actions ?? []).map(
+                    (group) =>
+                      !decidedIds.includes(group[0].approval_id!) && (
+                        <div
+                          key={group[0].approval_id}
+                          className="mt-2 flex flex-wrap gap-2 rounded-xl bg-amber-50 p-2"
+                        >
+                          {group.map((action) => (
+                            <button
+                              key={`${action.approval_id}-${action.decision}`}
+                              type="button"
+                              disabled={deciding === action.approval_id}
+                              onClick={() =>
+                                decide(
+                                  action.approval_id!,
+                                  action.decision === "reject" ? "reject" : "approve",
+                                )
+                              }
+                              className={
+                                action.decision === "reject"
+                                  ? "ns-btn ns-btn-secondary ns-btn-sm"
+                                  : "ns-btn ns-btn-primary ns-btn-sm"
+                              }
+                            >
+                              {deciding === action.approval_id ? "Working…" : action.label}
+                            </button>
+                          ))}
+                        </div>
+                      ),
                   )}
                 </div>
               </motion.div>
             ),
           )}
 
-          {/* Live run panel: the bound task's journal, narrated as it lands */}
           {activeTaskId && (
             <div
               aria-label="Run narration"
@@ -159,12 +212,13 @@ export function AssistantView({
               </div>
               {needsDecision && (
                 <p className="mt-2 text-[13px] font-medium text-amber-700">
-                  It needs your decision —{" "}
+                  It needs your decision — use the buttons above
+                  {` or `}
                   <Link
                     to={`/worker/tasks/${activeTaskId}`}
                     className="font-semibold underline"
                   >
-                    open the task to decide
+                    open the task
                   </Link>
                   .
                 </p>
@@ -242,7 +296,7 @@ export function AssistantView({
             id="assistant-composer"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder="Say “solve ticket TCK-…”…"
+            placeholder="Ask about a ticket, order, product, or policy…"
             autoComplete="off"
             className="ns-input flex-1"
           />

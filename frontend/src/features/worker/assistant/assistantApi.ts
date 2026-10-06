@@ -5,6 +5,8 @@ export type AssistantAction = {
   label: string;
   task_id?: string | null;
   href?: string | null;
+  approval_id?: string | null;
+  decision?: string | null;
 };
 
 export type ChatReply = {

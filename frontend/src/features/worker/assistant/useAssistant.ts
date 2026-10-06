@@ -15,7 +15,7 @@ export type AssistantMessage = {
 const GREETING: AssistantMessage = {
   id: "greeting",
   from: "bot",
-  text: "Hi — I'm the support bot. Tell me “solve ticket TCK-…” and I'll run it, narrating here. I ask when I need you, and approvals always use the buttons on the task page.",
+  text: "Hi — I'm the support bot. Ask me anything about tickets, orders, products, and policies, or tell me “solve ticket TCK-…” and I'll run it, narrating here. Approvals always use the buttons — typed “yes” never counts.",
   ts: new Date().toISOString(),
 };
 
@@ -66,14 +66,22 @@ export function useAssistant() {
     if (!trimmed || sendState.isPending) return;
     setMessages((previous) => [
       ...previous,
-      { id: "pending-you", from: "you", text: trimmed, ts: new Date().toISOString() },
+      { id: nextId("pending-you"), from: "you", text: trimmed, ts: new Date().toISOString() },
     ]);
     sendState.mutate(trimmed);
+  }
+
+  function appendBot(text: string) {
+    setMessages((previous) => [
+      ...previous,
+      { id: nextId("bot"), from: "bot", text, ts: new Date().toISOString() },
+    ]);
   }
 
   return {
     messages,
     send,
+    appendBot,
     busy: sendState.isPending,
     error: sendState.isError ? getErrorMessage(sendState.error) : null,
     retry: () => sendState.reset(),
