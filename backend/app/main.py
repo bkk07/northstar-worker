@@ -26,6 +26,7 @@ from app.api.ops import (
 )
 from app.api.orders import orders_controller as phase4_orders_controller
 from app.api.products import products_controller as phase3_products_controller
+from app.api.support import support_controller as phase6_support_controller
 from app.api.tickets import tickets_controller as phase5_tickets_controller
 from app.api.worker import (
     approval_controller,
@@ -51,6 +52,7 @@ def create_app() -> FastAPI:
     app.include_router(phase3_products_controller.router)
     app.include_router(phase4_orders_controller.router)
     app.include_router(phase5_tickets_controller.router)
+    app.include_router(phase6_support_controller.router)
     app.include_router(health_controller.router)
     app.include_router(direct_controller.router)
     app.include_router(read_controller.router)

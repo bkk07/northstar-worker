@@ -18,7 +18,12 @@ from app.repositories.products.cart_repository import CartRepository
 from app.repositories.products.product_repository import ProductRepository
 from app.services.products import product_service
 from database.models.biz.product import CART_ORDERED
-from database.models.biz.shop_order import ORDER_DELIVERED, ORDER_PROCESSING, ORDER_SHIPPED
+from database.models.biz.shop_order import (
+    ORDER_DELIVERED,
+    ORDER_PROCESSING,
+    ORDER_SHIPPED,
+    ORDER_TERMINAL,
+)
 
 
 def generate_order_number() -> str:
@@ -72,7 +77,13 @@ def _iso(value: datetime.datetime | None) -> str | None:
 def _serialize_detail(
     order, items: list[dict], payment: dict, *, delay_seconds: int, now: datetime.datetime
 ) -> dict:
-    status = resolve_status(order.ordered_at, now, delay_seconds=delay_seconds)
+    # Terminal action outcomes (CANCELLED / RETURNED) stick; the mock
+    # lifecycle only advances live orders.
+    status = (
+        order.status
+        if order.status in ORDER_TERMINAL
+        else resolve_status(order.ordered_at, now, delay_seconds=delay_seconds)
+    )
     ordered_iso = order.ordered_at.isoformat()
     paid_iso = payment["paid_at"]
     delivered_iso = _iso(order.delivered_at) or (
@@ -101,6 +112,8 @@ def _serialize_detail(
 
 def _advance(session: Session, order, *, delay_seconds: int, now: datetime.datetime) -> str:
     """Persist lifecycle advancement so reads converge on the true stage."""
+    if order.status in ORDER_TERMINAL:
+        return order.status
     status = resolve_status(order.ordered_at, now, delay_seconds=delay_seconds)
     if status != order.status:
         order.status = status

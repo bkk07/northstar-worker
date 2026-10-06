@@ -44,7 +44,7 @@ export type Cart = {
   item_count: number;
 };
 
-export type OrderStatus = "PROCESSING" | "SHIPPED" | "DELIVERED";
+export type OrderStatus = "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "RETURNED";
 
 export type OrderItem = {
   id: string;

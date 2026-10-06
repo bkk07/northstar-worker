@@ -1,0 +1,20 @@
+# Support MCP server image (Phase 7): business capabilities as tools.
+# Unlike the task-plane image, this one imports the backend service layer
+# and opens short-lived `ns_app` DB sessions (no raw SQL in tools).
+FROM python:3.12-slim
+
+WORKDIR /srv
+COPY pyproject.toml ./
+RUN pip install --no-cache-dir "mcp>=1.0" pydantic pydantic-settings \
+    sqlalchemy psycopg
+
+COPY common/ ./common/
+COPY backend/ ./backend/
+COPY database/ ./database/
+COPY mcp_server/ ./mcp_server/
+
+ENV PYTHONPATH="/srv/common:/srv/backend:/srv/database" \
+    SUPPORT_MCP_PORT="8003"
+
+EXPOSE 8003
+CMD ["python", "-m", "mcp_server.support_server"]

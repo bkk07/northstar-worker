@@ -46,12 +46,14 @@ class CustomerTicketRepository:
         sender_type: str,
         sender_id: uuid.UUID | str | None,
         message: str,
+        is_internal: bool = False,
     ) -> CustomerTicketMessage:
         row = CustomerTicketMessage(
             ticket_id=ticket_id,
             sender_type=sender_type,
             sender_id=sender_id,
             message=message,
+            is_internal=is_internal,
         )
         self._s.add(row)
         self._s.flush()
@@ -69,21 +71,54 @@ class CustomerTicketRepository:
             ).all()
         )
 
-    def list_messages(self, ticket_id: uuid.UUID | str) -> list[CustomerTicketMessage]:
+    def list_messages(
+        self, ticket_id: uuid.UUID | str, *, include_internal: bool = False
+    ) -> list[CustomerTicketMessage]:
+        stmt = select(CustomerTicketMessage).where(
+            CustomerTicketMessage.ticket_id == ticket_id
+        )
+        if not include_internal:
+            stmt = stmt.where(CustomerTicketMessage.is_internal.is_(False))
         return list(
-            self._s.scalars(
-                select(CustomerTicketMessage)
-                .where(CustomerTicketMessage.ticket_id == ticket_id)
-                .order_by(CustomerTicketMessage.created_at.asc())
-            ).all()
+            self._s.scalars(stmt.order_by(CustomerTicketMessage.created_at.asc())).all()
         )
 
-    def count_messages(self, ticket_id: uuid.UUID | str) -> int:
-        return (
-            self._s.scalar(
-                select(func.count())
-                .select_from(CustomerTicketMessage)
-                .where(CustomerTicketMessage.ticket_id == ticket_id)
-            )
-            or 0
+    def count_messages(
+        self, ticket_id: uuid.UUID | str, *, include_internal: bool = False
+    ) -> int:
+        stmt = (
+            select(func.count())
+            .select_from(CustomerTicketMessage)
+            .where(CustomerTicketMessage.ticket_id == ticket_id)
         )
+        if not include_internal:
+            stmt = stmt.where(CustomerTicketMessage.is_internal.is_(False))
+        return self._s.scalar(stmt) or 0
+
+    def count_by_status(self) -> dict[str, int]:
+        """Tickets per status for the support dashboard (Phase 6)."""
+        rows = self._s.execute(
+            select(CustomerTicket.status, func.count()).group_by(CustomerTicket.status)
+        ).all()
+        return {status: count for status, count in rows}
+
+    def list_all(
+        self,
+        *,
+        status: str | None = None,
+        priority: str | None = None,
+        search: str | None = None,
+    ) -> list[CustomerTicket]:
+        """Every ticket, newest first, with queue filters (Phase 6)."""
+        stmt = select(CustomerTicket)
+        if status:
+            stmt = stmt.where(CustomerTicket.status == status)
+        if priority:
+            stmt = stmt.where(CustomerTicket.priority == priority)
+        if search:
+            like = f"%{search.strip()}%"
+            stmt = stmt.where(
+                CustomerTicket.ticket_number.ilike(like)
+                | CustomerTicket.subject.ilike(like)
+            )
+        return list(self._s.scalars(stmt.order_by(CustomerTicket.created_at.desc())).all())

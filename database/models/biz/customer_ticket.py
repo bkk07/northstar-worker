@@ -18,6 +18,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from database.models.base import Base, CreatedAt, UUIDPk
 
 TICKET_OPEN = "OPEN"
+TICKET_ESCALATED = "ESCALATED"
 TICKET_RESOLVED = "RESOLVED"
 TICKET_CLOSED = "CLOSED"
 
@@ -87,3 +88,4 @@ class CustomerTicketMessage(UUIDPk, CreatedAt, Base):
         PG_UUID(as_uuid=True), nullable=True
     )
     message: Mapped[str] = mapped_column(Text, nullable=False)
+    is_internal: Mapped[bool] = mapped_column(nullable=False, default=False)

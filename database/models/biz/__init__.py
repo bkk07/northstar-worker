@@ -11,6 +11,7 @@ from database.models.biz.ops import FaultPlan, MutationLog, OpsSession  # noqa: 
 from database.models.biz.order import Order, OrderItem  # noqa: F401
 from database.models.biz.policy import Policy  # noqa: F401
 from database.models.biz.product import Cart, CartItem, Product, ProductPolicy  # noqa: F401
+from database.models.biz.shop_action import ShopAction  # noqa: F401
 from database.models.biz.shop_order import ShopOrder, ShopOrderItem, ShopPayment  # noqa: F401
 from database.models.biz.ticket import Ticket, TicketNote  # noqa: F401
 
@@ -31,6 +32,7 @@ __all__ = [
     "ProductPolicy",
     "Refund",
     "Replacement",
+    "ShopAction",
     "ShopOrder",
     "ShopOrderItem",
     "ShopPayment",

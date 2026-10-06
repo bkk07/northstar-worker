@@ -1,6 +1,6 @@
 # Phase 1 (10-phase prototype spec §6, §17): Dockerized PostgreSQL 16 +
 # pgvector is the source of truth. No Kafka/Redis/Celery per non-goals.
-# Customer UI :5174, Support UI :5175, API :8000, MCP :8002.
+# Customer UI :5174, Support UI :5175, API :8000, MCP :8002, support MCP :8003.
 services:
   postgres:
     image: pgvector/pgvector:pg16
@@ -54,6 +54,22 @@ services:
       POLICY_TOKEN_SECRET: ${POLICY_TOKEN_SECRET:-local-policy-secret}
     ports:
       - "8002:8002"
+
+  mcp-support:
+    build:
+      context: .
+      dockerfile: mcp_server/Dockerfile.support
+    container_name: northstar-mcp-support
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NS_APP_DATABASE_URL: postgresql+psycopg://ns_app:northstar@postgres:5432/northstar
+      DELIVERY_DELAY_SECONDS: ${DELIVERY_DELAY_SECONDS:-60}
+      SUPPORT_MCP_PORT: 8003
+    ports:
+      - "8003:8003"
 
 volumes:
   pgdata:

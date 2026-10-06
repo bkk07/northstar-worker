@@ -19,8 +19,11 @@ import { checkout, getOrder, listOrders } from "@/services/shop-api";
 import { useCart } from "@/stores/cart-store";
 import type { Order, OrderDetail, OrderStatus } from "@/types";
 
-function statusTone(status: OrderStatus): "info" | "ok" | "warn" {
-  return status === "DELIVERED" ? "ok" : status === "SHIPPED" ? "info" : "warn";
+function statusTone(status: OrderStatus): "info" | "ok" | "warn" | "bad" {
+  if (status === "DELIVERED") return "ok";
+  if (status === "SHIPPED") return "info";
+  if (status === "CANCELLED" || status === "RETURNED") return "bad";
+  return "warn";
 }
 
 function formatDate(iso: string): string {
@@ -33,7 +36,7 @@ function formatDate(iso: string): string {
 }
 
 function needsPoll(orders: Order[] | undefined): number | false {
-  return orders?.some((o) => o.status !== "DELIVERED") ? 5000 : false;
+  return orders?.some((o) => o.status === "PROCESSING" || o.status === "SHIPPED") ? 5000 : false;
 }
 
 export function OrdersPage() {
@@ -124,7 +127,8 @@ export function OrderDetailPage() {
   const detail = useQuery({
     queryKey: ["order", id],
     queryFn: () => getOrder(id),
-    refetchInterval: (data) => (data && data.status !== "DELIVERED" ? 5000 : false),
+    refetchInterval: (data) =>
+      data && (data.status === "PROCESSING" || data.status === "SHIPPED") ? 5000 : false,
   });
 
   if (detail.isPending) {
@@ -188,14 +192,18 @@ export function OrderDetailPage() {
             </motion.li>
           ))}
         </ol>
-        {o.status !== "DELIVERED" ? (
+        {o.status === "PROCESSING" || o.status === "SHIPPED" ? (
           <p className="ns-muted flex items-center gap-1.5">
             <Loader2 size={13} aria-hidden className="animate-spin" />
             Live update — estimated delivery {formatDate(o.estimated_delivery)}.
           </p>
-        ) : (
+        ) : o.status === "DELIVERED" ? (
           <p className="text-sm text-emerald-700">
             Delivered{o.delivered_at ? ` ${formatDate(o.delivered_at)}` : ""}. Enjoy!
+          </p>
+        ) : (
+          <p className="ns-muted text-sm">
+            This order was {o.status.toLowerCase()} via customer support.
           </p>
         )}
       </Card>
