@@ -177,7 +177,14 @@ def _signal_bundle(action: dict, result: Mapping, observation: dict) -> dict:
 
 
 def _memory_value(tool: str, observation: dict) -> dict:
-    """Memory-sized value: commit facts whole, page dumps never."""
+    """Memory-sized value: commit facts whole, read facts compact, page dumps never.
+
+    Read payloads used to collapse to a {url, title, ref_count} shell, so a
+    run that fetched an order could not recall its item SKUs two steps later
+    and re-read forever. Database reads now persist their entity facts in
+    compact form (small enough for the prompt block); page dumps still never
+    persist whole.
+    """
     if tool == "browser_submit":
         return {
             "effect": observation.get("effect", ""),
@@ -185,11 +192,83 @@ def _memory_value(tool: str, observation: dict) -> dict:
             "mutation_key": observation.get("mutation_key", ""),
         }
     payload = observation.get("payload")
-    if isinstance(payload, dict):
-        refs = payload.get("refs", {})
+    if not isinstance(payload, dict):
+        return {"ok": observation.get("ok", False)}
+    if tool in READ_TOOLS:
+        compacted = _compact_read(tool, payload)
+        if compacted is not None:
+            return compacted
+    refs = payload.get("refs", {})
+    return {
+        "url": payload.get("url", ""),
+        "title": payload.get("title", ""),
+        "ref_count": len(refs) if isinstance(refs, dict) else 0,
+    }
+
+
+def _compact_read(tool: str, payload: dict) -> dict | None:
+    """Entity facts from one read payload (None when the shape is unknown)."""
+    if tool == "get_order":
+        order = payload.get("order")
+        if not isinstance(order, dict) or not order.get("code"):
+            return None
+        items = order.get("items")
+        compact_items = []
+        if isinstance(items, list):
+            for item in items[:10]:
+                if isinstance(item, dict):
+                    compact_items.append(
+                        {
+                            key: item[key]
+                            for key in ("sku", "title", "qty", "unit_paise", "category")
+                            if key in item
+                        }
+                    )
         return {
-            "url": payload.get("url", ""),
-            "title": payload.get("title", ""),
-            "ref_count": len(refs) if isinstance(refs, dict) else 0,
+            "order": order.get("code"),
+            "status": order.get("status"),
+            "items": compact_items,
         }
-    return {"ok": observation.get("ok", False)}
+    if tool == "get_ticket":
+        ticket = payload.get("ticket")
+        if not isinstance(ticket, dict) or not ticket.get("code"):
+            return None
+        return {
+            key: ticket[key]
+            for key in ("code", "status", "category", "subject")
+            if key in ticket
+        }
+    if tool in ("get_customer", "search_customer"):
+        found = payload.get("customer")
+        customers = [found] if isinstance(found, dict) else payload.get("customers")
+        if not isinstance(customers, list):
+            return None
+        compacted = [
+            {key: customer[key] for key in ("code", "name", "email") if key in customer}
+            for customer in customers[:10]
+            if isinstance(customer, dict)
+        ]
+        return {"customers": compacted} if tool == "search_customer" else (
+            compacted[0] if compacted else None
+        )
+    if tool == "search_order":
+        orders = payload.get("orders")
+        if not isinstance(orders, list):
+            return None
+        return {
+            "orders": [
+                {key: order[key] for key in ("code", "status") if key in order}
+                for order in orders[:10]
+                if isinstance(order, dict)
+            ]
+        }
+    if tool == "get_policy":
+        policy = payload.get("policy")
+        if not isinstance(policy, dict):
+            return None
+        summary = {key: policy[key] for key in ("key", "rule_key", "rule", "outcome") if key in policy}
+        params = policy.get("params")
+        if isinstance(params, dict):
+            summary["params"] = str(params)[:200]
+        return summary or None
+    return None

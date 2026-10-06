@@ -124,7 +124,96 @@ def test_screenshot_paths_indexed_as_evidence():
     assert str(shots[0].task_id) == task
 
 
+def test_read_facts_persist_order_skus():
+    """get_order memory keeps codes and SKUs (the re-read loop regression)."""
+    service, sessions = _service()
+    run = "00000000-0000-0000-0000-000000000000"
+    service.observe(
+        "t",
+        run,
+        _action("get_order"),
+        {
+            "ok": True,
+            "payload": {
+                "order": {
+                    "code": "ORD-1942",
+                    "status": "delivered",
+                    "items": [
+                        {
+                            "sku": "LAP-X1",
+                            "title": "ProBook Laptop 14",
+                            "qty": 1,
+                            "unit_paise": 8500000,
+                            "category": "electronics",
+                        }
+                    ],
+                }
+            },
+            "mutation_key": "k",
+        },
+    )
+    values = [
+        row.value for row in sessions[0].rows if row.key.startswith("get_order")
+    ]
+    assert len(values) == 1
+    assert values[0]["order"] == "ORD-1942"
+    assert values[0]["items"][0]["sku"] == "LAP-X1"
+
+
+def test_read_facts_persist_ticket_identity():
+    """get_ticket memory keeps code, status and category."""
+    service, sessions = _service()
+    run = "00000000-0000-0000-0000-000000000000"
+    service.observe(
+        "t",
+        run,
+        _action("get_ticket"),
+        {
+            "ok": True,
+            "payload": {
+                "ticket": {
+                    "code": "TCK-101",
+                    "status": "open",
+                    "category": "damage",
+                    "subject": "Cracked screen",
+                }
+            },
+            "mutation_key": "k",
+        },
+    )
+    values = [
+        row.value for row in sessions[0].rows if row.key.startswith("get_ticket")
+    ]
+    assert values[0] == {
+        "code": "TCK-101",
+        "status": "open",
+        "category": "damage",
+        "subject": "Cracked screen",
+    }
+
+
+def test_page_dumps_still_never_persist():
+    """Browser observations keep only the shell (no page dumps in memory)."""
+    service, sessions = _service()
+    run = "00000000-0000-0000-0000-000000000000"
+    service.observe(
+        "t",
+        run,
+        _action("browser_observe"),
+        {
+            "ok": True,
+            "payload": {"url": "http://x/", "title": "t", "refs": {"e1": {}}, "text": "x" * 5000},
+            "mutation_key": "k",
+        },
+    )
+    values = [
+        row.value for row in sessions[0].rows if row.key.startswith("browser_observe")
+    ]
+    assert values[0] == {"url": "http://x/", "title": "t", "ref_count": 1}
+
+
 def test_submit_screenshots_indexed_before_and_after():
+    """Submits index their before/after screenshots for the packet."""
     """Submits index their before/after screenshots for the packet."""
     from database.models.worker.evidence import Evidence
 

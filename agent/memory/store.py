@@ -95,4 +95,4 @@ class MemoryStore:
 
     def recent(self, run_id: str, limit: int = 10) -> list[dict]:
         """Newest items first, capped (checkpoint-safe prompt source)."""
-        return list(reversed(self.items(run_id)))[-limit:]
+        return list(reversed(self.items(run_id)))[:limit]

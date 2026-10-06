@@ -77,9 +77,9 @@ def _decision_brief(
         **{k: v for e in contract.effects for k, v in e.params.items()},
     }
     pending = [e.effect for e in contract.effects]
+    guides = " ".join(EFFECT_GUIDES.get(name, "") for name in pending)
     if cursor >= len(plan) and pending:
         commits = " ".join(_commit_hint(e) for e in contract.effects)
-        guides = " ".join(EFFECT_GUIDES.get(name, "") for name in pending)
         plan_line = (
             f"Plan covered. Uncommitted effects remain: {pending}. "
             "Drive them through the browser now (open/navigate the ticket, "
@@ -92,6 +92,14 @@ def _decision_brief(
         plan_line,
         *(f"- {step.get('step', '')} [{step.get('tool', '')}]" for step in upcoming),
     ]
+    # Commit recipes ride every decision, not just past plan end: the loop
+    # that re-reads instead of finishing a half-filled form never reaches
+    # plan end, which is exactly when it needs the recipe most.
+    if guides:
+        lines.append(
+            "Commit recipe (follow it when acting on the form; finish a "
+            f"half-filled form before any new reads): {guides}"
+        )
     if task_text:
         lines.append(f"Operator task (codes like order/ticket codes come from here): {task_text}")
     lines.extend(

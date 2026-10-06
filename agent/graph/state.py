@@ -61,6 +61,7 @@ class WorkerState(TypedDict, total=False):
     plan: list
     cursor: int
     memory_refs: list[str]
+    memory: list
     last_action: dict
     last_observation: dict
     observation_status: str
