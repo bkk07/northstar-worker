@@ -1,17 +1,33 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, LifeBuoy, Search, Send, StickyNote } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  Circle,
+  LifeBuoy,
+  Loader2,
+  Search,
+  Send,
+  Sparkles,
+  StickyNote,
+} from "lucide-react";
 import { Badge, Button, Card, EmptyState, ErrorState, Input } from "@/components/ui";
 import { staffApiErrorMessage } from "@/lib/api-client";
 import {
   addInternalNote,
+  decideApproval,
   escalateTicket,
   fetchQueue,
   fetchTicketDetail,
+  fetchTrace,
   replyToTicket,
   resolveTicket,
+  solveTicket,
+  subscribeActivity,
+  takeOverTicket,
   type ConsoleMessage,
+  type TraceApproval,
 } from "@/services/support-api";
 
 const STATUS_TABS = ["ALL", "OPEN", "ESCALATED", "RESOLVED", "CLOSED"] as const;
@@ -37,6 +53,204 @@ function priorityTone(priority: string): "info" | "warn" | "bad" {
   if (priority === "URGENT" || priority === "HIGH") return "bad";
   if (priority === "NORMAL") return "info";
   return "warn";
+}
+
+function formatPaise(paise: number | null | undefined): string {
+  if (paise == null) return "—";
+  return `₹${Math.floor(paise / 100).toLocaleString("en-IN")}`;
+}
+
+const TERMINAL_RUNS = ["COMPLETED", "CANCELLED", "FAILED"];
+
+function ApprovalCard({ approval, onDecided }: { approval: TraceApproval; onDecided: () => void }) {
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState<"approve" | "reject" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const payload = approval.action_payload as {
+    order_id?: string;
+    amount_paise?: number | null;
+    reason?: string;
+  };
+
+  async function decide(approved: boolean) {
+    setBusy(approved ? "approve" : "reject");
+    setError(null);
+    try {
+      await decideApproval(approval.id, approved, note.trim() || undefined);
+      onDecided();
+    } catch (err) {
+      setError(staffApiErrorMessage(err, "Decision failed. Please try again."));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-amber-300 bg-amber-50 p-3">
+      <p className="text-sm font-semibold text-amber-900">Approval required</p>
+      <dl className="mt-1.5 flex flex-col gap-0.5 text-[13px] text-slate-700">
+        <div className="flex gap-1.5"><dt className="sp-muted">Action</dt><dd className="font-semibold">{approval.action_type}</dd></div>
+        <div className="flex gap-1.5"><dt className="sp-muted">Amount</dt><dd className="font-semibold">{formatPaise(payload.amount_paise)}</dd></div>
+        {payload.reason ? (
+          <div className="flex gap-1.5"><dt className="sp-muted">AI note</dt><dd>{payload.reason}</dd></div>
+        ) : null}
+      </dl>
+      <Input
+        className="mt-2"
+        placeholder="Human note (optional)…"
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        aria-label="Human note for approval decision"
+      />
+      {error ? <p className="mt-1.5 text-[13px] text-red-600" role="alert">{error}</p> : null}
+      <div className="mt-2 flex gap-2">
+        <Button
+          variant="secondary"
+          disabled={busy !== null}
+          onClick={() => void decide(false)}
+        >
+          {busy === "reject" ? "Rejecting…" : "Reject"}
+        </Button>
+        <Button disabled={busy !== null} onClick={() => void decide(true)}>
+          {busy === "approve" ? "Approving…" : "Approve"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function AICopilot({
+  ticketId,
+  ticketStatus,
+  onChanged,
+}: {
+  ticketId: string;
+  ticketStatus: string;
+  onChanged: () => void;
+}) {
+  const qc = useQueryClient();
+  const [solving, setSolving] = useState(false);
+  const [takingOver, setTakingOver] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const trace = useQuery({
+    queryKey: ["support-trace", ticketId],
+    queryFn: () => fetchTrace(ticketId),
+    refetchInterval: (data) =>
+      data?.run && !TERMINAL_RUNS.includes(data.run.status) ? 4000 : false,
+  });
+
+  const runActive = !!trace.data?.run && !TERMINAL_RUNS.includes(trace.data.run.status);
+
+  useEffect(() => {
+    if (!runActive) return;
+    const close = subscribeActivity(
+      ticketId,
+      () => {
+        void qc.invalidateQueries({ queryKey: ["support-trace", ticketId] });
+        onChanged();
+      },
+      () => {
+        /* SSE unavailable — polling covers it */
+      },
+    );
+    return close;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ticketId, runActive]);
+
+  async function onSolve() {
+    setSolving(true);
+    setError(null);
+    try {
+      await solveTicket(ticketId);
+      onChanged();
+      await qc.invalidateQueries({ queryKey: ["support-trace", ticketId] });
+    } catch (err) {
+      setError(staffApiErrorMessage(err, "AI run failed to start."));
+    } finally {
+      setSolving(false);
+    }
+  }
+
+  async function onTakeOver() {
+    setTakingOver(true);
+    setError(null);
+    try {
+      await takeOverTicket(ticketId);
+      onChanged();
+      await qc.invalidateQueries({ queryKey: ["support-trace", ticketId] });
+    } catch (err) {
+      setError(staffApiErrorMessage(err, "Takeover failed."));
+    } finally {
+      setTakingOver(false);
+    }
+  }
+
+  const refreshAll = () => {
+    onChanged();
+    void qc.invalidateQueries({ queryKey: ["support-trace", ticketId] });
+  };
+
+  const pending = (trace.data?.approvals ?? []).filter((a) => a.status === "PENDING");
+  const solvable = !["RESOLVED", "CLOSED"].includes(ticketStatus) && !runActive;
+
+  return (
+    <Card>
+      <div className="ns-row-between">
+        <h2 className="flex items-center gap-1.5 text-sm font-semibold">
+          <Sparkles size={15} aria-hidden className="text-indigo-600" /> AI Support Copilot
+        </h2>
+        {runActive ? (
+          <Button variant="secondary" disabled={takingOver} onClick={() => void onTakeOver()}>
+            {takingOver ? "Taking over…" : "Take over"}
+          </Button>
+        ) : solvable ? (
+          <Button disabled={solving} onClick={() => void onSolve()}>
+            {solving ? "Starting…" : "Solve this ticket"}
+          </Button>
+        ) : null}
+      </div>
+
+      {error ? <p className="mt-2 text-[13px] text-red-600" role="alert">{error}</p> : null}
+
+      {!trace.data?.run ? (
+        <p className="sp-muted mt-2 text-[13px]">
+          The AI reads the ticket, order, and policy, then proposes or executes a
+          solution — pausing for your approval on risky actions.
+        </p>
+      ) : (
+        <ol className="mt-3 flex flex-col gap-0">
+          {(trace.data?.steps ?? []).map((step, i, arr) => (
+            <li key={step.key} className="flex gap-2.5">
+              <div className="flex flex-col items-center">
+                <span className={step.state === "done" ? "text-emerald-600" : step.state === "active" ? "text-indigo-600" : "text-slate-300"}>
+                  {step.state === "done" ? (
+                    <Check size={16} aria-hidden />
+                  ) : step.state === "active" ? (
+                    <Loader2 size={16} aria-hidden className="animate-spin" />
+                  ) : (
+                    <Circle size={16} aria-hidden />
+                  )}
+                </span>
+                {i < arr.length - 1 ? (
+                  <span className={`h-4 w-px ${step.state === "done" ? "bg-emerald-200" : "bg-slate-200"}`} aria-hidden />
+                ) : null}
+              </div>
+              <p className={`pb-2.5 text-[13px] ${step.state === "todo" ? "text-slate-400" : "font-medium"}`}>
+                {step.label}
+              </p>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      {pending.map((a) => (
+        <div key={a.id} className="mt-2">
+          <ApprovalCard approval={a} onDecided={refreshAll} />
+        </div>
+      ))}
+    </Card>
+  );
 }
 
 export function TicketsPage() {
@@ -224,6 +438,7 @@ export function TicketDetailPage() {
       setReply("");
       setNote("");
       await qc.invalidateQueries({ queryKey: ["support-ticket", id] });
+      await qc.invalidateQueries({ queryKey: ["support-trace", id] });
       await qc.invalidateQueries({ queryKey: ["support-queue"] });
       await qc.invalidateQueries({ queryKey: ["support-stats"] });
     } catch (err) {
@@ -245,7 +460,13 @@ export function TicketDetailPage() {
   }
 
   const t = detail.data;
-  const actionable = t.status === "OPEN" || t.status === "ESCALATED";
+  const actionable = ["OPEN", "ESCALATED", "AI_PROCESSING", "WAITING_FOR_HUMAN", "WAITING_FOR_CUSTOMER"].includes(t.status);
+  const refreshDetail = () => {
+    void qc.invalidateQueries({ queryKey: ["support-ticket", id] });
+    void qc.invalidateQueries({ queryKey: ["support-queue"] });
+    void qc.invalidateQueries({ queryKey: ["support-stats"] });
+    void detail.refetch();
+  };
 
   return (
     <div className="flex flex-col gap-3">
@@ -283,6 +504,8 @@ export function TicketDetailPage() {
             </div>
             <p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">{t.description}</p>
           </Card>
+
+          <AICopilot ticketId={id} ticketStatus={t.status} onChanged={refreshDetail} />
 
           <Card>
             <div className="flex flex-col gap-2.5">
@@ -350,9 +573,6 @@ export function TicketDetailPage() {
                     </Button>
                   </div>
                 </div>
-                <Button variant="ghost" disabled title="AI solve arrives in Phase 8">
-                  Solve with AI · Phase 8
-                </Button>
               </div>
             ) : (
               <p className="sp-muted mt-4 border-t border-slate-100 pt-3 text-center">

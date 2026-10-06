@@ -21,6 +21,8 @@ from northstar_common.errors import NorthstarError
 
 DEFAULT_BASE_URL = "https://api.inceptionlabs.ai/v1"
 DEFAULT_MODEL = "mercury-2.5"
+GROQ_BASE_URL = "https://api.groq.com/openai/v1"
+GROQ_DEFAULT_MODEL = "llama-3.3-70b-versatile"
 SCHEMA_NAME_LIMIT = 64
 
 T = TypeVar("T", bound=BaseModel)
@@ -51,25 +53,47 @@ class MercuryConfig:
     reasoning_effort: str = ""
 
 
-def config_from_env(env: dict[str, str] | None = None) -> MercuryConfig:
-    """Build config from the documented `INCEPTION_*` variables."""
-    source = env if env is not None else os.environ
-    api_key = source.get("INCEPTION_API_KEY", "")
-    if not api_key:
-        raise LLMError("INCEPTION_API_KEY is not set")
-    model = source.get("INCEPTION_MODEL", "") or DEFAULT_MODEL
-    base_url = source.get("INCEPTION_BASE_URL", "") or DEFAULT_BASE_URL
-    timeout = float(source.get("LLM_TIMEOUT_S", "30"))
-    retries = int(source.get("LLM_MAX_RETRIES", "2"))
-    # Strict json_schema mode needs `additionalProperties: false` on every
-    # object; free-form maps (e.g. action params) cannot satisfy that on
-    # some providers (Groq rejects them). JSON mode + pydantic validation
-    # below enforces the shape instead (`INCEPTION_STRICT_SCHEMA=0`).
-    strict = source.get("INCEPTION_STRICT_SCHEMA", "1").strip().lower() not in (
+def _flag(source, name: str, default: bool) -> bool:
+    """Parse a `1/0` style env toggle."""
+    return source.get(name, "1" if default else "0").strip().lower() not in (
         "0",
         "false",
         "no",
     )
+
+
+def config_from_env(env: dict[str, str] | None = None) -> MercuryConfig:
+    """Build config from env; `GROQ_API_KEY` wins when set (Phase 8).
+
+    Groq path uses its OpenAI-compatible endpoint with plain JSON mode
+    (strict schemas are opt-in via `GROQ_STRICT_SCHEMA=1`) and never sends
+    `reasoning_effort` (unknown field on Groq). Otherwise the legacy
+    `INCEPTION_*` variables apply unchanged.
+    """
+    source = env if env is not None else os.environ
+    timeout = float(source.get("LLM_TIMEOUT_S", "30"))
+    retries = int(source.get("LLM_MAX_RETRIES", "2"))
+    groq_key = source.get("GROQ_API_KEY", "")
+    if groq_key:
+        return MercuryConfig(
+            api_key=groq_key,
+            model=source.get("GROQ_MODEL", "") or GROQ_DEFAULT_MODEL,
+            base_url=source.get("GROQ_BASE_URL", "") or GROQ_BASE_URL,
+            timeout_s=timeout,
+            max_retries=retries,
+            strict_schema=_flag(source, "GROQ_STRICT_SCHEMA", False),
+            reasoning_effort="",
+        )
+    api_key = source.get("INCEPTION_API_KEY", "")
+    if not api_key:
+        raise LLMError("GROQ_API_KEY (or INCEPTION_API_KEY) is not set")
+    model = source.get("INCEPTION_MODEL", "") or DEFAULT_MODEL
+    base_url = source.get("INCEPTION_BASE_URL", "") or DEFAULT_BASE_URL
+    # Strict json_schema mode needs `additionalProperties: false` on every
+    # object; free-form maps (e.g. action params) cannot satisfy that on
+    # some providers (Groq rejects them). JSON mode + pydantic validation
+    # below enforces the shape instead (`INCEPTION_STRICT_SCHEMA=0`).
+    strict = _flag(source, "INCEPTION_STRICT_SCHEMA", True)
     # Reasoning models (Muse Spark) think before answering; "minimal"/"low"
     # keeps direct-answer proposals fast. Empty omits the parameter so
     # non-reasoning providers never see an unknown field.

@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     inception_api_key: str = ""
     inception_model: str = ""
     inception_base_url: str = "https://api.inceptionlabs.ai/v1"
+    # Phase 8 support agent provider (Groq wins over Inception when set).
+    groq_api_key: str = ""
+    groq_model: str = "llama-3.3-70b-versatile"
+    groq_base_url: str = "https://api.groq.com/openai/v1"
     llm_timeout_s: float = 30.0
     llm_max_retries: int = 2
 

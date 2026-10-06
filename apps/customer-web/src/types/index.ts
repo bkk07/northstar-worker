@@ -92,7 +92,14 @@ export type OrderDetail = Order & {
   timeline: TimelineStep[];
 };
 
-export type TicketStatus = "OPEN" | "RESOLVED" | "CLOSED";
+export type TicketStatus =
+  | "OPEN"
+  | "AI_PROCESSING"
+  | "WAITING_FOR_CUSTOMER"
+  | "WAITING_FOR_HUMAN"
+  | "ESCALATED"
+  | "RESOLVED"
+  | "CLOSED";
 
 export type TicketCategory =
   | "REFUND"

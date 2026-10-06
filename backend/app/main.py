@@ -9,6 +9,7 @@ from fastapi import FastAPI
 
 from app.api import health_controller
 from app.api.agent import direct_controller
+from app.api.agentrun import agent_controller as phase9_agent_controller
 from app.api.auth import auth_controller as phase2_auth_controller
 from app.api.commerce import catalog_controller, read_controller, shop_controller
 from app.api.control import chaos_controller, oracle_controller, reset_controller
@@ -53,6 +54,7 @@ def create_app() -> FastAPI:
     app.include_router(phase4_orders_controller.router)
     app.include_router(phase5_tickets_controller.router)
     app.include_router(phase6_support_controller.router)
+    app.include_router(phase9_agent_controller.router)
     app.include_router(health_controller.router)
     app.include_router(direct_controller.router)
     app.include_router(read_controller.router)

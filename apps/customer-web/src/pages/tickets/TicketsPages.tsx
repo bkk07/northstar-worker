@@ -85,7 +85,7 @@ export function SupportPage() {
                     <span className="font-semibold">{t.ticket_number}</span>
                     <Badge>{categoryLabel(t.category)}</Badge>
                   </div>
-                  <Badge tone={t.status === "OPEN" ? "warn" : "ok"}>{t.status}</Badge>
+                  <Badge tone={t.status === "RESOLVED" || t.status === "CLOSED" ? "ok" : "warn"}>{t.status.replace(/_/g, " ")}</Badge>
                 </div>
                 <p className="mt-1.5 truncate text-sm">{t.subject}</p>
                 <div className="ns-muted mt-1 flex flex-wrap gap-x-4 text-sm">
@@ -236,7 +236,12 @@ export function TicketDetailPage() {
   const { id = "" } = useParams();
   const nav = useNavigate();
   const qc = useQueryClient();
-  const detail = useQuery({ queryKey: ["ticket", id], queryFn: () => getTicket(id) });
+  const detail = useQuery({
+    queryKey: ["ticket", id],
+    queryFn: () => getTicket(id),
+    refetchInterval: (data) =>
+      data && !["RESOLVED", "CLOSED"].includes(data.status) ? 5000 : false,
+  });
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
@@ -279,7 +284,7 @@ export function TicketDetailPage() {
   }
 
   const t = detail.data;
-  const open = t.status === "OPEN";
+  const open = !["RESOLVED", "CLOSED"].includes(t.status);
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
       <button className="ns-btn ns-btn-ghost self-start" onClick={() => nav("/support")}>

@@ -147,3 +147,79 @@ class StatusUpdate(BaseModel):
     id: str
     status: str
     resolution: str | None = None
+
+
+class SolveResponse(BaseModel):
+    """Result of asking the AI to solve a ticket."""
+
+    run_id: str
+    status: str
+    intent: str | None = None
+    decision: str | None = None
+    approval_id: str | None = None
+
+
+class ApprovalRead(BaseModel):
+    """One HITL approval request with its proposed action."""
+
+    id: str
+    ticket_id: str
+    ticket_number: str
+    action_type: str
+    action_payload: dict
+    status: str
+    requested_at: str
+    resolved_at: str | None = None
+    human_note: str | None = None
+
+
+class ApprovalDecision(BaseModel):
+    """Approve or reject with an optional human note."""
+
+    approved: bool
+    note: str | None = Field(default=None, max_length=500)
+
+
+class ApprovalResult(BaseModel):
+    """Outcome of an approval decision."""
+
+    approval_id: str
+    status: str
+    executed: bool
+    verified: bool | None = None
+    action_id: str | None = None
+
+
+class TraceStep(BaseModel):
+    """One AI activity timeline step."""
+
+    key: str
+    label: str
+    state: str
+    at: str | None = None
+
+
+class TraceRun(BaseModel):
+    """The latest run behind a trace."""
+
+    id: str
+    status: str
+    intent: str | None = None
+    decision: str | None = None
+
+
+class TraceResponse(BaseModel):
+    """Persisted AI timeline + approvals for one ticket."""
+
+    ticket_id: str
+    ticket_status: str
+    run: TraceRun | None = None
+    steps: list[TraceStep]
+    approvals: list[ApprovalRead]
+
+
+class TakeoverResult(BaseModel):
+    """Outcome of staff taking a ticket back."""
+
+    cancelled: bool
+    run_id: str | None = None

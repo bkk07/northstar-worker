@@ -1,5 +1,6 @@
 """Business schema models (`biz`)."""
 
+from database.models.biz.agent import AgentRun, Approval, AuditLog, ToolCall  # noqa: F401
 from database.models.biz.app_user import AppUser  # noqa: F401
 from database.models.biz.customer import Customer  # noqa: F401
 from database.models.biz.customer_ticket import (  # noqa: F401
@@ -16,7 +17,10 @@ from database.models.biz.shop_order import ShopOrder, ShopOrderItem, ShopPayment
 from database.models.biz.ticket import Ticket, TicketNote  # noqa: F401
 
 __all__ = [
+    "AgentRun",
+    "Approval",
     "AppUser",
+    "AuditLog",
     "Cart",
     "CartItem",
     "Customer",
@@ -38,4 +42,5 @@ __all__ = [
     "ShopPayment",
     "Ticket",
     "TicketNote",
+    "ToolCall",
 ]

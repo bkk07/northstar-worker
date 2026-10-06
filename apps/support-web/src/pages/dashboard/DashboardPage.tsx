@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Inbox, LifeBuoy } from "lucide-react";
 import { Badge, Card, EmptyState, ErrorState } from "@/components/ui";
-import { fetchQueue, fetchStats } from "@/services/support-api";
+import { fetchApprovals, fetchQueue, fetchStats } from "@/services/support-api";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleString("en-IN", {
@@ -18,6 +18,10 @@ export function DashboardPage() {
   const openQueue = useQuery({
     queryKey: ["support-queue", "open-preview"],
     queryFn: () => fetchQueue({ status: "OPEN" }),
+  });
+  const approvals = useQuery({
+    queryKey: ["support-approvals", "preview"],
+    queryFn: () => fetchApprovals("PENDING"),
   });
 
   const cards = [
@@ -54,6 +58,29 @@ export function DashboardPage() {
           ))}
         </div>
       )}
+
+      {(approvals.data ?? []).length > 0 ? (
+        <Card>
+          <div className="ns-row-between mb-2">
+            <h2 className="sp-title" style={{ fontSize: 15 }}>
+              Approvals awaiting you ({(approvals.data ?? []).length})
+            </h2>
+          </div>
+          <ul className="flex flex-col gap-2">
+            {(approvals.data ?? []).slice(0, 5).map((a) => (
+              <li key={a.id}>
+                <Link to={`/tickets/${a.ticket_id}`} className="ns-row-between rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 hover:bg-amber-100">
+                  <span className="text-sm">
+                    <span className="font-semibold">{a.action_type}</span>
+                    <span className="sp-muted"> · {a.ticket_number}</span>
+                  </span>
+                  <Badge tone="warn">PENDING</Badge>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
 
       <Card>
         <div className="ns-row-between mb-2">

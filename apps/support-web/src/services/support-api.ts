@@ -91,3 +91,94 @@ export async function escalateTicket(id: string, reason?: string): Promise<{ id:
   const { data } = await api.post(`/support/tickets/${id}/escalate`, { reason: reason ?? null });
   return data;
 }
+
+export type SolveResponse = {
+  run_id: string;
+  status: string;
+  intent: string | null;
+  decision: string | null;
+  approval_id: string | null;
+};
+
+export type TraceStep = { key: string; label: string; state: string; at: string | null };
+
+export type TraceApproval = {
+  id: string;
+  ticket_id: string;
+  ticket_number: string;
+  action_type: string;
+  action_payload: Record<string, unknown>;
+  status: string;
+  requested_at: string;
+  resolved_at: string | null;
+  human_note: string | null;
+};
+
+export type TicketTrace = {
+  ticket_id: string;
+  ticket_status: string;
+  run: { id: string; status: string; intent: string | null; decision: string | null } | null;
+  steps: TraceStep[];
+  approvals: TraceApproval[];
+};
+
+export async function solveTicket(id: string): Promise<SolveResponse> {
+  const { data } = await api.post<SolveResponse>(`/support/tickets/${id}/solve`);
+  return data;
+}
+
+export async function fetchTrace(id: string): Promise<TicketTrace> {
+  const { data } = await api.get<TicketTrace>(`/support/tickets/${id}/trace`);
+  return data;
+}
+
+export async function fetchApprovals(status = "PENDING"): Promise<TraceApproval[]> {
+  const { data } = await api.get<TraceApproval[]>("/support/approvals", { params: { status } });
+  return data;
+}
+
+export async function decideApproval(
+  id: string,
+  approved: boolean,
+  note?: string,
+): Promise<{ approval_id: string; status: string; executed: boolean }> {
+  const { data } = await api.post(`/support/approvals/${id}/decision`, {
+    approved,
+    note: note ?? null,
+  });
+  return data;
+}
+
+export async function takeOverTicket(id: string): Promise<{ cancelled: boolean }> {
+  const { data } = await api.post(`/support/tickets/${id}/takeover`);
+  return data;
+}
+
+export function subscribeActivity(
+  id: string,
+  onEvent: (type: string) => void,
+  onError?: () => void,
+): () => void {
+  const base = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000";
+  const token = localStorage.getItem("ns_support_token");
+  // EventSource cannot set headers; the backend also accepts the staff
+  // token via query for this stream only (prototype scope).
+  const source = new EventSource(
+    `${base}/support/tickets/${id}/activity${token ? `?token=${encodeURIComponent(token)}` : ""}`,
+  );
+  const handler = (e: Event) => {
+    onEvent((e as MessageEvent).type || "message");
+  };
+  source.addEventListener("ai_started", handler);
+  source.addEventListener("tool_done", handler);
+  source.addEventListener("waiting_for_approval", handler);
+  source.addEventListener("approval_approved", handler);
+  source.addEventListener("approval_rejected", handler);
+  source.addEventListener("ticket_resolved", handler);
+  source.addEventListener("run_completed", handler);
+  source.onerror = () => {
+    source.close();
+    onError?.();
+  };
+  return () => source.close();
+}

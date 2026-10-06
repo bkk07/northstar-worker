@@ -30,6 +30,10 @@ from database.session import admin_engine, app_engine
 SEED_DIR = Path(__file__).parent
 
 BIZ_TABLES = [
+    "audit_logs",
+    "tool_calls",
+    "approvals",
+    "agent_runs",
     "customer_ticket_messages",
     "customer_tickets",
     "shop_actions",
