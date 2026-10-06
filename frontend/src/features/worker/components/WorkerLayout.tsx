@@ -4,6 +4,7 @@ import { cn } from "@/shared/lib/utils";
 
 const LINKS = [
   ["/worker", "Dashboard"],
+  ["/worker/assistant", "Assistant"],
   ["/worker/environment", "Environment"],
 ] as const;
 

@@ -24,6 +24,7 @@ from app.api.ops import (
 )
 from app.api.worker import (
     approval_controller,
+    chat_controller,
     clarification_controller,
     environment_controller,
     events_controller,
@@ -58,6 +59,7 @@ def create_app() -> FastAPI:
     app.include_router(oracle_controller.router)
     app.include_router(evaluation_controller.router)
     app.include_router(task_controller.router)
+    app.include_router(chat_controller.router)
     app.include_router(approval_controller.router)
     app.include_router(clarification_controller.router)
     app.include_router(memory_controller.router)

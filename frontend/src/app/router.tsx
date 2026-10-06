@@ -19,6 +19,7 @@ const CustomerSearchPage = lazy(() => import("@/features/ops/customers/pages/Cus
 const OrderLookupPage = lazy(() => import("@/features/ops/orders/pages/OrderLookupPage"));
 
 const WorkerDashboardPage = lazy(() => import("@/features/worker/pages/WorkerDashboardPage"));
+const WorkerAssistantPage = lazy(() => import("@/features/worker/pages/WorkerAssistantPage"));
 const WorkerTaskDetailPage = lazy(() => import("@/features/worker/pages/WorkerTaskDetailPage"));
 const WorkerEnvironmentPage = lazy(() => import("@/features/worker/pages/WorkerEnvironmentPage"));
 
@@ -71,6 +72,7 @@ export const router = createBrowserRouter([
         element: <WorkerLayout />,
         children: [
           { index: true, element: <WorkerDashboardPage /> },
+          { path: "assistant", element: <WorkerAssistantPage /> },
           { path: "tasks/:taskId", element: <WorkerTaskDetailPage /> },
           { path: "environment", element: <WorkerEnvironmentPage /> },
         ],

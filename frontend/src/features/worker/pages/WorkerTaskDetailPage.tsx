@@ -2,6 +2,7 @@ import { Link, useParams } from "react-router-dom";
 import { ErrorState, LoadingState } from "@/shared/ui/feedback";
 import { getErrorMessage } from "@/shared/lib/errors";
 import { EvidenceViewer } from "../evidence/components/EvidenceViewer";
+import { TaskChat } from "../chat/components/TaskChat";
 import { StatusBadge } from "../tasks/components/TaskList";
 import { TaskTimeline } from "../timeline/components/TaskTimeline";
 import { MemoryTable } from "../memory/components/MemoryTable";
@@ -45,6 +46,9 @@ export default function WorkerTaskDetailPage() {
         actions={<StatusBadge status={task.data.status} />}
       />
       <div className="grid gap-6 lg:grid-cols-5">
+        <div className="lg:col-span-5">
+          <TaskChat task={task.data} />
+        </div>
         <Card className="lg:col-span-3">
           <CardHeader
             title="Live timeline"
