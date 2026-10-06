@@ -1,12 +1,12 @@
-"""Mercury 2.5 client: structured proposals, temperature 0.
+"""LLM client: structured proposals, temperature 0.
 
-Thin wrapper over the OpenAI-compatible Inception endpoint
-(`https://api.inceptionlabs.ai/v1/chat/completions`). The client sends a
-JSON-schema response format, parses exactly one JSON object, validates it
-against the caller's pydantic model, and retries bounded times on
-malformed JSON — then raises instead of guessing. HTTP failures raise
-immediately: the graph treats them as failures to classify, not retries
-(the recovery router owns retry policy in Phase 18).
+Thin wrapper over an OpenAI-compatible chat-completions endpoint (default
+the Inception endpoint; `INCEPTION_BASE_URL` retargets it, e.g. Groq).
+The client sends a JSON response format, parses exactly one JSON object,
+validates it against the caller's pydantic model, and retries bounded
+times on malformed JSON — then raises instead of guessing. HTTP failures
+raise immediately: the graph treats them as failures to classify, not
+retries (the recovery router owns retry policy in Phase 18).
 """
 
 import json
@@ -48,6 +48,7 @@ class MercuryConfig:
     timeout_s: float = 30.0
     max_retries: int = 2
     strict_schema: bool = True
+    reasoning_effort: str = ""
 
 
 def config_from_env(env: dict[str, str] | None = None) -> MercuryConfig:
@@ -60,8 +61,27 @@ def config_from_env(env: dict[str, str] | None = None) -> MercuryConfig:
     base_url = source.get("INCEPTION_BASE_URL", "") or DEFAULT_BASE_URL
     timeout = float(source.get("LLM_TIMEOUT_S", "30"))
     retries = int(source.get("LLM_MAX_RETRIES", "2"))
+    # Strict json_schema mode needs `additionalProperties: false` on every
+    # object; free-form maps (e.g. action params) cannot satisfy that on
+    # some providers (Groq rejects them). JSON mode + pydantic validation
+    # below enforces the shape instead (`INCEPTION_STRICT_SCHEMA=0`).
+    strict = source.get("INCEPTION_STRICT_SCHEMA", "1").strip().lower() not in (
+        "0",
+        "false",
+        "no",
+    )
+    # Reasoning models (Muse Spark) think before answering; "minimal"/"low"
+    # keeps direct-answer proposals fast. Empty omits the parameter so
+    # non-reasoning providers never see an unknown field.
+    effort = source.get("INCEPTION_REASONING_EFFORT", "").strip().lower()
     return MercuryConfig(
-        api_key=api_key, model=model, base_url=base_url, timeout_s=timeout, max_retries=retries
+        api_key=api_key,
+        model=model,
+        base_url=base_url,
+        timeout_s=timeout,
+        max_retries=retries,
+        strict_schema=strict,
+        reasoning_effort=effort,
     )
 
 
@@ -114,7 +134,7 @@ def _response_format(model_cls: type[BaseModel], strict: bool) -> dict[str, Any]
 
 
 class MercuryClient:
-    """Structured proposals from Mercury 2.5 (temperature 0, always)."""
+    """Structured proposals from a schema-capable chat model (temperature 0)."""
 
     def __init__(self, config: MercuryConfig) -> None:
         self._config = config
@@ -161,15 +181,18 @@ class MercuryClient:
         )
 
     def _chat(self, messages: list[dict[str, str]], model_cls: type[BaseModel]) -> str:
+        body: dict[str, Any] = {
+            "model": self._config.model,
+            "messages": messages,
+            "temperature": 0,
+            "response_format": _response_format(model_cls, self._config.strict_schema),
+        }
+        if self._config.reasoning_effort:
+            body["reasoning_effort"] = self._config.reasoning_effort
         try:
             response = self._http.post(
                 "/chat/completions",
-                json={
-                    "model": self._config.model,
-                    "messages": messages,
-                    "temperature": 0,
-                    "response_format": _response_format(model_cls, self._config.strict_schema),
-                },
+                json=body,
             )
         except httpx.HTTPError as exc:
             raise LLMError(f"transport error: {exc}") from exc

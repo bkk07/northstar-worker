@@ -149,6 +149,16 @@ def test_malformed_action_rejected():
     assert any("schema" in err for err in outcome.errors)
 
 
+def test_missing_params_name_missing_and_received():
+    """Multi-param errors name both sides so corrections merge, not swap."""
+    outcome = validate_action(
+        {"tool": "inspect_state", "params": {"kind": "refund"}, "rationale": "probe"},
+        _contract(),
+    )
+    assert not outcome.valid
+    assert outcome.errors == ["params: inspect_state needs ['key'] together (got ['kind'])"]
+
+
 def test_valid_read_passes():
     """Contract-bound reads flow to policy."""
     outcome = validate_action(

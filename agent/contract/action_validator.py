@@ -155,13 +155,13 @@ def _check_capability(capability: str, contract: Contract) -> str | None:
 
 
 def _check_required_params(proposal: NextAction) -> str | None:
-    missing = [
-        key
-        for key in REQUIRED_PARAMS.get(proposal.tool, frozenset())
-        if proposal.params.get(key) in (None, "")
-    ]
+    required = REQUIRED_PARAMS.get(proposal.tool, frozenset())
+    missing = [key for key in required if proposal.params.get(key) in (None, "")]
     if missing:
-        return f"params: {proposal.tool} needs {sorted(missing)}"
+        # Name what's missing AND what arrived: correction loops otherwise
+        # swap one param for another instead of merging them.
+        got = sorted(k for k in required if proposal.params.get(k) not in (None, ""))
+        return f"params: {proposal.tool} needs {sorted(missing)} together (got {got})"
     return None
 
 
