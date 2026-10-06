@@ -103,7 +103,7 @@ export function AppShell() {
                   type="button"
                   onClick={close}
                   aria-label="Close navigation"
-                  className="absolute right-2 top-3 rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-white"
+                  className="absolute right-2 top-3 rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                 >
                   <X aria-hidden className="h-5 w-5" />
                 </button>

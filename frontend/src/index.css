@@ -8,10 +8,12 @@
    Icons: lucide-react only. */
 
 :root {
-  /* Surfaces */
-  --ns-sidebar: #020617; /* slate-950 */
-  --ns-sidebar-hover: rgb(255 255 255 / 0.06);
-  --ns-sidebar-active: rgb(255 255 255 / 0.1);
+  /* Surfaces — one light theme everywhere (ChatGPT-like) */
+  --ns-sidebar: #ffffff;
+  --ns-sidebar-hover: #f1f5f9; /* slate-100 */
+  --ns-sidebar-active: #eef2ff; /* indigo-50 */
+  --ns-sidebar-ink: #334155; /* slate-700 */
+  --ns-sidebar-ink-active: #3730a3; /* indigo-800 */
   --ns-content: #f1f5f9; /* slate-100 */
   --ns-surface: #ffffff;
   --ns-border: #e2e8f0; /* slate-200 */
@@ -308,14 +310,15 @@
   }
 
   .ns-side-link {
-    @apply flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] font-medium text-slate-400 transition-colors hover:text-white;
+    @apply flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors;
+    color: var(--ns-sidebar-ink);
   }
   .ns-side-link:hover {
     background: var(--ns-sidebar-hover);
   }
   .ns-side-link-active {
     background: var(--ns-sidebar-active);
-    @apply text-white;
+    color: var(--ns-sidebar-ink-active);
     box-shadow: inset 2px 0 0 0 var(--ns-primary);
   }
   .ns-tab {

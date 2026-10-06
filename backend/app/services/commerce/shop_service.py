@@ -13,6 +13,7 @@ from app.schemas.commerce.ticket import TicketRead
 from app.schemas.shop.shop import ShopTicketCreate
 from app.services.commerce.order_service import OrderService
 from app.services.commerce.ticket_service import to_ticket_dto
+from database.models.biz.ticket import Ticket
 
 
 class ShopService:
@@ -37,6 +38,19 @@ class ShopService:
     def get_order(self, order_code: str) -> OrderRead:
         """Order detail or 404."""
         return self._orders.get_by_code(order_code)
+
+    def list_order_tickets(self, order_code: str) -> list[TicketRead]:
+        """Tickets raised against one order, newest first (or 404)."""
+        order = self._order_repos.get_by_code(order_code)
+        if order is None:
+            raise NotFoundError(f"order {order_code} not found")
+        rows = (
+            self._session.query(Ticket)
+            .filter(Ticket.order_id == order.id)
+            .order_by(Ticket.created_at.desc())
+            .all()
+        )
+        return [to_ticket_dto(ticket) for ticket in rows]
 
     def create_ticket(self, payload: ShopTicketCreate) -> TicketRead:
         """Raise a ticket from the shop (open status, generated code)."""

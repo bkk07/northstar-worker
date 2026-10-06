@@ -24,6 +24,13 @@ export async function getTicket(ticketCode: string): Promise<TicketRead> {
   return data;
 }
 
+export async function listOrderTickets(orderCode: string): Promise<TicketRead[]> {
+  const { data } = await axiosClient.get<TicketRead[]>(
+    `/api/shop/orders/${orderCode}/tickets`,
+  );
+  return data;
+}
+
 export async function getCustomer(customerId: string): Promise<CustomerRead> {
   const { data } = await axiosClient.get<CustomerRead>(`/api/read/customers/${customerId}`);
   return data;

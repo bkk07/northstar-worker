@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Package } from "lucide-react";
 import { TicketForm } from "../components/TicketForm";
 import { deliveryProgress } from "../components/OrderCard";
@@ -6,7 +6,7 @@ import { ErrorState, LoadingState } from "@/shared/ui/feedback";
 import { Badge } from "@/shared/ui/badge";
 import { Card, CardBody, CardHeader } from "@/shared/ui/card";
 import { PageEnter, PageEnterItem } from "@/shared/ui/page-header";
-import { useCustomer, useOrder } from "../hooks/useShop";
+import { useCustomer, useOrder, useOrderTickets } from "../hooks/useShop";
 import { formatINR } from "@/shared/lib/format";
 
 export default function ShopOrderDetailPage() {
@@ -14,6 +14,7 @@ export default function ShopOrderDetailPage() {
   const navigate = useNavigate();
   const order = useOrder(orderCode);
   const customer = useCustomer(order.data?.customer_id);
+  const tickets = useOrderTickets(orderCode);
 
   if (order.isPending)
     return (
@@ -115,6 +116,44 @@ export default function ShopOrderDetailPage() {
                 </li>
               ))}
             </ul>
+          </Card>
+        </PageEnterItem>
+
+        {/* Tickets raised against this order */}
+        <PageEnterItem>
+          <Card lift={false}>
+            <CardHeader
+              title={`Tickets (${tickets.data?.length ?? "…"})`}
+              desc="Support history for this order."
+            />
+            {tickets.isPending && (
+              <p className="px-4 py-3 text-[13px] text-slate-500 sm:px-5">Loading tickets…</p>
+            )}
+            {tickets.data && tickets.data.length === 0 && (
+              <p className="px-4 py-3 text-[13px] text-slate-500 sm:px-5">
+                No tickets yet — raise one below if something is wrong.
+              </p>
+            )}
+            {tickets.data && tickets.data.length > 0 && (
+              <ul className="divide-y divide-slate-100">
+                {tickets.data.map((ticket) => (
+                  <li key={ticket.id} className="px-4 py-3 sm:px-5">
+                    <p className="flex items-center justify-between gap-2">
+                      <Link
+                        to={`/shop/tickets/${ticket.code}`}
+                        className="text-sm font-semibold text-indigo-700 hover:underline"
+                      >
+                        {ticket.code}
+                      </Link>
+                      <Badge tone={ticket.status}>{ticket.status}</Badge>
+                    </p>
+                    <p className="mt-0.5 truncate text-[13px] text-slate-600">
+                      {ticket.subject}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Card>
         </PageEnterItem>
 

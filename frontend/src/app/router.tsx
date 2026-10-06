@@ -1,16 +1,17 @@
 import { lazy } from "react";
 import { Navigate, createBrowserRouter } from "react-router-dom";
 import { RootLayout } from "@/app/layouts/layouts";
-import { EvaluationLayout } from "@/features/evaluation/components/EvaluationLayout";
 import { WorkerLayout } from "@/features/worker/components/WorkerLayout";
 import { OpsAuthLayout, OpsLayout } from "@/app/layouts/OpsLayout";
 import { ShopLayout } from "@/app/layouts/ShopLayout";
 
-// One React app serves all four surfaces (plan §12). Feature routes are
-// lazy-loaded per module; worker/evaluation keep shells until their phase.
+// One React app serves its surfaces (plan §12). Feature routes are
+// lazy-loaded per module; worker keeps its shell until its phase.
 const ShopOrdersPage = lazy(() => import("@/features/shop/pages/ShopOrdersPage"));
 const ShopOrderDetailPage = lazy(() => import("@/features/shop/pages/ShopOrderDetailPage"));
 const ShopTicketPage = lazy(() => import("@/features/shop/pages/ShopTicketPage"));
+
+const ProductsPage = lazy(() => import("@/features/support/products/ProductsPage"));
 
 const LoginPage = lazy(() => import("@/features/ops/auth/pages/LoginPage"));
 const TicketQueuePage = lazy(() => import("@/features/ops/tickets/pages/TicketQueuePage"));
@@ -23,17 +24,7 @@ const WorkerAssistantPage = lazy(() => import("@/features/worker/pages/WorkerAss
 const WorkerTaskDetailPage = lazy(() => import("@/features/worker/pages/WorkerTaskDetailPage"));
 const WorkerEnvironmentPage = lazy(() => import("@/features/worker/pages/WorkerEnvironmentPage"));
 
-const EvaluationResultsPage = lazy(
-  () => import("@/features/evaluation/pages/EvaluationResultsPage"),
-);
-const EvaluationScenariosPage = lazy(
-  () => import("@/features/evaluation/pages/EvaluationScenariosPage"),
-);
-const EvaluationComparisonPage = lazy(
-  () => import("@/features/evaluation/pages/EvaluationComparisonPage"),
-);
-
-export const routePaths = ["/shop", "/ops", "/worker", "/evaluation"] as const;
+export const routePaths = ["/shop", "/ops", "/worker", "/products"] as const;
 
 export const router = createBrowserRouter([
   {
@@ -78,13 +69,9 @@ export const router = createBrowserRouter([
         ],
       },
       {
-        path: "evaluation",
-        element: <EvaluationLayout />,
-        children: [
-          { index: true, element: <EvaluationResultsPage /> },
-          { path: "scenarios", element: <EvaluationScenariosPage /> },
-          { path: "comparison", element: <EvaluationComparisonPage /> },
-        ],
+        path: "products",
+        element: <ShopLayout />,
+        children: [{ index: true, element: <ProductsPage /> }],
       },
       { path: "*", element: <Navigate to="/shop/orders" replace /> },
     ],

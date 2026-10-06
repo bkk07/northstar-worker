@@ -26,6 +26,12 @@ def get_order(order_code: str, session: Session = Depends(get_db)) -> OrderRead:
     return ShopService(session).get_order(order_code)
 
 
+@router.get("/api/shop/orders/{order_code}/tickets", response_model=list[TicketRead])
+def list_order_tickets(order_code: str, session: Session = Depends(get_db)) -> list[TicketRead]:
+    """Tickets raised against one order, newest first."""
+    return ShopService(session).list_order_tickets(order_code)
+
+
 @router.post("/api/shop/tickets", response_model=TicketRead, status_code=status.HTTP_201_CREATED)
 def create_ticket(payload: ShopTicketCreate, session: Session = Depends(get_db)) -> TicketRead:
     """Raise a ticket from the shop."""

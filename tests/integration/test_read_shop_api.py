@@ -45,6 +45,18 @@ def test_ticket_and_policies_shape(client):
     assert {p["rule_key"] for p in policies} >= {"P-REF-001", "P-REPL-001"}
 
 
+def test_order_tickets_lists_linked_tickets(client):
+    """Order detail endpoint lists the tickets raised against it."""
+    body = client.get("/api/shop/orders/ORD-1943/tickets").json()
+    assert {t["code"] for t in body} >= {"TCK-102", "TCK-105"}
+    assert all(t["order_id"] for t in body)
+
+
+def test_order_tickets_unknown_order_404s(client):
+    """Unknown orders 404 instead of returning an empty list."""
+    assert client.get("/api/shop/orders/ORD-0000/tickets").status_code == 404
+
+
 def test_probe_missing_and_found(client):
     """Absent keys report found=false; history keys report identity."""
     missing = client.get("/api/read/probe/mutation/does-not-exist").json()

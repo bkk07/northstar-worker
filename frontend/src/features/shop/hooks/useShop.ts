@@ -1,5 +1,12 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createTicket, getCustomer, getOrder, getTicket, listOrders } from "../api/shopApi";
+import {
+  createTicket,
+  getCustomer,
+  getOrder,
+  getTicket,
+  listOrders,
+  listOrderTickets,
+} from "../api/shopApi";
 
 // TanStack Query owns all server state; components read these hooks.
 export function useOrders(customerCode?: string) {
@@ -23,6 +30,14 @@ export function useTicket(ticketCode?: string) {
     queryKey: ["shop", "ticket", ticketCode],
     queryFn: () => getTicket(ticketCode ?? ""),
     enabled: !!ticketCode,
+  });
+}
+
+export function useOrderTickets(orderCode?: string) {
+  return useQuery({
+    queryKey: ["shop", "order-tickets", orderCode],
+    queryFn: () => listOrderTickets(orderCode ?? ""),
+    enabled: !!orderCode,
   });
 }
 

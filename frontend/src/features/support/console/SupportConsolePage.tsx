@@ -22,10 +22,21 @@ const TERMINAL = new Set(["succeeded", "failed", "cancelled"]);
  * buttons bound to approval ids.
  */
 export default function SupportConsolePage() {
-  const { messages, send, appendBot, busy, error, retry, activeTaskId } = useAssistant();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const {
+    messages,
+    send,
+    appendBot,
+    newChat,
+    switchSession,
+    activeSessionId,
+    busy,
+    error,
+    retry,
+    activeTaskId,
+  } = useAssistant(searchParams.get("sid"));
   const [selected, setSelected] = useState<string | null>(null);
   const [raiseOpen, setRaiseOpen] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
   const deepLinkHandled = useRef(false);
   const queryClient = useQueryClient();
 
@@ -40,6 +51,20 @@ export default function SupportConsolePage() {
     const timer = setInterval(() => taskQuery.refetch(), 3000);
     return () => clearInterval(timer);
   }, [activeTaskId, taskStatus, taskQuery]);
+
+  // Sidebar session switches (?sid=) swap the thread without remounting.
+  const sid = searchParams.get("sid");
+  useEffect(() => {
+    if (sid && sid !== activeSessionId) switchSession(sid);
+  }, [sid, activeSessionId, switchSession]);
+
+  // Sidebar "New chat" (?new=1) starts a blank thread.
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      newChat();
+      setSearchParams(sid ? { sid } : {}, { replace: true });
+    }
+  }, []);
 
   // Deep links from chat actions (?solve= / ?product= / ?policies=1).
   useEffect(() => {
@@ -58,7 +83,7 @@ export default function SupportConsolePage() {
     } else {
       return;
     }
-    setSearchParams({}, { replace: true });
+    setSearchParams(sid ? { sid } : {}, { replace: true });
   }, []);
 
   const decide = useMutation({
