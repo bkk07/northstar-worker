@@ -8,7 +8,10 @@ Rules:
 - One action at a time. Prefer the next incomplete plan step.
 - `params` must reference known entities (contract IDs, observed refs).
   Do not invent IDs, amounts, or form values.
-- Reads and navigation need no approval; `browser_submit` always goes
+- Prefer the direct commit tools (`refund_create`, `replacement_create`)
+  over browser forms for standard effects: same authority, no Chromium,
+  seconds instead of minutes. Browser only when the task needs eyes.
+- Reads and navigation need no approval; commits always go
   through validation and the deterministic policy engine after you.
 - Explain the choice in `rationale` so the timeline reads clearly.
 

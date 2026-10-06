@@ -250,5 +250,115 @@ def test_tool_mirror_matches_registry():
     from mcp_server.registry import TOOL_NAMES
 
     assert set(TOOL_META) == set(TOOL_NAMES)
-    assert TOOL_META["browser_submit"].kind == "write"
-    assert all(meta.kind == "read" for name, meta in TOOL_META.items() if name != "browser_submit")
+    for write_tool in ("browser_submit", "refund_create", "replacement_create"):
+        assert TOOL_META[write_tool].kind == "write"
+    assert all(
+        meta.kind == "read"
+        for name, meta in TOOL_META.items()
+        if name not in ("browser_submit", "refund_create", "replacement_create")
+    )
+
+
+def _refund_contract():
+    return _contract(
+        effects=[
+            ExpectedEffect(
+                effect="refund.create",
+                params={
+                    "order_id": "o-1943",
+                    "ticket_id": "t-102",
+                    "amount_paise": 250000,
+                },
+                capability="refund.create",
+            )
+        ],
+        capabilities=["read", "read.fallback", "probe", "browser", "refund.create"],
+    )
+
+
+def test_direct_refund_create_validates_without_ref():
+    """Direct commits bind the same effect ids; no browser ref exists."""
+    outcome = validate_action(
+        {
+            "tool": "refund_create",
+            "params": {
+                "effect": "refund.create",
+                "order_id": "o-1943",
+                "ticket_id": "t-102",
+                "amount_paise": 250000,
+            },
+            "rationale": "commit direct",
+        },
+        _refund_contract(),
+    )
+    assert outcome.valid
+
+
+def test_direct_refund_create_rejects_bad_bindings():
+    """Amount mismatches fail exactly like browser submits."""
+    outcome = validate_action(
+        {
+            "tool": "refund_create",
+            "params": {
+                "effect": "refund.create",
+                "order_id": "o-1943",
+                "ticket_id": "t-102",
+                "amount_paise": 999,
+            },
+            "rationale": "commit direct",
+        },
+        _refund_contract(),
+    )
+    assert not outcome.valid
+    assert "binding" in outcome.errors[0]
+
+
+def test_direct_refund_create_needs_amount():
+    """Missing amount names what's missing (correction loop merges)."""
+    outcome = validate_action(
+        {
+            "tool": "refund_create",
+            "params": {"effect": "refund.create", "order_id": "o-1943", "ticket_id": "t-102"},
+            "rationale": "commit direct",
+        },
+        _refund_contract(),
+    )
+    assert not outcome.valid
+    assert "amount_paise" in outcome.errors[0]
+
+
+def test_direct_replacement_create_validates():
+    """Replacement direct commits bind order/item/ticket ids."""
+    contract = _contract(
+        effects=[
+            ExpectedEffect(
+                effect="replacement.create",
+                params={"order_id": "o-1942", "ticket_id": "t-101", "order_item_id": "i-1"},
+                capability="replacement.create",
+            )
+        ],
+        capabilities=["read", "read.fallback", "probe", "browser", "replacement.create"],
+    )
+    outcome = validate_action(
+        {
+            "tool": "replacement_create",
+            "params": {
+                "effect": "replacement.create",
+                "order_id": "o-1942",
+                "ticket_id": "t-101",
+                "order_item_id": "i-1",
+            },
+            "rationale": "commit direct",
+        },
+        contract,
+    )
+    assert outcome.valid
+
+
+def test_direct_guides_prefer_no_browser():
+    """Decide recipes steer commits to the direct tools first."""
+    from agent.services.decision_service import EFFECT_GUIDES
+
+    assert "refund_create" in EFFECT_GUIDES["refund.create"]
+    assert "replacement_create" in EFFECT_GUIDES["replacement.create"]
+    assert "browser" in EFFECT_GUIDES["refund.create"]  # fallback stays documented

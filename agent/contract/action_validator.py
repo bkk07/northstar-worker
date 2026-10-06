@@ -45,6 +45,8 @@ REQUIRED_PARAMS: dict[str, frozenset[str]] = {
     "browser_click": frozenset({"ref"}),
     "browser_fill": frozenset({"ref"}),
     "browser_submit": frozenset({"ref", "effect"}),
+    "refund_create": frozenset({"effect", "order_id", "ticket_id", "amount_paise"}),
+    "replacement_create": frozenset({"effect", "order_id", "ticket_id", "order_item_id"}),
 }
 
 
@@ -80,6 +82,8 @@ TOOL_META: dict[str, ToolMeta] = {
     "browser_click": ToolMeta("browser_click", "browser", "read", "read"),
     "browser_fill": ToolMeta("browser_fill", "browser", "read", "read"),
     "browser_submit": ToolMeta("browser_submit", "per effect", "write", "write"),
+    "refund_create": ToolMeta("refund_create", "per effect", "write", "write"),
+    "replacement_create": ToolMeta("replacement_create", "per effect", "write", "write"),
     "browser_back": ToolMeta("browser_back", "browser", "read", "read"),
     "browser_screenshot": ToolMeta("browser_screenshot", "browser", "read", "none"),
 }
@@ -104,8 +108,8 @@ def validate_action(action: dict, contract: Contract) -> ValidationOutcome:
     meta = TOOL_META.get(proposal.tool)
     if meta is None:
         return ValidationOutcome(valid=False, errors=[f"unknown tool: {proposal.tool}"])
-    if proposal.tool == "browser_submit":
-        return _validate_submit(proposal, contract)
+    if proposal.tool in ("browser_submit", "refund_create", "replacement_create"):
+        return _validate_commit(proposal, contract)
     capability_error = _check_capability(meta.capability, contract)
     if capability_error is not None:
         return ValidationOutcome(valid=False, errors=[capability_error])
@@ -118,8 +122,13 @@ def validate_action(action: dict, contract: Contract) -> ValidationOutcome:
     return ValidationOutcome(valid=True)
 
 
-def _validate_submit(proposal: NextAction, contract: Contract) -> ValidationOutcome:
-    """Commits bind exactly: effect in contract, bindings equal, refs shaped."""
+def _validate_commit(proposal: NextAction, contract: Contract) -> ValidationOutcome:
+    """Commits bind exactly: effect in contract, bindings equal.
+
+    Browser submits additionally bind an observed confirm-button ref;
+    direct tools (`refund_create`, `replacement_create`) commit the same
+    bound ids through the service layer, so no ref exists to check.
+    """
     params = proposal.params
     effect_name = params.get("effect", "")
     match = next((e for e in contract.effects if e.effect == effect_name), None)
@@ -142,9 +151,13 @@ def _validate_submit(proposal: NextAction, contract: Contract) -> ValidationOutc
                 valid=False,
                 errors=[f"binding: {key}={actual!r} does not match contract {expected!r}"],
             )
-    ref = params.get("ref", "")
-    if not isinstance(ref, str) or not REF_PATTERN.match(ref):
-        return ValidationOutcome(valid=False, errors=[f"schema: bad submit ref {ref!r}"])
+    if proposal.tool == "browser_submit":
+        ref = params.get("ref", "")
+        if not isinstance(ref, str) or not REF_PATTERN.match(ref):
+            return ValidationOutcome(valid=False, errors=[f"schema: bad submit ref {ref!r}"])
+    required_error = _check_required_params(proposal)
+    if required_error is not None:
+        return ValidationOutcome(valid=False, errors=[required_error])
     return ValidationOutcome(valid=True)
 
 

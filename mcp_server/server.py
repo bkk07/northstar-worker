@@ -3,7 +3,8 @@
 SSE transport (`MCP_PORT`, default 8002) for the agent + a localhost-only
 admin route that registers task capabilities (no tool can self-grant).
 The server holds no DB credentials: reads go through GET-only HTTP,
-writes go only through the hosted browser.
+writes go through the hosted browser (`browser_submit`) or the
+token-gated service-layer commits (`refund_create`, `replacement_create`).
 
 Manual check with the MCP inspector:
   npx @modelcontextprotocol/inspector --cli http://127.0.0.1:8002/sse --method tools/list
@@ -17,6 +18,7 @@ from starlette.responses import JSONResponse
 
 from mcp_server import context
 from mcp_server.tools.browser import act_tools, session_tools
+from mcp_server.tools.direct import mutation_tools
 from mcp_server.tools.read import customer_order_tools, ticket_policy_tools
 from mcp_server.tools.state import probe_tools
 
@@ -118,11 +120,23 @@ async def browser_fill(task_id: str, ref: str, value: str) -> dict:
 
 
 @mcp.tool()
-async def browser_submit(
+def browser_submit(
     task_id: str, ref: str, mutation_key: str, token: str, params: dict
 ) -> dict:
     """Commit the effect form (token-gated; the only write path)."""
     return await act_tools.browser_submit(task_id, ref, mutation_key, token, params)
+
+
+@mcp.tool()
+def refund_create(task_id: str, mutation_key: str, token: str, params: dict) -> dict:
+    """Commit a refund via the service layer (token-gated, no browser)."""
+    return mutation_tools.refund_create(task_id, mutation_key, token, params)
+
+
+@mcp.tool()
+def replacement_create(task_id: str, mutation_key: str, token: str, params: dict) -> dict:
+    """Commit a replacement via the service layer (token-gated, no browser)."""
+    return mutation_tools.replacement_create(task_id, mutation_key, token, params)
 
 
 @mcp.tool()

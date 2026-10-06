@@ -77,6 +77,22 @@ TOOL_SPECS: tuple[ToolSpec, ...] = (
         "key + probe + DB unique",
         "500, timeout, validation, duplicate; valid ALLOW token required",
     ),
+    ToolSpec(
+        "refund_create",
+        "per effect",
+        False,
+        "commits",
+        "key + token + DB unique",
+        "500, timeout, validation, duplicate; valid ALLOW token required",
+    ),
+    ToolSpec(
+        "replacement_create",
+        "per effect",
+        False,
+        "commits",
+        "key + token + DB unique",
+        "500, timeout, validation, duplicate; valid ALLOW token required",
+    ),
     ToolSpec("browser_back", "browser", True, "none", "n/a", "none"),
     ToolSpec("browser_screenshot", "browser", True, "file", "n/a", "none"),
 )

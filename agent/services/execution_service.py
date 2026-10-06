@@ -29,6 +29,12 @@ class ExecutionError(NorthstarError):
     code = "EXECUTION_ERROR"
 
 
+# Tools that commit state: deterministic keys, adopt-before-create, and
+# `mutated` journaling. Browser submits go through Chromium; direct tools
+# commit the same bound effect through the service layer.
+WRITE_TOOLS = frozenset({"browser_submit", "refund_create", "replacement_create"})
+
+
 @dataclass
 class ExecutionResult:
     """One executed action: journal identity plus the tool outcome."""
@@ -85,7 +91,7 @@ class ExecutionService:
             raise ExecutionError(f"unknown tool: {tool!r}")
         params = dict(action.get("params", {}))
         mutation_key = action.get("reuse_key") or (
-            mutation_keys.key_for(task_id, tool, params) if tool == "browser_submit" else None
+            mutation_keys.key_for(task_id, tool, params) if tool in WRITE_TOOLS else None
         )
         started = self._journal.start_action(
             run_id,
@@ -97,7 +103,7 @@ class ExecutionService:
             policy_decision_id,
             mutation_key,
         )
-        if tool == "browser_submit":
+        if tool in WRITE_TOOLS:
             existing = self._search_before_create(task_id, params)
             if existing is not None:
                 self._journal.finish_action(started.action_id, "reconciled")
@@ -123,7 +129,7 @@ class ExecutionService:
             else:
                 return self._fail(started, attempt, tool, params, exc)
         succeeded = bool(payload.get("ok", True))
-        mutated = tool == "browser_submit" and succeeded
+        mutated = tool in WRITE_TOOLS and succeeded
         result_view = {
             "ok": succeeded,
             "payload": payload,
@@ -175,9 +181,9 @@ class ExecutionService:
 
         Reads/clicks/fills before any `browser_open` die on the missing
         session; reopening is read-only navigation, so one blind retry is
-        safe. Submits and opens never take this path.
+        safe. Submits (browser or direct) never take this path.
         """
-        if action.get("_ensured_open") or tool in ("browser_open", "browser_submit"):
+        if action.get("_ensured_open") or tool in WRITE_TOOLS or tool == "browser_open":
             return False
         action["_ensured_open"] = True
         try:
@@ -245,6 +251,12 @@ class ExecutionService:
                 mutation_key,
                 params.get("token", ""),
                 params,
+            )
+        if tool == "refund_create":
+            return gateway.refund_create(task_id, mutation_key, params.get("token", ""), params)
+        if tool == "replacement_create":
+            return gateway.replacement_create(
+                task_id, mutation_key, params.get("token", ""), params
             )
         if tool == "browser_back":
             return gateway.browser_back(task_id)

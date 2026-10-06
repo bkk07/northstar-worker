@@ -13,7 +13,7 @@ from agent.failures import signals as signal_module
 from agent.failures import taxonomy
 from agent.failures.signals import FailureSignals
 
-WRITE_TOOLS = frozenset({"browser_submit"})
+WRITE_TOOLS = frozenset({"browser_submit", "refund_create", "replacement_create"})
 
 
 def classify(signals: FailureSignals) -> str:

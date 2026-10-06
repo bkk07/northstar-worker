@@ -125,6 +125,22 @@ class MCPToolGateway:
             },
         )
 
+    def refund_create(self, task_id: str, mutation_key: str, token: str, params: dict) -> dict:
+        """Commit a refund via the service layer (token-gated, no browser)."""
+        return self._call(
+            "refund_create",
+            {"task_id": task_id, "mutation_key": mutation_key, "token": token, "params": params},
+        )
+
+    def replacement_create(
+        self, task_id: str, mutation_key: str, token: str, params: dict
+    ) -> dict:
+        """Commit a replacement via the service layer (token-gated, no browser)."""
+        return self._call(
+            "replacement_create",
+            {"task_id": task_id, "mutation_key": mutation_key, "token": token, "params": params},
+        )
+
     def browser_back(self, task_id: str) -> dict:
         """Browser back navigation."""
         return self._call("browser_back", {"task_id": task_id})

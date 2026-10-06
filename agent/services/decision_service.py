@@ -82,8 +82,9 @@ def _decision_brief(
         commits = " ".join(_commit_hint(e) for e in contract.effects)
         plan_line = (
             f"Plan covered. Uncommitted effects remain: {pending}. "
-            "Drive them through the browser now (open/navigate the ticket, "
-            f"fill the form, submit with the observed ref), then verify. {commits} {guides}"
+            "Commit them with the direct tools now (no browser needed — "
+            "no open/navigate/fill/click for standard effects), then verify. "
+            f"{commits} {guides}"
         )
     else:
         plan_line = f"Plan step {cursor + 1} of {len(plan)}:"
@@ -136,22 +137,34 @@ MAX_BRIEF_CHARS = 4000
 
 
 def _commit_hint(effect) -> str:
-    """Exact submit shape for one pending effect (contract-derived)."""
-    params = {"effect": effect.effect, "ref": "<confirm-button ref from observation>"}
+    """Exact commit shape for one pending effect (contract-derived)."""
+    params = {"effect": effect.effect}
     params.update(effect.params)
-    return f"To commit {effect.effect}: browser_submit with params {params}."
+    return (
+        f"To commit {effect.effect}: use the direct tool "
+        f"({DIRECT_TOOLS.get(effect.effect, 'browser_submit')}) with params "
+        f"{params}. Browser forms only if the direct tool fails twice."
+    )
+
+
+DIRECT_TOOLS = {
+    "refund.create": "refund_create",
+    "replacement.create": "replacement_create",
+}
 
 
 EFFECT_GUIDES = {
     "replacement.create": (
-        "Replacement flow on the ticket page: fill 'Order code' "
-        "and 'Item SKU' (from the order's items), press 'Review replacement', "
-        "observe the dialog, then submit the Confirm button's ref."
+        "Replacement via the direct tool (no browser): replacement_create "
+        "with params {effect: replacement.create, order_id, ticket_id, "
+        "order_item_id} (contract-bound UUIDs; item SKU comes from the "
+        "order's items). Browser form only if replacement_create fails twice."
     ),
     "refund.create": (
-        "Refund flow on the ticket page: fill 'Order code' and 'Amount (Rs.)' "
-        "(rupees, from the operator task), press 'Review refund', observe the "
-        "dialog, then submit the Confirm button's ref."
+        "Refund via the direct tool (no browser): refund_create with params "
+        "{effect: refund.create, order_id, ticket_id, amount_paise} "
+        "(contract-bound UUIDs; amount in paise from the operator task). "
+        "Browser form only if refund_create fails twice."
     ),
 }
 
@@ -160,9 +173,9 @@ def _bounded_observation(observation: dict) -> str:
     """Bounded observation summary (full payloads stay in the journal)."""
     if not observation:
         return "none yet"
-    if observation.get("tool") == "browser_submit":
+    if observation.get("tool") in ("browser_submit", "refund_create", "replacement_create"):
         return (
-            f"submit ok={observation.get('ok')} status={observation.get('status')} "
+            f"commit ok={observation.get('ok')} status={observation.get('status')} "
             f"effect={observation.get('effect', '')} "
             f"mutated={observation.get('mutated')} "
             f"reconciled={observation.get('reconciled', False)}"

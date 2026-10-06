@@ -69,6 +69,16 @@ class ToolGateway(Protocol):
         """Commit the effect form (token-gated)."""
         ...
 
+    def refund_create(self, task_id: str, mutation_key: str, token: str, params: dict) -> dict:
+        """Commit a refund via the service layer (token-gated, no browser)."""
+        ...
+
+    def replacement_create(
+        self, task_id: str, mutation_key: str, token: str, params: dict
+    ) -> dict:
+        """Commit a replacement via the service layer (token-gated, no browser)."""
+        ...
+
     def browser_back(self, task_id: str) -> dict:
         """Browser back navigation."""
         ...

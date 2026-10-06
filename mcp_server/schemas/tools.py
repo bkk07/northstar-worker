@@ -116,6 +116,14 @@ class BrowserSubmitInput(TaskScoped):
     params: dict[str, Any] = Field(description="Effect params incl. 'effect'")
 
 
+class DirectCommitInput(TaskScoped):
+    """Commit an effect via the service layer (same token, no browser)."""
+
+    mutation_key: str = Field(min_length=1, max_length=64)
+    token: str = Field(min_length=1)
+    params: dict[str, Any] = Field(description="Effect params incl. 'effect'")
+
+
 class BrowserBackInput(TaskScoped):
     """Browser back navigation."""
 
