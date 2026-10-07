@@ -22,7 +22,7 @@ Customer → Purchase → Order delivered → Raise ticket → Support: Solve wi
   → Action → Verify → AI message in ticket → Customer sees result
 ```
 
-Local copy (optional): `docs/demo/demo.mp4`
+Local copy (optional): `docs/demo.mp4`
 
 ---
 
@@ -36,7 +36,7 @@ Support does not script the steps. The input is the outcome:
 
 The worker figures out what context is needed, calls tools, checks business rules, pauses for a human when the action is risky, executes through a controlled interface, verifies the new state, and persists an `AI_AGENT` message that the customer reads. The ecommerce shop exists to make that loop realistic.
 
-![Customer products](./docs/screenshots/customer/products.png)
+![Customer products](./docs/CustomerProducts.png)
 *Customer storefront — 8 products, search and category filters. This is where orders that later become tickets are created.*
 
 ---
@@ -112,7 +112,7 @@ A concrete run from the screenshots below:
 
 The two AI chat screenshots show the same path driven from `/chat` instead of the ticket page — `solve this ticket TKT-CFC4A1` launches the identical canonical run.
 
-![Support ticket queue](./docs/screenshots/support/queue.png)
+![Support ticket queue](./docs/SupportTickets.png)
 *Support queue — TKT-CFC4A1 is RESOLVED after the run, TKT-241C9A is WAITING_FOR_HUMAN where approval was required. Filters and priority are real queries against `biz.customer_tickets`.*
 
 ---
@@ -129,13 +129,13 @@ Separate Vite app at `:5174`.
 - Product browsing with mock data, cart and checkout create real `shop_orders`.
 - Orders transition `processing → shipped → delivered` in ~60s so tickets have meaningful context.
 
-![Customer orders](./docs/screenshots/customer/orders.png)
+![Customer orders](./docs/CustomerOrders.png)
 *Orders — live status that flips to DELIVERED. Ticket TKT-CFC4A1 was filed against ORD-F180E2 after it hit this state.*
 
-![Customer tickets](./docs/screenshots/customer/tickets.png)
+![Customer tickets](./docs/CustomerTickets.png)
 *Customer support list — the same TKT-CFC4A1 the support console sees, now visible to the customer.*
 
-![Resolved ticket with AI answer](./docs/screenshots/customer/ticket-resolved.png)
+![Resolved ticket with AI answer](./docs/CustomerTicketAfterResoved.png)
 *Customer ticket view — the SYSTEM mock execution and the AI_ASSISTANT reply ("Your return is registered — keep the item packed for pickup") that the worker wrote. No copy-paste step.*
 
 ---
@@ -152,10 +152,10 @@ Separate Vite app at `:5175`, `SUPPORT_AGENT` only.
 - **Solve with AI** drives `POST /support/tickets/:id/solve` and streams `GET /support/tickets/:id/trace` + SSE `GET /support/tickets/:id/activity`.
 - `/chat` is ticket-grounded: `explain this ticket TKT-...`, `solve this ticket TKT-...`, follow-up "yes" resolved against thread history, action buttons per reply.
 
-![AI explains ticket context](./docs/screenshots/ai/chat-context.png)
+![AI explains ticket context](./docs/SupportAIChat1.png)
 *Support chat — "explain this ticket TKT-CFC4A1" returns order status, amount, items, and policy in one call, with action buttons. The explanation is deterministic — the model only rephrases it.*
 
-![AI trace for the solve](./docs/screenshots/ai/chat-trace.png)
+![AI trace for the solve](./docs/SupportAIChat2.png)
 *Same chat moments later — "solve this ticket TKT-CFC4A1" ran directly in the ticket. The panel shows the persisted trace: ticket loaded → order found → return eligibility → mock_return → verified → resolved.*
 
 The trace is not generated text. It is `biz.tool_calls` + `biz.approvals` + `biz.audit_logs` rendered from `GET /trace`.
@@ -199,7 +199,7 @@ Browser automation (`browser_*` on `:8002`) exists for worker tasks and browser 
 |---|---|
 | **LangGraph** | Tickets need state, branching, pause/resume, and safe termination. A flat script cannot resume where it paused. |
 | **MCP over raw SQL** | The agent sees a capability boundary (capability names, not tables). Policies, mutation tokens, and service identity stay enforceable. |
-| **Deterministic policy** | Amount caps and windows belong in code (`agent/policy/*`, `docs/policy.md`), not in an LLM. The model classifies; the tool decides eligibility. |
+| **Deterministic policy** | Amount caps and windows belong in code (`agent/policy/*`), not in an LLM. The model classifies; the tool decides eligibility. |
 | **Verification** | An `ok` from the action tool is not truth. Re-reading DB state catches partial or failed mutations. |
 | **Two frontends** | Customer and support have different auth, routes, and mental models. Bundling them would obscure both. |
 
@@ -334,19 +334,19 @@ Prototype, not a payments/logistics integration.
 
 ## Screenshots
 
-The images referenced above are committed under `docs/screenshots/`:
+The images referenced above are committed under `docs/`:
 
 ```
-docs/screenshots/customer/products.png
-docs/screenshots/customer/orders.png
-docs/screenshots/customer/tickets.png
-docs/screenshots/customer/ticket-resolved.png
-docs/screenshots/support/queue.png
-docs/screenshots/ai/chat-context.png
-docs/screenshots/ai/chat-trace.png
+docs/CustomerProducts.png
+docs/CustomerOrders.png
+docs/CustomerTickets.png
+docs/CustomerTicketAfterResoved.png
+docs/SupportTickets.png
+docs/SupportAIChat1.png
+docs/SupportAIChat2.png
 ```
 
-A local demo copy can be placed at `docs/demo/demo.mp4`.
+A local demo copy can be placed at `docs/demo.mp4`.
 
 ---
 
