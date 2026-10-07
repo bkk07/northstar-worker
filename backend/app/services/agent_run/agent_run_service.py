@@ -670,6 +670,8 @@ def get_trace(session: Session, *, ticket_id: str) -> dict:
         "approvals": [
             {
                 "id": str(a.id),
+                "ticket_id": str(ticket.id),
+                "ticket_number": ticket.ticket_number,
                 "action_type": a.action_type,
                 "action_payload": a.action_payload,
                 "status": a.status,

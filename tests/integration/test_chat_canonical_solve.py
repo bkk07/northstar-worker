@@ -10,15 +10,26 @@ from app.main import create_app
 from tests.integration.conftest import staff_headers
 
 
-class _SyncThread:
-    """Run the target inline so background launches are deterministic in tests."""
+class _SyncThread(threading.Thread):
+    """Background chat launches run inline (deterministic); every other
+    thread (e.g. the TestClient portal) keeps real threading behavior.
 
-    def __init__(self, target=None, *args, **kwargs):
-        self._target = target
+    A plain fake `Thread` without `join` deadlocks the TestClient portal,
+    hanging the whole file — hence the subclass.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        name = kwargs.get("name")
+        if name is None and len(args) >= 3:
+            name = args[2]
+        self._inline = (name or "").startswith("chat-canonical-")
 
     def start(self):
-        if self._target is not None:
-            self._target()
+        if self._inline:
+            self.run()
+        else:
+            super().start()
 
 
 def _patch(monkeypatch, *, ticket_row, active_run=None, solve=None):

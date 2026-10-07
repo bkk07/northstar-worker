@@ -159,7 +159,7 @@ export function useSupportChat(initialSessionId?: string | null) {
     sessions,
     activeSessionId: activeId,
     busy: sendState.isPending,
-    error: sendState.isError ? staffApiErrorMessage(sendState.error, "Chat failed. Try again.") : null,
+    error: sendState.isError ? staffApiErrorMessage(sendState.error, "The AI support run could not be completed. No customer action was confirmed. Please retry or take over the ticket.") : null,
     retry: () => sendState.reset(),
     activeTaskId,
     activeTicketId,
