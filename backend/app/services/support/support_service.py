@@ -40,23 +40,32 @@ TERMINAL = (TICKET_RESOLVED, TICKET_CLOSED)
 
 def summarize_stats(by_status: dict[str, int]) -> dict:
     """Dashboard cards from per-status counts (pure)."""
+    from database.models.biz.customer_ticket import (
+        TICKET_AI_PROCESSING,
+        TICKET_WAITING_FOR_CUSTOMER,
+        TICKET_WAITING_FOR_HUMAN,
+    )
+
     open_count = by_status.get(TICKET_OPEN, 0)
+    ai_processing = by_status.get(TICKET_AI_PROCESSING, 0)
+    waiting_human = by_status.get(TICKET_WAITING_FOR_HUMAN, 0)
+    waiting_customer = by_status.get(TICKET_WAITING_FOR_CUSTOMER, 0)
     escalated = by_status.get(TICKET_ESCALATED, 0)
     resolved = by_status.get(TICKET_RESOLVED, 0) + by_status.get(TICKET_CLOSED, 0)
     return {
         "by_status": {
             TICKET_OPEN: open_count,
-            "AI_PROCESSING": 0,
-            "WAITING_FOR_CUSTOMER": 0,
-            "WAITING_FOR_HUMAN": 0,
+            "AI_PROCESSING": ai_processing,
+            "WAITING_FOR_CUSTOMER": waiting_customer,
+            "WAITING_FOR_HUMAN": waiting_human,
             TICKET_ESCALATED: escalated,
             TICKET_RESOLVED: by_status.get(TICKET_RESOLVED, 0),
             TICKET_CLOSED: by_status.get(TICKET_CLOSED, 0),
         },
         "summary": {
             "open": open_count,
-            "in_progress": escalated,
-            "waiting": 0,
+            "in_progress": escalated + ai_processing,
+            "waiting": waiting_human + waiting_customer,
             "resolved": resolved,
         },
     }

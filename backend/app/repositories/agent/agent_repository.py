@@ -129,21 +129,44 @@ class AgentRepository:
         event_type: str,
         metadata: dict | None = None,
     ) -> AuditLog:
-        seq = (
-            self._s.scalar(
-                select(func.coalesce(func.max(AuditLog.sequence), 0)).where(
-                    AuditLog.ticket_id == ticket_id
+        from sqlalchemy.exc import IntegrityError
+
+        for _ in range(3):
+            seq = (
+                self._s.scalar(
+                    select(func.coalesce(func.max(AuditLog.sequence), 0)).where(
+                        AuditLog.ticket_id == ticket_id
+                    )
                 )
+                or 0
             )
-            or 0
-        )
+            row = AuditLog(
+                ticket_id=ticket_id,
+                actor_type=actor_type,
+                actor_id=actor_id,
+                event_type=event_type,
+                meta=metadata or {},
+                sequence=seq + 1,
+            )
+            self._s.add(row)
+            try:
+                self._s.flush()
+                return row
+            except IntegrityError:
+                self._s.rollback()
+                continue
+        # Final attempt without swallowing errors.
         row = AuditLog(
             ticket_id=ticket_id,
             actor_type=actor_type,
             actor_id=actor_id,
             event_type=event_type,
             meta=metadata or {},
-            sequence=seq + 1,
+            sequence=(self._s.scalar(
+                select(func.coalesce(func.max(AuditLog.sequence), 0)).where(
+                    AuditLog.ticket_id == ticket_id
+                )
+            ) or 0) + 1,
         )
         self._s.add(row)
         self._s.flush()

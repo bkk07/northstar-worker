@@ -23,6 +23,7 @@ from app.schemas.worker.events import AuditEventRead
 from app.sse.listener import subscriber_count
 from app.sse.stream import format_event, task_event_stream
 from database import session as session_factory
+from tests.integration.conftest import staff_headers
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

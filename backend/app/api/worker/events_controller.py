@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+from app.core.auth import require_roles
 from app.core.deps import get_db
 from app.core.exceptions import NotFoundError
 from app.schemas.worker.events import AuditEventRead
@@ -14,16 +15,25 @@ from app.sse.stream import task_event_stream
 
 router = APIRouter(tags=["worker-events"])
 
+_staff = require_roles("SUPPORT_AGENT")
+
 
 @router.get("/api/tasks/{task_id}/events/history", response_model=list[AuditEventRead])
-def task_event_history(task_id: UUID, session: Session = Depends(get_db)) -> list[AuditEventRead]:
+def task_event_history(
+    task_id: UUID,
+    claims: dict = Depends(_staff),
+    session: Session = Depends(get_db),
+) -> list[AuditEventRead]:
     """Audit events in replay order (the run's chain, oldest first)."""
     return EventService(session).history_for_task(task_id)
 
 
 @router.get("/api/tasks/{task_id}/events")
 def task_event_stream_endpoint(
-    task_id: UUID, request: Request, session: Session = Depends(get_db)
+    task_id: UUID,
+    request: Request,
+    claims: dict = Depends(_staff),
+    session: Session = Depends(get_db),
 ) -> StreamingResponse:
     """Live audit stream (SSE; `Last-Event-ID` resumes from a sequence)."""
     if not EventService(session).task_exists(task_id):

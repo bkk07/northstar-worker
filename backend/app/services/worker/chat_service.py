@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.core.exceptions import NotFoundError
 from app.repositories.ops.ticket_repository import TicketRepository
+from app.repositories.tickets.ticket_repository import CustomerTicketRepository
 from app.schemas.worker.approvals import ApprovalRead
 from app.schemas.worker.chat import ChatAction, ChatReply
 from app.schemas.worker.tasks import TaskCreate
@@ -20,7 +21,11 @@ from app.services.commerce.catalog_service import CatalogService, rupees
 from app.services.commerce.shop_service import ShopService
 from app.services.ops.ticket_service import OpsTicketService
 from app.services.worker.approval_service import ApprovalService
-from app.services.worker.chat_intent import ChatIntent, parse_intent
+from app.services.worker.chat_intent import (
+    ChatIntent,
+    parse_intent,
+    resolve_references,
+)
 from app.services.worker.chat_narrator import narrate
 from app.services.worker.task_service import TaskService
 from database.models.biz.order import Order
@@ -56,19 +61,63 @@ class ChatService:
         self._approvals = ApprovalService(session)
 
     def reply(
-        self, message: str, start_run: Callable[[str, str], None] | None = None
+        self,
+        message: str,
+        start_run: Callable[[str, str], None] | None = None,
+        history: list[str] | None = None,
     ) -> ChatReply:
         """Route the message to its intent handler (model-phrased reply)."""
         intent = parse_intent(message)
         if intent.kind == "approve_attempt":
             # Safety text stays byte-exact — never model-phrased.
             return ChatReply(reply=APPROVE_REFUSAL)
+        if intent.kind in ("unknown", "help"):
+            # Open message: converse naturally instead of dumping the menu.
+            # Returned directly (no narrator rephrase): converse already
+            # answers in final form, and a second model call would add
+            # latency on top of the first one.
+            return self._converse(message)
+        if intent.kind == "confirm":
+            # “yes, look at that ticket”: resolve against the recent thread.
+            # Read-only follow-ups only — never an approval or a run launch.
+            resolved = self._resolve_confirm(history or [])
+            if resolved is not None:
+                intent = resolved
+            else:
+                return self._converse(message)
         result = self._route(intent, start_run)
         return ChatReply(
             reply=narrate(message, result.reply),
             task_id=result.task_id,
+            ticket_id=result.ticket_id,
             actions=result.actions,
         )
+
+    @staticmethod
+    def _resolve_confirm(history: list[str]) -> ChatIntent | None:
+        """Map a bare confirmation onto thread references (read-only kinds)."""
+        refs = resolve_references(history)
+        if refs["ticket_code"]:
+            return ChatIntent(kind="ticket_detail", ticket_code=refs["ticket_code"])
+        if refs["task_ref"]:
+            return ChatIntent(kind="task_status", ref=refs["task_ref"])
+        if refs["order_code"]:
+            return ChatIntent(kind="order_detail", order_code=refs["order_code"])
+        if refs["sku"]:
+            return ChatIntent(kind="product_detail", sku=refs["sku"])
+        return None
+
+    def _canonical_ticket(self, code: str) -> dict | None:
+        """Canonical customer-ticket detail for `TKT-` codes (None absent)."""
+        from app.services.support import support_service
+
+        row = CustomerTicketRepository(self._session).get_by_number(code)
+        if row is None:
+            return None
+        try:
+            return support_service.get_ticket_detail(self._session, ticket_id=str(row.id))
+        except NotFoundError:
+            return None
 
     def _route(
         self, intent: ChatIntent, start_run: Callable[[str, str], None] | None
@@ -96,11 +145,19 @@ class ChatService:
             return ChatReply(reply=APPROVE_REFUSAL)
         return ChatReply(reply=HELP_TEXT)
 
+    def _converse(self, message: str) -> ChatReply:
+        """Natural answer for open messages; help draft when model is off."""
+        from app.services.worker.chat_conversation import converse
+
+        return ChatReply(reply=converse(message) or HELP_TEXT)
+
     def _solve(
         self, intent: ChatIntent, start_run: Callable[[str, str], None] | None
     ) -> ChatReply:
-        """Create the task from the ticket and launch its run."""
+        """Solve a ticket: canonical run for `TKT-`, worker task for legacy."""
         assert intent.ticket_code is not None
+        if intent.ticket_code.startswith("TKT-"):
+            return self._solve_canonical(intent.ticket_code)
         ticket = self._tickets.get_by_code(intent.ticket_code)
         if ticket is None:
             return ChatReply(reply=_UNKNOWN_TICKET.format(code=intent.ticket_code))
@@ -116,6 +173,101 @@ class ChatService:
             f"Handle {ticket.category} ticket {ticket.code}{order_code}: "
             f"{ticket.subject} — {body}".strip()
         )
+        return self._launch_task(task_text, start_run, ticket.code)
+
+    def _solve_canonical(self, code: str) -> ChatReply:
+        """Solve a canonical ticket via the ticket AI run (no worker detour).
+
+        Quarantine for the worker path: `TKT-` tickets live in the canonical
+        store the worker tools cannot bind, so chat launches the same
+        LangGraph run the ticket page uses. Refuses clearly when it cannot
+        run (missing / terminal / already active) instead of minting a
+        doomed worker task.
+        """
+        from sqlalchemy.orm import Session
+
+        from app.core.deps import get_engine
+        from app.repositories.agent.agent_repository import AgentRepository
+        from app.services.agent_run import agent_run_service
+        from database.models.biz.customer_ticket import (
+            TICKET_CLOSED,
+            TICKET_RESOLVED,
+        )
+
+        row = CustomerTicketRepository(self._session).get_by_number(code)
+        if row is None:
+            return ChatReply(reply=_UNKNOWN_TICKET.format(code=code))
+        ticket_id = str(row.id)
+        if row.status in (TICKET_RESOLVED, TICKET_CLOSED):
+            return ChatReply(
+                reply=(
+                    f"{code} is already {row.status.lower()} — "
+                    f"nothing to solve. {row.resolution or ''}".strip()
+                ),
+                ticket_id=row.id,
+                actions=[
+                    ChatAction(
+                        kind="ticket",
+                        label=f"Open {code}",
+                        href=f"/tickets/{ticket_id}",
+                    )
+                ],
+            )
+        if AgentRepository(self._session).active_for_ticket(row.id) is not None:
+            return ChatReply(
+                reply=(
+                    f"{code} already has an AI run going — I won't start a "
+                    "second one. Watch it on the ticket page."
+                ),
+                ticket_id=row.id,
+                actions=[
+                    ChatAction(
+                        kind="ticket",
+                        label=f"Open {code}",
+                        href=f"/tickets/{ticket_id}",
+                    )
+                ],
+            )
+
+        def _run() -> None:
+            import logging
+
+            session = Session(bind=get_engine())
+            try:
+                agent_run_service.solve(session, ticket_id=ticket_id, llm=None)
+            except Exception:  # noqa: BLE001 - background run must not kill chat
+                logging.getLogger(__name__).exception(
+                    "chat canonical solve failed for ticket %s", ticket_id
+                )
+            finally:
+                session.close()
+
+        import threading
+
+        thread = threading.Thread(
+            target=_run, name=f"chat-canonical-{ticket_id}", daemon=True
+        )
+        thread.start()
+        return ChatReply(
+            reply=(
+                f"On it — solving {code} on the ticket itself. "
+                "I'll work through order, policy, and any needed approval; "
+                "the answer lands in the ticket conversation."
+            ),
+            ticket_id=row.id,
+            actions=[
+                ChatAction(
+                    kind="ticket",
+                    label=f"Open {code}",
+                    href=f"/tickets/{ticket_id}",
+                )
+            ],
+        )
+
+    def _launch_task(
+        self, task_text: str, start_run: Callable[[str, str], None] | None, code: str
+    ) -> ChatReply:
+        """Create a chat task and launch its run (shared legacy/canonical)."""
         task = self._tasks.create_task(
             TaskCreate(text=task_text, mode="explicit"), created_by="chat"
         )
@@ -124,7 +276,7 @@ class ChatService:
         short = str(task.id)[:8]
         return ChatReply(
             reply=(
-                f"On it — solving {ticket.code} as task {short}. "
+                f"On it — solving {code} as task {short}. "
                 "I'll narrate progress here; the run parks itself and asks "
                 "if it needs a decision from you."
             ),
@@ -143,6 +295,24 @@ class ChatService:
         """Summarize one ticket's state."""
         assert intent.ticket_code is not None
         ticket = self._tickets.get_by_code(intent.ticket_code)
+        if ticket is None and intent.ticket_code.startswith("TKT-"):
+            detail = self._canonical_ticket(intent.ticket_code)
+            if detail is None:
+                return ChatReply(reply=_UNKNOWN_TICKET.format(code=intent.ticket_code))
+            return ChatReply(
+                reply=(
+                    f"{detail['ticket_number']} is {detail['status']} "
+                    f"({detail['category']}): {detail['subject']}."
+                ),
+                ticket_id=detail["id"],
+                actions=[
+                    ChatAction(
+                        kind="ticket",
+                        label=f"Open {detail['ticket_number']}",
+                        href=f"/tickets/{detail['id']}",
+                    )
+                ],
+            )
         if ticket is None:
             return ChatReply(reply=_UNKNOWN_TICKET.format(code=intent.ticket_code))
         return ChatReply(
@@ -162,6 +332,11 @@ class ChatService:
     def _ticket_detail(self, intent: ChatIntent) -> ChatReply:
         """Ticket + linked order, products, and governing policies."""
         assert intent.ticket_code is not None
+        if intent.ticket_code.startswith("TKT-"):
+            detail = self._canonical_ticket(intent.ticket_code)
+            if detail is None:
+                return ChatReply(reply=_UNKNOWN_TICKET.format(code=intent.ticket_code))
+            return self._canonical_detail_reply(detail)
         ticket = self._tickets.get_by_code(intent.ticket_code)
         if ticket is None:
             return ChatReply(reply=_UNKNOWN_TICKET.format(code=intent.ticket_code))
@@ -210,6 +385,49 @@ class ChatService:
                     )
         lines.append(f"Say “solve ticket {ticket.code}” and I'll take it.")
         return ChatReply(reply="\n".join(lines), actions=actions)
+
+    @staticmethod
+    def _canonical_detail_reply(detail: dict) -> ChatReply:
+        """Rich summary for a canonical (`TKT-`) customer ticket."""
+        lines = [
+            f"{detail['ticket_number']} is {detail['status']} "
+            f"({detail['category']}): {detail['subject']}."
+        ]
+        actions = [
+            ChatAction(
+                kind="solve",
+                label=f"Solve {detail['ticket_number']}",
+                href=f"/worker/assistant?solve={detail['ticket_number']}",
+            ),
+            ChatAction(
+                kind="ticket",
+                label=f"Open {detail['ticket_number']}",
+                href=f"/tickets/{detail['id']}",
+            ),
+        ]
+        related = detail.get("related_order")
+        if related is not None:
+            items = ", ".join(
+                f"{line['product_name']} ×{line['quantity']}"
+                for line in related.get("items", [])
+            ) or "no items"
+            lines.append(
+                f"Order {related['order_number']} is {related['status']} — "
+                f"{related['total_display']} total, items: {items}."
+            )
+            actions.append(
+                ChatAction(
+                    kind="order",
+                    label=f"Open {related['order_number']}",
+                    href=f"/shop/orders/{related['order_number']}",
+                )
+            )
+        for policy in detail.get("policies", [])[:3]:
+            lines.append(f"Policy ({policy['product_name']}): {policy['summary']}")
+        lines.append(f"Say “solve ticket {detail['ticket_number']}” and I'll take it.")
+        return ChatReply(
+            reply="\n".join(lines), ticket_id=detail["id"], actions=actions
+        )
 
     def _order_detail(self, intent: ChatIntent) -> ChatReply:
         """Order state with its items and per-item policy pointers."""

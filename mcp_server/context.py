@@ -9,6 +9,11 @@ import os
 READ_API_URL_ENV = "READ_API_URL"
 FRONTEND_URL_ENV = "FRONTEND_URL"
 POLICY_SECRET_ENV = "POLICY_TOKEN_SECRET"
+# First-party service credential for backend reads/commits. Must match the
+# backend's OPERATOR_TOKEN (same default; set a real secret in both for any
+# non-local deploy — the backend refuses to boot otherwise).
+OPERATOR_TOKEN_ENV = "OPERATOR_TOKEN"
+OPERATOR_TOKEN_DEFAULT = "local-operator-token"
 
 _store = None
 _reader = None
@@ -27,13 +32,21 @@ def store():
 
 
 def reader():
-    """Process-wide GET-only read client (no DB credentials)."""
+    """Process-wide GET-only read client (service token, no DB credentials)."""
     global _reader
     if _reader is None:
         from mcp_server.clients.read_api_client import ReadApiClient
 
-        _reader = ReadApiClient(os.environ.get(READ_API_URL_ENV, "http://127.0.0.1:8000"))
+        _reader = ReadApiClient(
+            os.environ.get(READ_API_URL_ENV, "http://127.0.0.1:8000"),
+            api_token=service_token(),
+        )
     return _reader
+
+
+def service_token() -> str:
+    """Bearer token the backend accepts as first-party service identity."""
+    return os.environ.get(OPERATOR_TOKEN_ENV, OPERATOR_TOKEN_DEFAULT)
 
 
 def browser_manager():

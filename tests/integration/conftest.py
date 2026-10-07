@@ -71,6 +71,23 @@ def unique_code(prefix: str) -> str:
     return f"{prefix}{uuid.uuid4().hex[:8]}"
 
 
+def staff_headers(*, user_id: str | None = None, email: str = "admin@northstar.shop") -> dict:
+    """SUPPORT_AGENT JWT headers (signature-checked; no DB row needed).
+
+    Use in integration tests after the security hardening: worker, read,
+    shop, ops-login, eval, and direct-commit surfaces require auth.
+    """
+    import sys
+
+    sys.path.insert(0, "backend")
+    from app.core.auth import create_access_token
+
+    token = create_access_token(
+        user_id=user_id or str(uuid.uuid4()), email=email, role="SUPPORT_AGENT"
+    )
+    return {"Authorization": f"Bearer {token}"}
+
+
 def make_chain(conn: Connection, tag: str, total_paise: int = 500000) -> dict:
     """Insert customer -> order -> item -> ticket; return their ids."""
     customer_id, order_id, item_id, ticket_id = (uuid.uuid4() for _ in range(4))

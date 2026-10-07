@@ -120,12 +120,13 @@ export type TraceApproval = {
   requested_at: string;
   resolved_at: string | null;
   human_note: string | null;
+  expires_at: string | null;
 };
 
 export type TicketTrace = {
   ticket_id: string;
   ticket_status: string;
-  run: { id: string; status: string; intent: string | null; decision: string | null } | null;
+  run: { id: string; status: string; intent: string | null; workflow: string | null; decision: string | null } | null;
   steps: TraceStep[];
   approvals: TraceApproval[];
   audits: AuditEvent[];
@@ -179,12 +180,20 @@ export function subscribeActivity(
     onEvent((e as MessageEvent).type || "message");
   };
   source.addEventListener("ai_started", handler);
+  source.addEventListener("ai_activity", handler);
+  source.addEventListener("intent_classified", handler);
+  source.addEventListener("tool_started", handler);
   source.addEventListener("tool_done", handler);
+  source.addEventListener("tool_failed", handler);
   source.addEventListener("waiting_for_approval", handler);
+  source.addEventListener("approval_required", handler);
   source.addEventListener("approval_approved", handler);
   source.addEventListener("approval_rejected", handler);
+  source.addEventListener("approval_expired", handler);
   source.addEventListener("ticket_resolved", handler);
   source.addEventListener("run_completed", handler);
+  source.addEventListener("run_escalated", handler);
+  source.addEventListener("waiting_for_customer", handler);
   source.onerror = () => {
     source.close();
     onError?.();

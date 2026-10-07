@@ -16,9 +16,12 @@ from database.models.biz.app_user import ROLES
 def register(
     session: Session, *, name: str, email: str, password: str, role: str = "CUSTOMER"
 ) -> dict:
-    """Create a user and return an authenticated token bundle."""
-    if role not in ROLES:
-        raise UnauthorizedError("unknown role")
+    """Create a user and return an authenticated token bundle.
+
+    Public registration always creates CUSTOMER. Staff accounts are
+    seeded via ensure_support_admin / admin tooling, never via public signup.
+    The `role` argument is accepted for backward-compat but ignored.
+    """
     repo = UserRepository(session)
     if repo.get_by_email(email) is not None:
         raise ConflictError("email already registered")
@@ -26,7 +29,7 @@ def register(
         name=name.strip(),
         email=email,
         password_hash=auth_core.hash_password(password),
-        role=role,
+        role="CUSTOMER",
     )
     session.commit()
     session.refresh(row)

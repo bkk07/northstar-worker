@@ -1,34 +1,20 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  ArrowLeft,
-  Check,
-  Circle,
-  LifeBuoy,
-  Loader2,
-  Search,
-  Send,
-  Sparkles,
-  StickyNote,
-} from "lucide-react";
+import { ArrowLeft, LifeBuoy, Search, Send } from "lucide-react";
 import { Badge, Button, Card, EmptyState, ErrorState, Input } from "@/components/ui";
 import { staffApiErrorMessage } from "@/lib/api-client";
 import {
   addInternalNote,
-  decideApproval,
   escalateTicket,
   fetchQueue,
   fetchTicketDetail,
-  fetchTrace,
   replyToTicket,
   resolveTicket,
-  solveTicket,
-  subscribeActivity,
-  takeOverTicket,
-  type ConsoleMessage,
-  type TraceApproval,
 } from "@/services/support-api";
+import { AICopilot } from "@/features/tickets/AICopilot";
+import { ContextPanel } from "@/features/tickets/ContextPanel";
+import { ConsoleBubble } from "@/features/tickets/Conversation";
 
 const STATUS_TABS = ["ALL", "OPEN", "ESCALATED", "RESOLVED", "CLOSED"] as const;
 const PRIORITIES = ["ALL", "LOW", "NORMAL", "HIGH", "URGENT"] as const;
@@ -53,228 +39,6 @@ function priorityTone(priority: string): "info" | "warn" | "bad" {
   if (priority === "URGENT" || priority === "HIGH") return "bad";
   if (priority === "NORMAL") return "info";
   return "warn";
-}
-
-function formatPaise(paise: number | null | undefined): string {
-  if (paise == null) return "—";
-  return `₹${Math.floor(paise / 100).toLocaleString("en-IN")}`;
-}
-
-const TERMINAL_RUNS = ["COMPLETED", "CANCELLED", "FAILED"];
-
-function ApprovalCard({ approval, onDecided }: { approval: TraceApproval; onDecided: () => void }) {
-  const [note, setNote] = useState("");
-  const [busy, setBusy] = useState<"approve" | "reject" | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const payload = approval.action_payload as {
-    order_id?: string;
-    amount_paise?: number | null;
-    reason?: string;
-  };
-
-  async function decide(approved: boolean) {
-    setBusy(approved ? "approve" : "reject");
-    setError(null);
-    try {
-      await decideApproval(approval.id, approved, note.trim() || undefined);
-      onDecided();
-    } catch (err) {
-      setError(staffApiErrorMessage(err, "Decision failed. Please try again."));
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  return (
-    <div className="rounded-xl border border-amber-300 bg-amber-50 p-3">
-      <p className="text-sm font-semibold text-amber-900">Approval required</p>
-      <dl className="mt-1.5 flex flex-col gap-0.5 text-[13px] text-slate-700">
-        <div className="flex gap-1.5"><dt className="sp-muted">Action</dt><dd className="font-semibold">{approval.action_type}</dd></div>
-        <div className="flex gap-1.5"><dt className="sp-muted">Amount</dt><dd className="font-semibold">{formatPaise(payload.amount_paise)}</dd></div>
-        {payload.reason ? (
-          <div className="flex gap-1.5"><dt className="sp-muted">AI note</dt><dd>{payload.reason}</dd></div>
-        ) : null}
-      </dl>
-      <Input
-        className="mt-2"
-        placeholder="Human note (optional)…"
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        aria-label="Human note for approval decision"
-      />
-      {error ? <p className="mt-1.5 text-[13px] text-red-600" role="alert">{error}</p> : null}
-      <div className="mt-2 flex gap-2">
-        <Button
-          variant="secondary"
-          disabled={busy !== null}
-          onClick={() => void decide(false)}
-        >
-          {busy === "reject" ? "Rejecting…" : "Reject"}
-        </Button>
-        <Button disabled={busy !== null} onClick={() => void decide(true)}>
-          {busy === "approve" ? "Approving…" : "Approve"}
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function AICopilot({
-  ticketId,
-  ticketStatus,
-  onChanged,
-}: {
-  ticketId: string;
-  ticketStatus: string;
-  onChanged: () => void;
-}) {
-  const qc = useQueryClient();
-  const [solving, setSolving] = useState(false);
-  const [takingOver, setTakingOver] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const trace = useQuery({
-    queryKey: ["support-trace", ticketId],
-    queryFn: () => fetchTrace(ticketId),
-    refetchInterval: (data) =>
-      data?.run && !TERMINAL_RUNS.includes(data.run.status) ? 4000 : false,
-  });
-
-  const runActive = !!trace.data?.run && !TERMINAL_RUNS.includes(trace.data.run.status);
-
-  useEffect(() => {
-    if (!runActive) return;
-    const close = subscribeActivity(
-      ticketId,
-      () => {
-        void qc.invalidateQueries({ queryKey: ["support-trace", ticketId] });
-        onChanged();
-      },
-      () => {
-        /* SSE unavailable — polling covers it */
-      },
-    );
-    return close;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ticketId, runActive]);
-
-  async function onSolve() {
-    setSolving(true);
-    setError(null);
-    try {
-      await solveTicket(ticketId);
-      onChanged();
-      await qc.invalidateQueries({ queryKey: ["support-trace", ticketId] });
-    } catch (err) {
-      setError(staffApiErrorMessage(err, "AI run failed to start."));
-    } finally {
-      setSolving(false);
-    }
-  }
-
-  async function onTakeOver() {
-    setTakingOver(true);
-    setError(null);
-    try {
-      await takeOverTicket(ticketId);
-      onChanged();
-      await qc.invalidateQueries({ queryKey: ["support-trace", ticketId] });
-    } catch (err) {
-      setError(staffApiErrorMessage(err, "Takeover failed."));
-    } finally {
-      setTakingOver(false);
-    }
-  }
-
-  const refreshAll = () => {
-    onChanged();
-    void qc.invalidateQueries({ queryKey: ["support-trace", ticketId] });
-  };
-
-  const pending = (trace.data?.approvals ?? []).filter((a) => a.status === "PENDING");
-  const solvable = !["RESOLVED", "CLOSED"].includes(ticketStatus) && !runActive;
-
-  return (
-    <Card>
-      <div className="ns-row-between">
-        <h2 className="flex items-center gap-1.5 text-sm font-semibold">
-          <Sparkles size={15} aria-hidden className="text-indigo-600" /> AI Support Copilot
-        </h2>
-        {runActive ? (
-          <Button variant="secondary" disabled={takingOver} onClick={() => void onTakeOver()}>
-            {takingOver ? "Taking over…" : "Take over"}
-          </Button>
-        ) : solvable ? (
-          <Button disabled={solving} onClick={() => void onSolve()}>
-            {solving ? "Starting…" : "Solve this ticket"}
-          </Button>
-        ) : null}
-      </div>
-
-      {error ? <p className="mt-2 text-[13px] text-red-600" role="alert">{error}</p> : null}
-
-      {!trace.data?.run ? (
-        <p className="sp-muted mt-2 text-[13px]">
-          The AI reads the ticket, order, and policy, then proposes or executes a
-          solution — pausing for your approval on risky actions.
-        </p>
-      ) : (
-        <ol className="mt-3 flex flex-col gap-0">
-          {(trace.data?.steps ?? []).map((step, i, arr) => (
-            <li key={step.key} className="flex gap-2.5">
-              <div className="flex flex-col items-center">
-                <span className={step.state === "done" ? "text-emerald-600" : step.state === "active" ? "text-indigo-600" : "text-slate-300"}>
-                  {step.state === "done" ? (
-                    <Check size={16} aria-hidden />
-                  ) : step.state === "active" ? (
-                    <Loader2 size={16} aria-hidden className="animate-spin" />
-                  ) : (
-                    <Circle size={16} aria-hidden />
-                  )}
-                </span>
-                {i < arr.length - 1 ? (
-                  <span className={`h-4 w-px ${step.state === "done" ? "bg-emerald-200" : "bg-slate-200"}`} aria-hidden />
-                ) : null}
-              </div>
-              <p className={`pb-2.5 text-[13px] ${step.state === "todo" ? "text-slate-400" : "font-medium"}`}>
-                {step.label}
-                {step.detail ? (
-                  <span className="mt-0.5 block font-mono text-xs font-normal text-slate-500">
-                    {step.detail}
-                  </span>
-                ) : null}
-              </p>
-            </li>
-          ))}
-        </ol>
-      )}
-
-      {pending.map((a) => (
-        <div key={a.id} className="mt-2">
-          <ApprovalCard approval={a} onDecided={refreshAll} />
-        </div>
-      ))}
-
-      {(trace.data?.audits ?? []).length > 0 ? (
-        <details className="mt-3 rounded-lg bg-slate-50 px-3 py-2">
-          <summary className="cursor-pointer text-[13px] font-medium text-slate-600">
-            Audit trail ({trace.data?.audits.length})
-          </summary>
-          <ul className="mt-1.5 flex flex-col gap-1">
-            {(trace.data?.audits ?? []).map((a, i) => (
-              <li key={`${a.event}-${i}`} className="flex items-center justify-between gap-2 text-xs text-slate-500">
-                <span>
-                  <span className="font-medium text-slate-700">{a.event.replaceAll("_", " ")}</span>
-                  {" "}· {a.actor.replaceAll("_", " ").toLowerCase()}
-                </span>
-                <span className="shrink-0">{formatDate(a.at)}</span>
-              </li>
-            ))}
-          </ul>
-        </details>
-      ) : null}
-    </Card>
-  );
 }
 
 export function TicketsPage() {
@@ -432,43 +196,6 @@ export function TicketsPage() {
   );
 }
 
-function ConsoleBubble({ m }: { m: ConsoleMessage }) {
-  if (m.sender_type === "SYSTEM") {
-    return <p className="sp-muted mx-auto max-w-[90%] text-center text-xs">— {m.message}</p>;
-  }
-  if (m.is_internal) {
-    return (
-      <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50 px-3.5 py-2.5 text-sm">
-        <p className="mb-0.5 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-amber-700">
-          <StickyNote size={11} aria-hidden /> Internal note · staff only
-        </p>
-        <p className="whitespace-pre-wrap text-slate-800">{m.message}</p>
-        <p className="mt-1 text-[11px] text-slate-400">{formatDate(m.created_at)}</p>
-      </div>
-    );
-  }
-  const staff = m.sender_type === "SUPPORT_AGENT";
-  return (
-    <div className={`flex ${staff ? "justify-end" : "justify-start"}`}>
-      <div
-        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm ${
-          staff ? "rounded-br-md bg-indigo-600 text-white" : "rounded-bl-md bg-slate-100 text-slate-800"
-        }`}
-      >
-        {!staff ? (
-          <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wider opacity-70">
-            {m.sender_type === "AI_AGENT" ? "AI assistant" : "Customer"}
-          </p>
-        ) : null}
-        <p className="whitespace-pre-wrap">{m.message}</p>
-        <p className={`mt-1 text-[11px] ${staff ? "text-indigo-200" : "text-slate-400"}`}>
-          {formatDate(m.created_at)}
-        </p>
-      </div>
-    </div>
-  );
-}
-
 export function TicketDetailPage() {
   const { id = "" } = useParams();
   const nav = useNavigate();
@@ -552,12 +279,20 @@ export function TicketDetailPage() {
                 <h1 className="sp-title">{t.ticket_number}</h1>
                 <p className="sp-muted truncate">{t.subject} · {t.category.toLowerCase()} · {t.priority.toLowerCase()} priority</p>
               </div>
-              <Badge tone={statusTone(t.status)}>{t.status}</Badge>
+              <span className="flex shrink-0 items-center gap-2">
+                <Badge tone={statusTone(t.status)}>{t.status}</Badge>
+                <Button
+                  variant="secondary"
+                  onClick={() => nav(`/chat?new=1&solve=${encodeURIComponent(t.ticket_number)}`)}
+                >
+                  Open in chat
+                </Button>
+              </span>
             </div>
             <p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">{t.description}</p>
           </Card>
 
-          <AICopilot ticketId={id} ticketStatus={t.status} onChanged={refreshDetail} />
+          <AICopilot ticketId={id} ticketNumber={t.ticket_number} ticketStatus={t.status} onChanged={refreshDetail} />
 
           <Card>
             <div className="flex flex-col gap-2.5">
@@ -636,82 +371,7 @@ export function TicketDetailPage() {
           </Card>
         </div>
 
-        <div className="flex flex-col gap-4">
-          <Card>
-            <p className="sp-muted mb-1 text-xs font-semibold uppercase tracking-wider">Customer</p>
-            <p className="text-sm font-semibold">{t.customer.name}</p>
-            <p className="sp-muted text-[13px]">{t.customer.email}</p>
-          </Card>
-
-          {t.related_order ? (
-            <Card>
-              <p className="sp-muted mb-1 text-xs font-semibold uppercase tracking-wider">
-                Order {t.related_order.order_number} · {t.related_order.status.toLowerCase()}
-              </p>
-              <ul className="flex flex-col gap-1 text-[13px]">
-                {t.related_order.items.map((line, i) => (
-                  <li key={i} className="ns-row-between">
-                    <span>{line.product_name} × {line.quantity}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="sp-muted mt-1.5 text-[13px]">
-                {t.related_order.total_display} · {t.related_order.payment_status}
-                {t.related_order.payment_reference ? ` · ${t.related_order.payment_reference}` : ""}
-              </p>
-              <p className="sp-muted mt-0.5 text-[13px]">{t.related_order.shipping_address}</p>
-            </Card>
-          ) : (
-            <Card><p className="sp-muted text-[13px]">No linked order.</p></Card>
-          )}
-
-          {t.policies.length > 0 ? (
-            <Card>
-              <p className="sp-muted mb-1 text-xs font-semibold uppercase tracking-wider">Policies</p>
-              <ul className="flex flex-col gap-1.5 text-[13px] text-slate-600">
-                {t.policies.map((p) => (
-                  <li key={p.product_name}>
-                    <span className="font-medium text-slate-800">{p.product_name}:</span> {p.summary}
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          ) : null}
-
-          <Card>
-            <p className="sp-muted mb-1 text-xs font-semibold uppercase tracking-wider">Recent orders</p>
-            {t.recent_orders.length === 0 ? (
-              <p className="sp-muted text-[13px]">None.</p>
-            ) : (
-              <ul className="flex flex-col gap-1 text-[13px]">
-                {t.recent_orders.map((o) => (
-                  <li key={o.id} className="ns-row-between">
-                    <span>{o.order_number}</span>
-                    <span className="sp-muted">{o.status.toLowerCase()} · {o.total_display}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-
-          <Card>
-            <p className="sp-muted mb-1 text-xs font-semibold uppercase tracking-wider">Previous tickets</p>
-            {t.previous_tickets.length === 0 ? (
-              <p className="sp-muted text-[13px]">None.</p>
-            ) : (
-              <ul className="flex flex-col gap-1 text-[13px]">
-                {t.previous_tickets.map((p) => (
-                  <li key={p.id}>
-                    <Link to={`/tickets/${p.id}`} className="text-indigo-700 hover:underline">
-                      {p.ticket_number}
-                    </Link>
-                    <span className="sp-muted"> · {p.status.toLowerCase()}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-        </div>
+        <ContextPanel t={t} />
       </div>
     </div>
   );

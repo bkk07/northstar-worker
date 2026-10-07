@@ -62,6 +62,12 @@ class CustomerTicketRepository:
     def get_by_id(self, ticket_id: uuid.UUID | str) -> CustomerTicket | None:
         return self._s.get(CustomerTicket, ticket_id)
 
+    def get_by_number(self, ticket_number: str) -> CustomerTicket | None:
+        """One customer ticket by human number (`TKT-XXXXXX`)."""
+        return self._s.scalars(
+            select(CustomerTicket).where(CustomerTicket.ticket_number == ticket_number)
+        ).first()
+
     def list_by_user(self, user_id: uuid.UUID | str) -> list[CustomerTicket]:
         return list(
             self._s.scalars(

@@ -42,12 +42,14 @@ from app.api.worker import (
     verification_controller,
 )
 from app.core.exceptions import AppError, app_error_handler
+from northstar_common.config import assert_production_secrets
 
 APP_VERSION = "0.1.0-phase6"
 
 
 def create_app() -> FastAPI:
     """Assemble the FastAPI app with every commerce router."""
+    assert_production_secrets()
     app = FastAPI(title="northstar-worker-backend", version=APP_VERSION)
     app.add_middleware(
         CORSMiddleware,

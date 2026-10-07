@@ -9,6 +9,7 @@ from sqlalchemy import text
 
 from app.main import create_app
 from database import session as session_factory
+from tests.integration.conftest import staff_headers
 
 
 @pytest.fixture(scope="module")
@@ -100,18 +101,18 @@ def task_rows():
 def test_task_list_contains_task_and_filters_status(client, task_rows):
     """The queue lists newest first with an optional status filter."""
     task_id, _ = task_rows
-    body = client.get("/api/tasks?limit=50").json()
+    body = client.get("/api/tasks?limit=50", headers=staff_headers()).json()
     assert any(item["id"] == str(task_id) for item in body)
-    assert client.get("/api/tasks?status=blocked").json() != []
+    assert client.get("/api/tasks?status=blocked", headers=staff_headers()).json() != []
     assert all(
-        item["status"] == "blocked" for item in client.get("/api/tasks?status=blocked").json()
+        item["status"] == "blocked" for item in client.get("/api/tasks?status=blocked", headers=staff_headers()).json()
     )
 
 
 def test_event_history_replays_oldest_first(client, task_rows):
     """History carries kind, node, and structured payload."""
     task_id, _ = task_rows
-    body = client.get(f"/api/tasks/{task_id}/events/history").json()
+    body = client.get(f"/api/tasks/{task_id}/events/history", headers=staff_headers()).json()
     assert len(body) == 1
     assert body[0]["kind"] == "policy.decision"
     assert body[0]["payload"] == {"rule_id": "P-OWN-001"}
@@ -121,10 +122,10 @@ def test_event_history_replays_oldest_first(client, task_rows):
 def test_evidence_packet_and_screenshots(client, task_rows):
     """The packet plus the per-run screenshot index."""
     task_id, run_id = task_rows
-    packet = client.get(f"/api/tasks/{task_id}/evidence").json()
+    packet = client.get(f"/api/tasks/{task_id}/evidence", headers=staff_headers()).json()
     assert packet["packet"]["status"] == "blocked"
     assert packet["summary"].startswith("BLOCKED")
-    shots = client.get(f"/api/tasks/{task_id}/evidence/screenshots").json()
+    shots = client.get(f"/api/tasks/{task_id}/evidence/screenshots", headers=staff_headers()).json()
     assert len(shots) == 1
     assert shots[0]["run_id"] == str(run_id)
     assert shots[0]["path"] == "shots/after.png"
@@ -133,7 +134,7 @@ def test_evidence_packet_and_screenshots(client, task_rows):
 def test_verification_lists_persisted_verdicts(client, task_rows):
     """The proof behind the packet, oldest first."""
     task_id, run_id = task_rows
-    body = client.get(f"/api/tasks/{task_id}/verification").json()
+    body = client.get(f"/api/tasks/{task_id}/verification", headers=staff_headers()).json()
     assert len(body) == 1
     assert body[0]["run_id"] == str(run_id)
     assert body[0]["verdict"] == "failed"
@@ -142,7 +143,7 @@ def test_verification_lists_persisted_verdicts(client, task_rows):
 def test_unknown_task_404s(client):
     """Unknown tasks 404 on every evidence route."""
     missing = uuid.uuid4()
-    assert client.get(f"/api/tasks/{missing}/events/history").status_code == 404
-    assert client.get(f"/api/tasks/{missing}/evidence").status_code == 404
-    assert client.get(f"/api/tasks/{missing}/evidence/screenshots").status_code == 404
-    assert client.get(f"/api/tasks/{missing}/verification").status_code == 404
+    assert client.get(f"/api/tasks/{missing}/events/history", headers=staff_headers()).status_code == 404
+    assert client.get(f"/api/tasks/{missing}/evidence", headers=staff_headers()).status_code == 404
+    assert client.get(f"/api/tasks/{missing}/evidence/screenshots", headers=staff_headers()).status_code == 404
+    assert client.get(f"/api/tasks/{missing}/verification", headers=staff_headers()).status_code == 404

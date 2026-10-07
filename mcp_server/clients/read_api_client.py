@@ -12,8 +12,13 @@ ALLOWED_PREFIXES = ("/api/read/", "/api/shop/")
 class ReadApiClient:
     """Thin typed wrapper over the backend read API."""
 
-    def __init__(self, base_url: str, timeout_seconds: float = 10.0) -> None:
-        self._client = httpx.Client(base_url=base_url.rstrip("/"), timeout=timeout_seconds)
+    def __init__(
+        self, base_url: str, timeout_seconds: float = 10.0, api_token: str | None = None
+    ) -> None:
+        headers = {"Authorization": f"Bearer {api_token}"} if api_token else {}
+        self._client = httpx.Client(
+            base_url=base_url.rstrip("/"), timeout=timeout_seconds, headers=headers
+        )
 
     def _get(self, path: str, params: dict | None = None):
         response = self._client.get(path, params=params or {})

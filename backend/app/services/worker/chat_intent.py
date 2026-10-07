@@ -1,16 +1,19 @@
 """Chat intent parser: deterministic, no model calls.
 
-Recognizes ticket codes (`TCK-...`), task ids (uuid or 8-hex prefix), and a
-small verb vocabulary. Anything unrecognized is `unknown` so the service can
-answer with the help text. Pure functions — unit-tested without a database.
+Recognizes ticket codes (`TCK-...` legacy, `TKT-...` customer tickets),
+task ids (uuid or 8-hex prefix), and a small verb vocabulary. Anything
+unrecognized is `unknown` so the service can converse; a bare confirmation
+(`yes`, `sure`, ...) is `confirm` so the service can resolve it against the
+recent thread instead of mistaking it for an approval. Pure functions —
+unit-tested without a database.
 """
 
 import re
 from dataclasses import dataclass
 
-TICKET_RE = re.compile(r"\bTCK-[A-Z0-9]{3,}\b", re.IGNORECASE)
+TICKET_RE = re.compile(r"\b(?:TCK|TKT)-[A-Z0-9]{3,}\b", re.IGNORECASE)
 ORDER_RE = re.compile(r"\bORD-[A-Z0-9]{3,}\b", re.IGNORECASE)
-SKU_RE = re.compile(r"\b(?!ORD-|TCK-)[A-Z]{2,4}-[0-9]{2}[A-Z0-9]*\b")
+SKU_RE = re.compile(r"\b(?!ORD-|TCK-|TKT-)[A-Z]{2,4}-[0-9]{2}[A-Z0-9]*\b")
 UUID_RE = re.compile(
     r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", re.IGNORECASE
 )
@@ -20,12 +23,17 @@ _SOLVE_RE = re.compile(r"\b(solve|handle|fix|work on|take care of|resolve|do)\b"
 _STATUS_RE = re.compile(r"\bstatus\b", re.IGNORECASE)
 _LIST_RE = re.compile(r"\b(list|show|what|which)\b", re.IGNORECASE)
 _APPROVE_RE = re.compile(
-    r"\b(approve|approved|reject|rejected|\byes\b|\bno\b|confirm it|go ahead)\b", re.IGNORECASE
+    r"\b(approve|approved|reject|rejected|confirm it|go ahead)\b", re.IGNORECASE
+)
+# Bare confirmations answer a previous question — never an approval decision.
+_CONFIRM_RE = re.compile(
+    r"\b(yes|yeah|yep|sure|ok|okay|do it|please do|go for it|look it up|take a look)\b",
+    re.IGNORECASE,
 )
 _HELP_RE = re.compile(r"\b(help|what can you do|how do|example|examples)\b", re.IGNORECASE)
 _LATEST_RE = re.compile(r"\b(last|latest|my|current)\b", re.IGNORECASE)
 _DETAIL_RE = re.compile(
-    r"\b(detail|details|about|tell me|show me|info|information|order|product|products|policy|policies)\b",
+    r"\b(detail|details|about|tell me|show me|info|information|order|product|products|policy|policies|explain|elaborate|describ\w*|summar\w*|breakdown)\b",
     re.IGNORECASE,
 )
 _APPROVALS_RE = re.compile(
@@ -96,4 +104,34 @@ def parse_intent(message: str) -> ChatIntent:
         return ChatIntent(kind="list_tickets")
     if task_ref:
         return ChatIntent(kind="task_status", ref=task_ref)
+    if _CONFIRM_RE.search(text):
+        return ChatIntent(kind="confirm")
     return ChatIntent(kind="unknown")
+
+
+def resolve_references(history: list[str]) -> dict[str, str | None]:
+    """Newest-first scan of recent thread texts for entity references.
+
+    Lets follow-ups like “yes, look at that ticket” resolve against codes
+    mentioned earlier in the thread. Pure; the service decides what to do
+    with the references. Returns ticket/order/sku/task ref (or Nones).
+    """
+    found: dict[str, str | None] = {
+        "ticket_code": None,
+        "order_code": None,
+        "sku": None,
+        "task_ref": None,
+    }
+    for text in reversed(history[-6:]):
+        if not isinstance(text, str) or not text.strip():
+            continue
+        intent = parse_intent(text)
+        for key in ("ticket_code", "order_code", "sku"):
+            value = getattr(intent, key)
+            if value and not found[key]:
+                found[key] = value
+        if intent.ref and not found["task_ref"]:
+            found["task_ref"] = intent.ref
+        if all(found.values()):
+            break
+    return found

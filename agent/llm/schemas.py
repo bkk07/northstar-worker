@@ -15,17 +15,29 @@ from pydantic import BaseModel, Field
 class Interpretation(BaseModel):
     """`understand`: what the operator asked, as typed data."""
 
-    summary: str = Field(min_length=1, description="One-line reading of the task")
-    goal: str = Field(min_length=1, description="Desired end state in own words")
-    requested_effects: list[str] = Field(description="Effect-type guesses from the closed registry")
+    summary: str = Field(
+        default="operator task", description="One-line reading of the task"
+    )
+    goal: str = Field(
+        default="complete the requested work", description="Desired end state in own words"
+    )
+    requested_effects: list[str] = Field(
+        default_factory=list, description="Effect-type guesses from the closed registry"
+    )
     mentioned_codes: list[str] = Field(
-        description="Human codes quoted in the text (customer, order, ticket codes)"
+        default_factory=list,
+        description="Human codes quoted in the text (customer, order, ticket codes)",
     )
     mentioned_names: list[str] = Field(
-        description="Person names quoted in the text (customer identity candidates)"
+        default_factory=list,
+        description="Person names quoted in the text (customer identity candidates)",
     )
-    ambiguities: list[str] = Field(description="Questions only the operator can settle")
-    unsupported: bool = Field(description="True when no registry effect fits")
+    ambiguities: list[str] = Field(
+        default_factory=list, description="Questions only the operator can settle"
+    )
+    unsupported: bool = Field(
+        default=False, description="True when no registry effect fits"
+    )
 
 
 class PlanStep(BaseModel):

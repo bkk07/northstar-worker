@@ -24,6 +24,13 @@ class ProductRepository:
     def get_by_id(self, product_id: uuid.UUID | str) -> Product | None:
         return self._s.get(Product, product_id)
 
+    def get_by_id_for_update(self, session: Session | None, product_id: uuid.UUID | str) -> Product | None:
+        """Row-locked read for checkout (prevents concurrent oversell)."""
+        s = session or self._s
+        return s.scalars(
+            select(Product).where(Product.id == product_id).with_for_update()
+        ).first()
+
     def get_policy(self, product_id: uuid.UUID | str) -> ProductPolicy | None:
         return self._s.scalars(
             select(ProductPolicy).where(ProductPolicy.product_id == product_id)

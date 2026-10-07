@@ -148,7 +148,8 @@ def checkout(
     subtotal = 0
     snapshots = []
     for line in lines:
-        product = prod_repo.get_by_id(line.product_id)
+        # Lock the product row so concurrent checkouts cannot oversell.
+        product = prod_repo.get_by_id_for_update(session, line.product_id)
         if product is None or not product.is_active:
             raise UnprocessableError("a cart product is no longer available")
         if line.quantity > product.stock:

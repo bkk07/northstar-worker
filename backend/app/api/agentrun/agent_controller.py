@@ -104,6 +104,49 @@ def take_over(
     )
 
 
+# Canonical AI aliases (spec §26): /tickets/:id/ai/* mirrors the
+# /support/tickets/:id/* paths so clients can use either form.
+
+
+@router.post("/tickets/{ticket_id}/ai/solve", response_model=SolveResponse)
+def ai_solve_ticket(
+    ticket_id: str,
+    claims: dict = Depends(_staff),
+    session: Session = Depends(get_db),
+) -> dict:
+    """Canonical alias for Solve with AI."""
+    return solve_ticket(ticket_id=ticket_id, claims=claims, session=session)
+
+
+@router.get("/tickets/{ticket_id}/ai/runs", response_model=TraceResponse)
+def ai_ticket_runs(
+    ticket_id: str,
+    claims: dict = Depends(_staff),
+    session: Session = Depends(get_db),
+) -> dict:
+    """Canonical alias for the persisted AI trace."""
+    return get_trace(ticket_id=ticket_id, claims=claims, session=session)
+
+
+@router.post("/tickets/{ticket_id}/ai/approval", response_model=ApprovalResult)
+def ai_ticket_approval(
+    ticket_id: str,
+    payload: ApprovalDecision,
+    claims: dict = Depends(_staff),
+    session: Session = Depends(get_db),
+) -> dict:
+    """Decide the pending HITL approval for a ticket (canonical alias)."""
+    pending = agent_run_service.list_approvals(session, status="PENDING")
+    match = next((a for a in pending if a["ticket_id"] == ticket_id), None)
+    if match is None:
+        from app.core.exceptions import NotFoundError
+
+        raise NotFoundError("no pending approval for ticket")
+    return decide_approval(
+        approval_id=match["id"], payload=payload, claims=claims, session=session
+    )
+
+
 @router.get("/support/tickets/{ticket_id}/activity")
 async def activity_stream(
     ticket_id: str,

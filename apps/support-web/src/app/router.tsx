@@ -5,6 +5,7 @@ import { Spinner } from "@/components/ui";
 import { useStaffAuth } from "@/stores/auth-store";
 import { LoginPage } from "@/pages/auth/LoginPage";
 import { DashboardPage } from "@/pages/dashboard/DashboardPage";
+import { ChatPage } from "@/pages/chat/ChatPage";
 import { TicketsPage, TicketDetailPage } from "@/pages/tickets/TicketsPage";
 
 function StaffOnly({ children }: { children: ReactNode }) {
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: "dashboard", element: <DashboardPage /> },
+      { path: "chat", element: <ChatPage /> },
       { path: "tickets", element: <TicketsPage /> },
       { path: "tickets/:id", element: <TicketDetailPage /> },
       { path: "*", element: <Navigate to="/dashboard" replace /> },

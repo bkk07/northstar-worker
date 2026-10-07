@@ -10,6 +10,7 @@ from sqlalchemy import text
 from app.main import create_app
 from app.services.worker import chat_runner
 from app.services.worker.chat_runner import _mark_cancelled
+from tests.integration.conftest import staff_headers
 
 
 @pytest.fixture(autouse=True)
@@ -58,7 +59,7 @@ def _insert_ticket(conn, tag: str) -> dict:
 def test_chat_help_answers_capabilities():
     """Small talk answers with the capability list, no side effects."""
     client = TestClient(create_app())
-    response = client.post("/api/chat", json={"message": "hello bot"})
+    response = client.post("/api/chat", headers=staff_headers(), json={"message": "hello bot"})
     assert response.status_code == 200
     assert "Solve ticket" in response.json()["reply"]
 
@@ -66,7 +67,7 @@ def test_chat_help_answers_capabilities():
 def test_chat_approve_attempt_refused():
     """Typed approvals refuse with the safety rule (chat never decides)."""
     client = TestClient(create_app())
-    response = client.post("/api/chat", json={"message": "yes, approve it"})
+    response = client.post("/api/chat", headers=staff_headers(), json={"message": "yes, approve it"})
     assert response.status_code == 200
     assert "can't approve" in response.json()["reply"]
 
@@ -74,7 +75,7 @@ def test_chat_approve_attempt_refused():
 def test_chat_solve_unknown_ticket_404_style():
     """Solving a missing ticket answers cleanly (no task created)."""
     client = TestClient(create_app())
-    response = client.post("/api/chat", json={"message": "solve ticket TCK-NOPE01"})
+    response = client.post("/api/chat", headers=staff_headers(), json={"message": "solve ticket TCK-NOPE01"})
     assert response.status_code == 200
     assert "can't find" in response.json()["reply"]
     assert response.json()["task_id"] is None
@@ -88,7 +89,7 @@ def test_chat_solve_ticket_creates_task_and_starts_run(app_conn, monkeypatch):
     )
     chain = _insert_ticket(app_conn, "solve")
     client = TestClient(create_app())
-    response = client.post("/api/chat", json={"message": f"please solve ticket {chain['code']}"})
+    response = client.post("/api/chat", headers=staff_headers(), json={"message": f"please solve ticket {chain['code']}"})
     assert response.status_code == 200
     body = response.json()
     assert chain["code"] in body["reply"]
@@ -97,7 +98,7 @@ def test_chat_solve_ticket_creates_task_and_starts_run(app_conn, monkeypatch):
     assert chain["code"] in started["text"]
     assert chain["order_code"] in started["text"]
     assert body["actions"][0]["href"] == f"/worker/tasks/{body['task_id']}"
-    task = client.get(f"/api/tasks/{body['task_id']}").json()
+    task = client.get(f"/api/tasks/{body['task_id']}", headers=staff_headers()).json()
     assert task["status"] == "pending"
     assert task["created_by"] == "chat"
 
@@ -107,12 +108,12 @@ def test_chat_ticket_and_task_status(app_conn, monkeypatch):
     monkeypatch.setattr(chat_runner, "start_run", lambda task_id, text: None)
     chain = _insert_ticket(app_conn, "status")
     client = TestClient(create_app())
-    ticket = client.post("/api/chat", json={"message": chain["code"]})
+    ticket = client.post("/api/chat", headers=staff_headers(), json={"message": chain["code"]})
     assert ticket.status_code == 200
     assert "open" in ticket.json()["reply"]
     assert ticket.json()["actions"][0]["href"] == f"/ops/tickets/{chain['code']}"
-    client.post("/api/chat", json={"message": f"solve {chain['code']}"})
-    latest = client.post("/api/chat", json={"message": "how is my last task doing?"})
+    client.post("/api/chat", headers=staff_headers(), json={"message": f"solve {chain['code']}"})
+    latest = client.post("/api/chat", headers=staff_headers(), json={"message": "how is my last task doing?"})
     assert latest.status_code == 200
     assert "pending" in latest.json()["reply"]
 
@@ -121,7 +122,7 @@ def test_chat_list_tickets(app_conn):
     """Queue questions list open tickets with their codes."""
     chain = _insert_ticket(app_conn, "list")
     client = TestClient(create_app())
-    response = client.post("/api/chat", json={"message": "show open tickets"})
+    response = client.post("/api/chat", headers=staff_headers(), json={"message": "show open tickets"})
     assert response.status_code == 200
     assert chain["code"] in response.json()["reply"]
 
@@ -130,7 +131,7 @@ def test_chat_ticket_detail_reports_order_and_policy(app_conn):
     """'Tell me about TCK-...' narrates ticket + order + refund policy."""
     chain = _insert_ticket(app_conn, "detail")
     client = TestClient(create_app())
-    response = client.post("/api/chat", json={"message": f"tell me about {chain['code']}"})
+    response = client.post("/api/chat", headers=staff_headers(), json={"message": f"tell me about {chain['code']}"})
     assert response.status_code == 200
     body = response.json()
     assert chain["order_code"] in body["reply"]
@@ -142,7 +143,7 @@ def test_chat_order_detail_reports_items(app_conn):
     """'Show order ORD-...' summarizes state and items with policy pointers."""
     chain = _insert_ticket(app_conn, "orderq")
     client = TestClient(create_app())
-    response = client.post("/api/chat", json={"message": f"show order {chain['order_code']}"})
+    response = client.post("/api/chat", headers=staff_headers(), json={"message": f"show order {chain['order_code']}"})
     assert response.status_code == 200
     assert "delivered" in response.json()["reply"]
     assert any(a["kind"] == "order" for a in response.json()["actions"])
@@ -151,7 +152,7 @@ def test_chat_order_detail_reports_items(app_conn):
 def test_chat_order_detail_unknown_code():
     """Unknown orders answer cleanly."""
     client = TestClient(create_app())
-    response = client.post("/api/chat", json={"message": "show order ORD-0000"})
+    response = client.post("/api/chat", headers=staff_headers(), json={"message": "show order ORD-0000"})
     assert response.status_code == 200
     assert "can't find" in response.json()["reply"]
 
@@ -159,7 +160,7 @@ def test_chat_order_detail_unknown_code():
 def test_chat_product_detail_quotes_policies():
     """'Policy for HP-01' names the product and its refund policy."""
     client = TestClient(create_app())
-    response = client.post("/api/chat", json={"message": "what is the policy for HP-01?"})
+    response = client.post("/api/chat", headers=staff_headers(), json={"message": "what is the policy for HP-01?"})
     assert response.status_code == 200
     body = response.json()
     assert "Studio Headphones" in body["reply"]
@@ -169,7 +170,7 @@ def test_chat_product_detail_quotes_policies():
 def test_chat_policy_answer_headlines():
     """Bare policy questions headline the refund rules."""
     client = TestClient(create_app())
-    response = client.post("/api/chat", json={"message": "what is the refund policy?"})
+    response = client.post("/api/chat", headers=staff_headers(), json={"message": "what is the refund policy?"})
     assert response.status_code == 200
     assert "P-REF-001" in response.json()["reply"]
 
@@ -177,7 +178,7 @@ def test_chat_policy_answer_headlines():
 def test_chat_approvals_list_empty():
     """No pending approvals answers cleanly (buttons appear when present)."""
     client = TestClient(create_app())
-    response = client.post("/api/chat", json={"message": "anything waiting for approval?"})
+    response = client.post("/api/chat", headers=staff_headers(), json={"message": "anything waiting for approval?"})
     assert response.status_code == 200
     assert "waiting" in response.json()["reply"].lower()
 
@@ -185,6 +186,6 @@ def test_chat_approvals_list_empty():
 def test_mark_cancelled_parks_task_instead_of_pending():
     """Background crashes land the task in `cancelled`, never stuck pending."""
     client = TestClient(create_app())
-    task_id = client.post("/api/tasks", json={"text": "doomed task"}).json()["id"]
+    task_id = client.post("/api/tasks", headers=staff_headers(), json={"text": "doomed task"}).json()["id"]
     _mark_cancelled(task_id)
-    assert client.get(f"/api/tasks/{task_id}").json()["status"] == "cancelled"
+    assert client.get(f"/api/tasks/{task_id}", headers=staff_headers()).json()["status"] == "cancelled"

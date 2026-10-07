@@ -10,6 +10,7 @@ import logging
 import os
 import sys
 import threading
+import time
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -82,12 +83,43 @@ def _drive(task_id: str, task_text: str) -> None:
         wiring.runner().run_task(task_id)
 
 
+# Transient provider blips (429/5xx) get a few spaced attempts before the
+# task is parked — a momentary overload should not kill the run.
+DRIVE_ATTEMPTS = 3
+DRIVE_RETRY_DELAY_S = 20.0
+
+
+def _drive_with_retry(task_id: str, task_text: str) -> None:
+    """Run `_drive`, retrying transient LLM failures with backoff."""
+    from agent.llm.client import is_transient_error
+
+    last: Exception | None = None
+    for attempt in range(DRIVE_ATTEMPTS):
+        try:
+            _drive(task_id, task_text)
+            return
+        except Exception as exc:  # noqa: BLE001 - classified below
+            last = exc
+            if not is_transient_error(exc) or attempt + 1 >= DRIVE_ATTEMPTS:
+                raise
+            logger.warning(
+                "chat run transient failure for task %s (attempt %d/%d): %s",
+                task_id,
+                attempt + 1,
+                DRIVE_ATTEMPTS,
+                exc,
+            )
+            time.sleep(DRIVE_RETRY_DELAY_S)
+    if last is not None:
+        raise last
+
+
 def start_run(task_id: str, task_text: str) -> None:
     """Launch the background driver; unexpected errors are logged, never raised."""
 
     def guarded() -> None:
         try:
-            _drive(task_id, task_text)
+            _drive_with_retry(task_id, task_text)
         except Exception:  # noqa: BLE001 - background thread must not kill the server
             logger.exception("chat run failed for task %s", task_id)
             _mark_cancelled(task_id)

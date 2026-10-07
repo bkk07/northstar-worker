@@ -21,7 +21,9 @@ SYSTEM = (
 )
 
 # Short leash: chat turns must feel instant; the draft is always acceptable.
-TIMEOUT_S = float(os.environ.get("CHAT_LLM_TIMEOUT_S", "25"))
+# Budget stays inside the frontend's send timeout so a slow provider falls
+# back to the draft instead of tripping "Chat failed" in the UI.
+TIMEOUT_S = float(os.environ.get("CHAT_LLM_TIMEOUT_S", "10"))
 
 
 def _build_client() -> MercuryClient | None:

@@ -13,6 +13,7 @@ import uuid
 from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
 
+from app.core.auth import require_roles_or_service
 from app.core.deps import get_db
 from app.core.exceptions import ForbiddenError, NotFoundError, UnprocessableError
 from app.schemas.agent.direct import DirectCommitReply, DirectCommitRequest
@@ -21,31 +22,44 @@ from app.services.ops.refund_service import RefundService
 from app.services.ops.replacement_service import ReplacementService
 from database.models.biz.order import Order, OrderItem
 from database.models.biz.ticket import Ticket
+from northstar_common.config import get_settings
 from northstar_common.tokens import canonical_params_hash, verify_policy_token
 
 router = APIRouter(tags=["agent-direct"])
+
+_staff = require_roles_or_service("SUPPORT_AGENT")
 
 # Must match the issuer default in mcp_server/context.py (both read the
 # same env; local dev sets neither, so both fall back together).
 _SECRET_ENV = "POLICY_TOKEN_SECRET"
 _SUBMIT_ACTION = "browser_submit"
 _OPERATIONAL_KEYS = frozenset({"ref", "mutation_key", "token"})
+_INSECURE_DEFAULT = "local-policy-secret"
 
 
 def _verify(body: DirectCommitRequest) -> None:
     """The submit token must authorize this exact (task, params) commit."""
     signable = {k: v for k, v in body.params.items() if k not in _OPERATIONAL_KEYS}
     params_hash = canonical_params_hash(signable)
-    secret = os.environ.get(_SECRET_ENV, "local-policy-secret")
+    secret = os.environ.get(_SECRET_ENV, _INSECURE_DEFAULT)
+    if secret == _INSECURE_DEFAULT and get_settings().environment != "local":
+        raise ForbiddenError("insecure default policy secret is forbidden outside local")
     if not verify_policy_token(body.token, secret, body.task_id, _SUBMIT_ACTION, params_hash):
         raise ForbiddenError("token_denied: token does not match (task, action, params)")
 
 
 @router.post("/api/agent/direct/commits", response_model=DirectCommitReply)
 def commit_direct(
-    body: DirectCommitRequest, response: Response, session: Session = Depends(get_db)
+    body: DirectCommitRequest,
+    response: Response,
+    claims: dict = Depends(_staff),
+    session: Session = Depends(get_db),
 ) -> DirectCommitReply:
-    """Commit a refund or replacement without the browser (201/200 replay)."""
+    """Commit a refund or replacement without the browser (201/200 replay).
+
+    Requires SUPPORT_AGENT JWT (or the first-party service token) in
+    addition to the HMAC submit token.
+    """
     _verify(body)
     if body.effect == "refund.create":
         dto, created = _commit_refund(session, body)

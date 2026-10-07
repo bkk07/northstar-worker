@@ -30,7 +30,12 @@ APPROVAL_REJECTED = "REJECTED"
 
 
 class AgentRun(UUIDPk, CreatedAt, Base):
-    """One AI attempt at a ticket (spec §9 `agent_runs`)."""
+    """One AI attempt at a ticket (spec §9 `agent_runs`).
+
+    `graph_state` holds the full LangGraph checkpoint snapshot so a paused
+    run (HITL) resumes the SAME execution after restart/reconnect instead of
+    restarting from scratch.
+    """
 
     __tablename__ = "agent_runs"
     __table_args__ = (
@@ -46,6 +51,12 @@ class AgentRun(UUIDPk, CreatedAt, Base):
     decision: Mapped[str | None] = mapped_column(String(32), nullable=True)
     completed_at: Mapped[datetime.datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
+    )
+    workflow: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    graph_state: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    verification_result: Mapped[dict[str, Any] | None] = mapped_column(
+        JSONB, nullable=True
     )
 
 
@@ -93,6 +104,9 @@ class Approval(UUIDPk, CreatedAt, Base):
     )
     resolved_by: Mapped[uuid.UUID | None] = mapped_column(PG_UUID(as_uuid=True), nullable=True)
     human_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    expires_at: Mapped[datetime.datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
 
 class AuditLog(UUIDPk, CreatedAt, Base):

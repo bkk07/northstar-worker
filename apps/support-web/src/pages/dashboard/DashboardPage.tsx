@@ -35,9 +35,14 @@ export function DashboardPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className="sp-title">Dashboard</h1>
-        <Link to="/tickets" className="sp-btn sp-btn-secondary" style={{ padding: "0.375rem 0.75rem", fontSize: 13 }}>
-          <Inbox size={14} aria-hidden /> Open queue
-        </Link>
+        <span className="flex gap-2">
+          <Link to="/chat" className="sp-btn sp-btn-primary" style={{ padding: "0.375rem 0.75rem", fontSize: 13 }}>
+            Open AI Chat
+          </Link>
+          <Link to="/tickets" className="sp-btn sp-btn-secondary" style={{ padding: "0.375rem 0.75rem", fontSize: 13 }}>
+            <Inbox size={14} aria-hidden /> Open queue
+          </Link>
+        </span>
       </div>
 
       {stats.isError ? (

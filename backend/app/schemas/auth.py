@@ -8,12 +8,12 @@ Role = Literal["CUSTOMER", "SUPPORT_AGENT"]
 
 
 class RegisterRequest(BaseModel):
-    """Customer sign-up. Prototype allows requesting SUPPORT_AGENT (demo)."""
+    """Customer sign-up. Always creates CUSTOMER; `role` is ignored if sent."""
 
     name: str = Field(min_length=1, max_length=200)
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
-    role: Role = "CUSTOMER"
+    role: Role = Field(default="CUSTOMER", exclude=True)
 
 
 class LoginRequest(BaseModel):

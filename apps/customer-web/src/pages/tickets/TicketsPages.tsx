@@ -242,8 +242,10 @@ export function TicketDetailPage() {
   const detail = useQuery({
     queryKey: ["ticket", id],
     queryFn: () => getTicket(id),
-    refetchInterval: (data) =>
-      data && !["RESOLVED", "CLOSED"].includes(data.status) ? 5000 : false,
+    refetchInterval: (query) => {
+      const data = query.state.data as { status: string } | undefined;
+      return data && !["RESOLVED", "CLOSED"].includes(data.status) ? 5000 : false;
+    },
   });
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);

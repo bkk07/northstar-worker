@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     inception_api_key: str = ""
     inception_model: str = ""
     inception_base_url: str = "https://api.inceptionlabs.ai/v1"
-    # Phase 8 support agent provider (Groq wins over Inception when set).
+    # Phase 8 support agent provider fallback (Groq used only when Inception key unset).
     groq_api_key: str = ""
     groq_model: str = "llama-3.3-70b-versatile"
     groq_base_url: str = "https://api.groq.com/openai/v1"
@@ -47,3 +47,22 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Cached accessor so app code shares one parsed settings object."""
     return Settings()
+
+
+_INSECURE_JWT_DEFAULTS = frozenset(
+    {"local-dev-jwt-secret-change-me-please", "change-me", ""}
+)
+_INSECURE_OPERATOR_DEFAULTS = frozenset({"local-operator-token", "change-me", ""})
+
+
+def assert_production_secrets() -> None:
+    """Fail closed when deployable env keeps insecure default secrets."""
+    settings = get_settings()
+    if settings.environment == "local":
+        return
+    if settings.jwt_secret in _INSECURE_JWT_DEFAULTS:
+        raise RuntimeError("insecure JWT secret: set JWT_SECRET in non-local environment")
+    if settings.operator_token in _INSECURE_OPERATOR_DEFAULTS:
+        raise RuntimeError(
+            "insecure operator token: set OPERATOR_TOKEN in non-local environment"
+        )

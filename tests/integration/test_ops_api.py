@@ -17,17 +17,43 @@ def _key(prefix: str) -> str:
 
 @pytest.fixture(scope="module")
 def client():
-    """Seeded world + logged-in client (cookie persists across calls)."""
+    """Seeded world + staff-logged-in client (cookie persists across calls)."""
+    from sqlalchemy.orm import Session
+
+    from app.services.auth import auth_service
+    from database.session import app_engine
+    from northstar_common.config import get_settings
+
     loader.seed()
+    settings = get_settings()
+    with Session(bind=app_engine()) as session:
+        auth_service.ensure_support_admin(
+            session,
+            email=settings.support_admin_email,
+            password=settings.support_admin_password,
+        )
     client = TestClient(create_app())
-    response = client.post("/api/ops/auth/login", json={"agent_name": "phase6-probe"})
-    assert response.status_code == 200
+    login = client.post(
+        "/auth/login",
+        json={"email": settings.support_admin_email, "password": settings.support_admin_password},
+    )
+    assert login.status_code == 200, login.text
+    token = login.json()["access_token"]
+    response = client.post(
+        "/api/ops/auth/login",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"agent_name": "phase6-probe", "password": settings.support_admin_password},
+    )
+    assert response.status_code == 200, response.text
     return client
 
 
 def _raise_ticket(client, customer_code, order_code) -> str:
+    from tests.integration.conftest import staff_headers
+
     response = client.post(
         "/api/shop/tickets",
+        headers=staff_headers(),
         json={
             "customer_code": customer_code,
             "order_code": order_code,

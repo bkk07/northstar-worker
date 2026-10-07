@@ -5,15 +5,19 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.core.auth import require_roles
 from app.core.deps import get_db
 from app.schemas.worker.clarifications import ClarificationAnswer, ClarificationRead
 from app.services.worker.clarification_service import ClarificationService
 
 router = APIRouter(tags=["worker-clarifications"])
 
+_staff = require_roles("SUPPORT_AGENT")
+
 
 @router.get("/api/clarifications", response_model=list[ClarificationRead])
 def list_clarifications(
+    claims: dict = Depends(_staff),
     session: Session = Depends(get_db),
 ) -> list[ClarificationRead]:
     """Pending clarifications with kind, question, and queue."""
@@ -24,6 +28,7 @@ def list_clarifications(
 def answer_clarification(
     clarification_id: UUID,
     payload: ClarificationAnswer,
+    claims: dict = Depends(_staff),
     session: Session = Depends(get_db),
 ) -> ClarificationRead:
     """Answer once and requeue the parked task (409 unless pending)."""

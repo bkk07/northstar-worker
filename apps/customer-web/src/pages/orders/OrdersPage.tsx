@@ -44,7 +44,7 @@ export function OrdersPage() {
   const orders = useQuery({
     queryKey: ["orders"],
     queryFn: listOrders,
-    refetchInterval: (data) => needsPoll(data),
+    refetchInterval: (query) => needsPoll(query.state.data),
   });
 
   if (orders.isPending) {
@@ -128,8 +128,10 @@ export function OrderDetailPage() {
   const detail = useQuery({
     queryKey: ["order", id],
     queryFn: () => getOrder(id),
-    refetchInterval: (data) =>
-      data && (data.status === "PROCESSING" || data.status === "SHIPPED") ? 5000 : false,
+    refetchInterval: (query) => {
+      const data = query.state.data as { status: string } | undefined;
+      return data && (data.status === "PROCESSING" || data.status === "SHIPPED") ? 5000 : false;
+    },
   });
 
   if (detail.isPending) {

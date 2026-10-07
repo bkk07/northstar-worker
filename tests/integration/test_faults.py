@@ -11,6 +11,7 @@ from sqlalchemy import text
 from app.main import create_app
 from database.seeds import loader
 from database.session import admin_engine
+from tests.integration.conftest import staff_headers
 
 OPERATOR_TOKEN = os.environ.get("OPERATOR_TOKEN", "local-operator-token")
 
@@ -181,7 +182,7 @@ def test_500_after_commit_leaves_row(client):
     assert response.status_code == 500
     assert _row_count("biz.replacements", key) == 1
     assert _row_count("biz.mutation_log", key) == 1
-    probe = client.get(f"/api/read/probe/mutation/{key}").json()
+    probe = client.get(f"/api/read/probe/mutation/{key}", headers=staff_headers()).json()
     assert probe["found"] is True
     assert probe["kind"] == "replacement"
 
@@ -201,7 +202,7 @@ def test_duplicate_effect_ignores_key_once(client):
     retry = client.post("/api/ops/replacements", json=payload, headers={"Idempotency-Key": key})
     assert retry.status_code == 409
     assert _row_count("biz.replacements", key) == 1
-    assert client.get(f"/api/read/probe/mutation/{key}").json()["found"] is True
+    assert client.get(f"/api/read/probe/mutation/{key}", headers=staff_headers()).json()["found"] is True
 
 
 def test_validation_error_then_success_same_key(client):

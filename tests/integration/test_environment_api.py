@@ -8,6 +8,7 @@ from sqlalchemy import text
 
 from app.main import create_app
 from database import session as session_factory
+from tests.integration.conftest import staff_headers
 
 
 @pytest.fixture(scope="module")
@@ -18,23 +19,23 @@ def client():
 
 def _login(client) -> dict:
     """Sandbox login (httponly cookie jar keeps the session)."""
-    response = client.post("/api/ops/auth/login", json={"agent_name": "phase26-test"})
+    response = client.post("/api/ops/auth/login", headers=staff_headers(), json={"agent_name": "phase26-test"})
     assert response.status_code == 200
     return dict(response.cookies)
 
 
 def test_environment_requires_login(client):
     """Anonymous browsers get 401 on every environment route."""
-    assert client.get("/api/environment/status").status_code == 401
-    assert client.post("/api/environment/faults", json={}).status_code == 401
-    assert client.post("/api/environment/reset").status_code == 401
-    assert client.post("/api/environment/seed").status_code == 401
+    assert client.get("/api/environment/status", headers=staff_headers()).status_code == 401
+    assert client.post("/api/environment/faults", headers=staff_headers(), json={}).status_code == 401
+    assert client.post("/api/environment/reset", headers=staff_headers()).status_code == 401
+    assert client.post("/api/environment/seed", headers=staff_headers()).status_code == 401
 
 
 def test_status_reports_queues(client):
     """Logged-in operators see liveness plus queue depths."""
     cookies = _login(client)
-    body = client.get("/api/environment/status", cookies=cookies).json()
+    body = client.get("/api/environment/status", headers=staff_headers(), cookies=cookies).json()
     assert body["backend"] == "ok"
     assert body["database"] == "ok"
     assert body["pending_tasks"] >= 0

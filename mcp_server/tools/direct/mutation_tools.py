@@ -26,6 +26,7 @@ def _post_commit(task_id: str, effect: str, mutation_key: str, token: str, param
     try:
         response = httpx.Client(base_url=base_url.rstrip("/"), timeout=20.0).post(
             _COMMIT_PATH,
+            headers={"Authorization": f"Bearer {context.service_token()}"},
             json={
                 "task_id": args.task_id,
                 "effect": effect,

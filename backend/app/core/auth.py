@@ -78,3 +78,34 @@ def require_roles(*roles: str):
         return claims
 
     return guard
+
+
+def require_roles_or_service(*roles: str):
+    """JWT role guard with a first-party service identity escape hatch.
+
+    The MCP worker plane is an internal service, not a user: it presents
+    `Authorization: Bearer <OPERATOR_TOKEN>` (same env both sides; non-local
+    deploys must set a real secret — enforced at startup). Human callers go
+    through the normal JWT + role path. Anonymous callers still get 401.
+    """
+
+    def guard(
+        creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
+    ) -> dict:
+        if creds is None or not creds.credentials:
+            raise UnauthorizedError("bearer token required")
+        token = creds.credentials
+        if token and token == get_settings().operator_token:
+            return {
+                "sub": "svc-mcp",
+                "email": "mcp@internal",
+                "role": "SERVICE",
+            }
+        claims = decode_access_token(token)
+        if not claims.get("sub") or not claims.get("role"):
+            raise UnauthorizedError("invalid token claims")
+        if claims.get("role") not in roles:
+            raise ForbiddenError("insufficient role")
+        return claims
+
+    return guard

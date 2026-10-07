@@ -85,12 +85,25 @@ def test_default_tools_cover_live_runner_needs() -> None:
         assert callable(tools[name])
 
 
-def test_groq_config_wins_when_key_set() -> None:
+def test_groq_config_used_when_only_key_set() -> None:
     config = config_from_env({"GROQ_API_KEY": "gsk-test"})
     assert config.model == "llama-3.3-70b-versatile"
     assert config.base_url == "https://api.groq.com/openai/v1"
     assert config.strict_schema is False
     assert config.reasoning_effort == ""
+
+
+def test_inception_wins_over_groq_when_both_set() -> None:
+    config = config_from_env(
+        {
+            "INCEPTION_API_KEY": "inception-test",
+            "INCEPTION_MODEL": "mercury-2.5",
+            "GROQ_API_KEY": "gsk-test",
+        }
+    )
+    assert config.api_key == "inception-test"
+    assert config.model == "mercury-2.5"
+    assert config.base_url == "https://api.inceptionlabs.ai/v1"
 
 
 def test_groq_explicit_overrides() -> None:

@@ -1,5 +1,5 @@
 import { NavLink, Outlet, Link, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Inbox, Headset } from "lucide-react";
+import { LayoutDashboard, Inbox, MessageSquareText, Headset } from "lucide-react";
 import { useStaffAuth } from "@/stores/auth-store";
 
 const link = ({ isActive }: { isActive: boolean }) =>
@@ -23,6 +23,9 @@ export function ConsoleShell() {
           </NavLink>
           <NavLink to="/tickets" className={link}>
             <Inbox size={16} aria-hidden /> Tickets
+          </NavLink>
+          <NavLink to="/chat" className={link}>
+            <MessageSquareText size={16} aria-hidden /> AI Chat
           </NavLink>
         </nav>
         <div className="sp-side-foot">

@@ -14,6 +14,7 @@ from fastapi.testclient import TestClient
 from agent.policy.issuer import issue_submit_token
 from app.main import create_app
 from tests.integration.conftest import make_chain
+from tests.integration.conftest import staff_headers
 
 SECRET = "local-policy-secret"
 
@@ -32,9 +33,12 @@ def _chain_ids(app_conn) -> dict:
 
 
 def _commit(client: TestClient, task_id: str, effect: str, params: dict, key: str, token: str):
-    """POST one direct commit."""
+    """POST one direct commit (staff JWT + HMAC submit token)."""
+    from tests.integration.conftest import staff_headers
+
     return client.post(
         "/api/agent/direct/commits",
+        headers=staff_headers(),
         json={
             "task_id": task_id,
             "effect": effect,

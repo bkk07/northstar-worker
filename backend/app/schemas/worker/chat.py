@@ -9,6 +9,10 @@ class ChatRequest(BaseModel):
     """A single operator chat message."""
 
     message: str = Field(min_length=1, max_length=2000)
+    history: list[str] = Field(
+        default_factory=list,
+        description="Recent thread texts (oldest first) for follow-up resolution.",
+    )
 
 
 class ChatAction(BaseModel):
@@ -27,8 +31,9 @@ class ChatAction(BaseModel):
 
 
 class ChatReply(BaseModel):
-    """Assistant reply plus optional task binding and follow-up actions."""
+    """Assistant reply plus optional task/ticket binding and follow-up actions."""
 
     reply: str
     task_id: uuid.UUID | None = None
+    ticket_id: uuid.UUID | None = None
     actions: list[ChatAction] = Field(default_factory=list)

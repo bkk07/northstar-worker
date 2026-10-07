@@ -120,7 +120,7 @@ async def browser_fill(task_id: str, ref: str, value: str) -> dict:
 
 
 @mcp.tool()
-def browser_submit(
+async def browser_submit(
     task_id: str, ref: str, mutation_key: str, token: str, params: dict
 ) -> dict:
     """Commit the effect form (token-gated; the only write path)."""

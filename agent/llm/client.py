@@ -63,16 +63,39 @@ def _flag(source, name: str, default: bool) -> bool:
 
 
 def config_from_env(env: dict[str, str] | None = None) -> MercuryConfig:
-    """Build config from env; `GROQ_API_KEY` wins when set (Phase 8).
+    """Build config from env; `INCEPTION_API_KEY` wins when set.
 
-    Groq path uses its OpenAI-compatible endpoint with plain JSON mode
-    (strict schemas are opt-in via `GROQ_STRICT_SCHEMA=1`) and never sends
-    `reasoning_effort` (unknown field on Groq). Otherwise the legacy
-    `INCEPTION_*` variables apply unchanged.
+    Inception is the primary provider. `GROQ_*` remains as a fallback when
+    no Inception key is configured (legacy Phase 8 path): it uses its
+    OpenAI-compatible endpoint with plain JSON mode (strict schemas opt-in
+    via `GROQ_STRICT_SCHEMA=1`) and never sends `reasoning_effort`
+    (unknown field on Groq). Otherwise the `INCEPTION_*` variables apply.
     """
     source = env if env is not None else os.environ
     timeout = float(source.get("LLM_TIMEOUT_S", "30"))
     retries = int(source.get("LLM_MAX_RETRIES", "2"))
+    inception_key = source.get("INCEPTION_API_KEY", "")
+    if inception_key:
+        model = source.get("INCEPTION_MODEL", "") or DEFAULT_MODEL
+        base_url = source.get("INCEPTION_BASE_URL", "") or DEFAULT_BASE_URL
+        # Strict json_schema mode needs `additionalProperties: false` on every
+        # object; free-form maps (e.g. action params) cannot satisfy that on
+        # some providers. JSON mode + pydantic validation below enforces the
+        # shape instead (`INCEPTION_STRICT_SCHEMA=0`).
+        strict = _flag(source, "INCEPTION_STRICT_SCHEMA", True)
+        # Reasoning models (Muse Spark) think before answering; "minimal"/"low"
+        # keeps direct-answer proposals fast. Empty omits the parameter so
+        # non-reasoning providers never see an unknown field.
+        effort = source.get("INCEPTION_REASONING_EFFORT", "").strip().lower()
+        return MercuryConfig(
+            api_key=inception_key,
+            model=model,
+            base_url=base_url,
+            timeout_s=timeout,
+            max_retries=retries,
+            strict_schema=strict,
+            reasoning_effort=effort,
+        )
     groq_key = source.get("GROQ_API_KEY", "")
     if groq_key:
         return MercuryConfig(
@@ -84,29 +107,7 @@ def config_from_env(env: dict[str, str] | None = None) -> MercuryConfig:
             strict_schema=_flag(source, "GROQ_STRICT_SCHEMA", False),
             reasoning_effort="",
         )
-    api_key = source.get("INCEPTION_API_KEY", "")
-    if not api_key:
-        raise LLMError("GROQ_API_KEY (or INCEPTION_API_KEY) is not set")
-    model = source.get("INCEPTION_MODEL", "") or DEFAULT_MODEL
-    base_url = source.get("INCEPTION_BASE_URL", "") or DEFAULT_BASE_URL
-    # Strict json_schema mode needs `additionalProperties: false` on every
-    # object; free-form maps (e.g. action params) cannot satisfy that on
-    # some providers (Groq rejects them). JSON mode + pydantic validation
-    # below enforces the shape instead (`INCEPTION_STRICT_SCHEMA=0`).
-    strict = _flag(source, "INCEPTION_STRICT_SCHEMA", True)
-    # Reasoning models (Muse Spark) think before answering; "minimal"/"low"
-    # keeps direct-answer proposals fast. Empty omits the parameter so
-    # non-reasoning providers never see an unknown field.
-    effort = source.get("INCEPTION_REASONING_EFFORT", "").strip().lower()
-    return MercuryConfig(
-        api_key=api_key,
-        model=model,
-        base_url=base_url,
-        timeout_s=timeout,
-        max_retries=retries,
-        strict_schema=strict,
-        reasoning_effort=effort,
-    )
+    raise LLMError("INCEPTION_API_KEY (or GROQ_API_KEY) is not set")
 
 
 def _inline_refs(schema: dict[str, Any]) -> dict[str, Any]:
@@ -268,6 +269,11 @@ def _retryable(exc: LLMError) -> bool:
     if text.startswith("transport error"):
         return True
     return any(code in text for code in ("HTTP 429", "HTTP 500", "HTTP 502", "HTTP 503"))
+
+
+def is_transient_error(exc: Exception) -> bool:
+    """Public check: worth retrying after a backoff (rate limits, 5xx)."""
+    return isinstance(exc, LLMError) and _retryable(exc)
 
 
 def _repair_nudge(messages: list[dict[str, str]], error: str) -> list[dict[str, str]]:
