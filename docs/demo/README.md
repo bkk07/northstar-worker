@@ -2,7 +2,7 @@
 
 ## Video
 
-- Final published URL: `ADD_VIDEO_URL` — replace the placeholder in `README.md#demo-video`.
+- Final published URL: https://drive.google.com/file/d/1CWt96J_haSaje6e46PplN6DXoRO8StBe/view?usp=sharing
 - Local file (git-ignored or committed at your discretion): `docs/demo/demo.mp4`
   - If you commit it, link it with a relative path: `./demo.mp4` from this folder.
   - Do not generate a fake video here.

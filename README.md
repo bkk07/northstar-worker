@@ -1,675 +1,1390 @@
 # Northstar — Autonomous AI Support Worker
 
-An autonomous AI support worker that takes a customer-support goal, investigates the required context, uses business tools, applies deterministic policies, requests human approval when necessary, verifies actions, and communicates the resolution directly back to the customer — operating inside a controlled ecommerce environment with real tickets, orders, products, and policies.
+> **A focused autonomous AI worker for ecommerce support that takes a high-level support goal, investigates the right context, uses controlled tools, applies deterministic policies, pauses for human approval when necessary, verifies the outcome, and communicates the result directly to the customer.**
 
-## Quick Links
-
-- 🎥 [Demo Video](#demo-video)
-- 🏗️ [Architecture](#architecture)
-- 🚀 [Setup](#setup)
-- 🧪 [Testing](#testing)
-- 📄 [How This Maps to the Problem Statement](#how-this-maps-to-the-problem-statement)
-- 🔒 [Security](#security)
-
-> **GitHub Repository:** `ADD_REPOSITORY_URL`
-> **Demo Video:** `ADD_VIDEO_URL` — replace the placeholder in [Demo Video](#demo-video) and `docs/demo/README.md` when your recording is ready.
+[![Demo](https://img.shields.io/badge/Demo-Watch%20Video-111827?style=flat-square)](#demo)
+[![Architecture](https://img.shields.io/badge/Architecture-LangGraph%20%2B%20MCP-111827?style=flat-square)](#architecture)
+[![Stack](https://img.shields.io/badge/Stack-React%20%7C%20FastAPI%20%7C%20PostgreSQL-111827?style=flat-square)](#technology-stack)
 
 ---
 
-## Demo Video
+## Demo
 
-🎥 **Watch the demo:** `ADD_VIDEO_URL`
+**Demo video:** https://drive.google.com/file/d/1CWt96J_haSaje6e46PplN6DXoRO8StBe/view?usp=sharing
 
-> A local demo recording can be placed at `docs/demo/demo.mp4` and will be linked from `docs/demo/README.md`. No video is committed to the repository by default.
+**Repository:** https://github.com/bkk07/northstar-worker
 
-Recommended demo to reproduce (see [Running the Demo](#running-the-demo)):
+The recorded demo shows the complete support loop:
 
-1. Customer purchases a product → order delivered → raises ticket
-2. Support opens ticket → clicks **Solve with AI**
-3. AI traces tool calls live → pauses for approval if required → approves → verifies → resolves
-4. Customer refreshes ticket and sees the `AI_AGENT` response
+```text
+Customer
+  ↓
+Purchase
+  ↓
+Order delivered
+  ↓
+Raise support ticket
+  ↓
+Support selects "Solve with AI"
+  ↓
+LangGraph agent investigates
+  ↓
+MCP tools + policy checks
+  ↓
+HITL when required
+  ↓
+Action execution
+  ↓
+Verification
+  ↓
+AI response written to ticket
+  ↓
+Customer sees the result
+```
+
+> **Before submission:** replace the demo URL placeholders and add the final screenshots listed in [Screenshots to Add](#screenshots-to-add).
 
 ---
 
-## Customer Experience
+## What I Built
 
-The customer operates a real storefront — browse, add to cart, checkout with mock payment, wait ~60s for simulated delivery, then raise a free-text support ticket. The AI resolution later appears directly inside that ticket's conversation.
+Northstar is a prototype of an **autonomous AI task worker** applied to a realistic ecommerce support environment.
 
-> Screenshots are not yet committed. Add them to `docs/screenshots/customer/` and they will appear here. See `docs/screenshots/README.md`.
+A support agent does not have to specify every action. Instead, the support agent gives the worker a goal:
 
-- Home, product catalog, product detail, cart, checkout
-- Order tracking with simulated delivery
-- Support ticket creation and ticket conversation (where `AI_AGENT` messages render)
+> **"Solve this ticket."**
 
+From there, the system can:
+
+1. Understand the support request.
+2. Determine what context is needed.
+3. Retrieve relevant customer, order, product, and policy information through tools.
+4. Decide what resolution is appropriate.
+5. Apply deterministic business rules.
+6. Ask for human approval when an action is risky or ambiguous.
+7. Execute a controlled support action.
+8. Verify that the requested outcome actually happened.
+9. Write the final response directly into the customer ticket.
+10. Resolve or escalate the ticket.
+
+The ecommerce application exists to provide a realistic environment in which the autonomous worker can operate.
+
+---
+
+# Why This Is an Autonomous Worker
+
+This project is intentionally **not just a conversational chatbot**.
+
+The customer does not ask:
+
+> "Call `get_order`, then check the policy, then create a replacement."
+
+The support agent provides the outcome:
+
+> **"Solve this ticket."**
+
+The worker determines the intermediate steps.
+
+The important distinction is:
+
+```text
+Chatbot
+User → Question → Text Answer
+
+Northstar
+User → Goal
+      ↓
+   Reason
+      ↓
+   Gather
+      ↓
+   Use Tools
+      ↓
+   Observe
+      ↓
+   Decide
+      ↓
+   Act
+      ↓
+   Verify
+      ↓
+   Respond
 ```
-docs/screenshots/customer/  (add these files)
-├── home.png
-├── products.png
-├── product-detail.png
-├── cart.png
-├── checkout.png
-├── order-tracking.png
-└── ticket.png
+
+The worker is evaluated on the **outcome it achieves**, not only on the text it generates.
+
+---
+
+# Core Capabilities
+
+| Capability | What Northstar does |
+|---|---|
+| **Autonomy** | Starts from a high-level ticket goal instead of a step-by-step script |
+| **Tool use** | Uses MCP tools for users, orders, products, policies, tickets, and support actions |
+| **Observation** | Persists tool results and uses them to determine subsequent work |
+| **Decision making** | Routes tickets and chooses the appropriate resolution workflow |
+| **State** | Persists support graph state and execution information |
+| **Reliability** | Handles transient failures, recovery, clarification, and escalation |
+| **HITL** | Pauses risky work for support approval |
+| **Verification** | Re-checks the outcome after mutations |
+| **Evidence** | Provides trace, tool activity, approvals, audit records, and resolution state |
+| **Customer delivery** | Writes the final AI response directly into the customer ticket |
+
+---
+
+# Product Surface
+
+Northstar intentionally has **two separate web applications**.
+
+## 1. Customer Web App
+
+A realistic ecommerce experience where the customer can:
+
+- Create an account
+- Log in
+- Browse products
+- Search/filter the catalog
+- View product details
+- Add items to the cart
+- Checkout
+- Complete a simulated payment
+- Track orders
+- Wait for simulated delivery
+- Raise a support ticket
+- Continue the support conversation
+- See the AI resolution
+
+### Main routes
+
+```text
+/
+ /login
+ /signup
+ /products
+ /products/:id
+ /cart
+ /checkout
+ /orders
+ /orders/:id
+ /support
+ /tickets/:id
 ```
 
-## Support Experience
+## 2. Support Web App
 
-The support console is a separate app with staff-only auth. Support triages a queue, inspects full customer + order context, and drives AI resolution.
+A separate support operations console where staff can:
 
-> Screenshots are not yet committed. Add them to `docs/screenshots/support/` and `docs/screenshots/ai/`. See `docs/screenshots/README.md`.
+- Log in
+- View the ticket queue
+- Search and filter tickets
+- Open a ticket
+- Inspect customer and order context
+- Read the full conversation
+- Reply manually
+- Add internal notes
+- Resolve or escalate manually
+- Select **Solve with AI**
+- Watch AI execution
+- Review tool activity
+- Approve or reject HITL requests
+- Take over a ticket
+- Inspect the final trace and resolution
 
-- Dashboard with ticket queue (OPEN / AI_PROCESSING / WAITING_FOR_HUMAN / RESOLVED)
-- Ticket detail with Customer Context + Order Context panels
-- **Solve with AI** → live AI Copilot with step timeline, tool trace, and HITL approval card
-- Manual fallback: reply / internal note / resolve / escalate
+### Main routes
 
-```
-docs/screenshots/support/
-├── dashboard.png
-├── ticket-detail.png
-├── customer-context.png
-├── order-context.png
-└── approval.png
-
-docs/screenshots/ai/
-├── ai-copilot.png
-├── agent-progress.png
-├── tool-trace.png
-├── hitl.png
-└── resolution.png
+```text
+/login
+/dashboard
+/tickets
+/tickets/:id
+/chat
 ```
 
 ---
 
-## Architecture
+# Architecture
 
-### High-Level Architecture
+## High-Level Architecture
 
 ```mermaid
 flowchart TD
-    C[Customer Web :5174] --> API[FastAPI Backend :8000]
-    S[Support Web :5175] --> API
-    API --> DB[(PostgreSQL :5433)]
-    S -->|Solve with AI| AG[agent_run_service.solve]
-    AG --> LG[LangGraph — support_graph]
-    LG --> MCP[MCP Support Server :8003]
-    MCP --> U[User Tools\nget_user / get_user_orders / get_user_tickets]
-    MCP --> O[Order Tools\nget_order / get_order_items / get_order_status / get_order_tracking]
-    MCP --> P[Product Tools\nget_product / get_product_details / get_product_policy]
-    MCP --> POL[Policy Tools\ncheck_refund / return / replacement / cancellation eligibility]
-    MCP --> A[Action Tools\nmock_refund / mock_return / mock_replace / mock_cancel_order]
-    MCP --> T[Ticket Tools\nget_ticket / add_ticket_message / resolve_ticket / escalate_ticket]
-    MCP --> K[Knowledge\nsearch_knowledge]
+    C[Customer Web] --> API[FastAPI Backend]
+    S[Support Web] --> API
+
+    API --> DB[(PostgreSQL)]
+
+    S -->|Solve with AI| AR[Agent Runtime]
+    AR --> LG[LangGraph Support Graph]
+
+    LG --> MCP[MCP Support Server]
+
+    MCP --> U[User Tools]
+    MCP --> O[Order Tools]
+    MCP --> P[Product Tools]
+    MCP --> POL[Policy Tools]
+    MCP --> A[Action Tools]
+    MCP --> T[Ticket Tools]
+    MCP --> K[Knowledge]
+
     POL --> G[Deterministic Policy Guard]
+
     G --> H{Human Approval?}
     H -->|No| A
-    H -->|Yes| HITL[Support Approval\nPENDING → APPROVED / REJECTED / EXPIRED]
+    H -->|Yes| HITL[Support Approval]
     HITL --> LG
-    A --> V[Verification\nre-check eligibility against live DB]
-    V --> R[AI_AGENT Response\nticket message]
-    R --> DB
-    AG --> TRACE[(Trace\nagent_runs + tool_calls + approvals + audit_logs)]
-    TRACE --> S
 
-    subgraph TaskPlane [Task Plane — legacy worker tasks]
-        MCP2[MCP Task Server :8002\n18 tools including browser_*]
-    end
-    MCP2 -.->|not used for canonical TKT- ticket solve| AG
+    A --> V[Verification]
+
+    V --> R[AI_AGENT Ticket Message]
+    R --> DB
+
+    AR --> TRACE[(Agent Runs / Tool Calls / Approvals / Audit)]
+    TRACE --> S
 ```
 
-Verification of diagram: `agent/support_graph` 9 nodes, `mcp_server/support` 24 tools (7 groups), `mcp_server` task plane 18 tools, policy guard is deterministic (`agent/policy` + `agent/support/approval.py`), verification re-calls eligibility, trace is `GET /support/tickets/:id/trace`.
+## Canonical Support Execution Path
 
-### Autonomous Ticket Execution
+The support ticket path is intentionally centered around one canonical execution pipeline:
+
+```text
+Support Agent
+    ↓
+Solve with AI
+    ↓
+agent_run_service.solve()
+    ↓
+agent/support_graph
+    ↓
+Goal understanding + planning
+    ↓
+MCP tools
+    ↓
+Deterministic policy
+    ↓
+Action proposal
+    ↓
+HITL when required
+    ↓
+Execute
+    ↓
+Verify
+    ↓
+Generate customer response
+    ↓
+AI_AGENT ticket message
+    ↓
+Resolve / Escalate
+```
+
+The canonical `TKT-XXXXXX` support flow does **not** detour into an unrelated worker task.
+
+---
+
+# Autonomous Ticket Execution
 
 ```mermaid
 flowchart LR
-    T[Ticket] --> U[Understand\nsupervisor classifies intent + workflow]
-    U --> G[Gather Context\ngoal-oriented tool plan per intent]
-    G --> TL[Tools\nMCP business tools]
-    TL --> O[Observe\ntool results persisted]
-    O --> P[Policy\ncheck_*_eligibility]
-    P --> PR[Propose\ndraft resolution + approval decision]
-    PR --> A[Action\nmock_* with idempotent key]
-    A --> V[Verify\nre-check eligibility]
-    V --> RE[Respond\nresolution → AI_AGENT message]
-    RE --> RS[Resolve\nticket RESOLVED]
+    T[Support Ticket] --> U[Understand Goal]
+    U --> P[Plan Required Work]
+    P --> C[Gather Relevant Context]
+    C --> M[MCP Tools]
+    M --> O[Observe Results]
+    O --> D[Decision / Policy]
+    D --> H{Human Approval?}
+    H -->|No| A[Execute Action]
+    H -->|Yes| I[Pause for Support]
+    I --> A
+    A --> V[Verify Outcome]
+    V --> R[Respond to Customer]
+    R --> S[Resolve or Escalate]
 ```
 
-### HITL Flow
+The agent should not blindly execute every available tool. The required context depends on the ticket.
+
+For example:
+
+### Tracking request
+
+> "Where is my order?"
+
+The worker needs order status/tracking information.
+
+### Refund request
+
+> "My phone arrived damaged. I want a refund."
+
+The worker may need:
+
+```text
+Order
+→ Order items
+→ Product
+→ Product policy
+→ Refund eligibility
+→ Refund action
+→ Verification
+```
+
+---
+
+# Human-in-the-Loop
+
+HITL is part of the agent execution lifecycle.
 
 ```mermaid
 flowchart TD
-    AG[Agent] --> PROP[Action Proposal]
-    PROP --> RISK[Risk / Policy Check\nconfidence < 0.6 or amount over cap]
-    RISK --> H{Human Approval Required?}
-    H -->|No| EX[Execute]
-    H -->|Yes| PAUSE[Pause\npersist graph_state\ncreate Approval PENDING 24h TTL\nticket → WAITING_FOR_HUMAN]
-    PAUSE --> SUP[Support Approves / Rejects\nPOST /support/approvals/ID/decision]
-    SUP -->|Approved| RESUME[Resume SAME Execution\nresume_support_ticket]
-    SUP -->|Rejected| REJ[Rejected\nno mutation\nAI message explains]
-    SUP -->|Expired| EXP[Expired\ntakeover required]
-    RESUME --> EX
-    EX --> VER[Verify]
-    VER --> DONE[AI_AGENT message + RESOLVED or ESCALATED]
+    A[Agent proposes action] --> R[Risk / Policy Check]
+    R --> H{Approval Required?}
+
+    H -->|No| E[Execute]
+    H -->|Yes| P[Pause Graph]
+
+    P --> DB[Persist Graph State + Approval]
+    DB --> S[Support Agent]
+
+    S -->|Approve| RES[Resume Same Execution]
+    S -->|Reject| REJ[Reject Safely]
+
+    RES --> E
+    E --> V[Verify]
+    V --> DONE[Respond + Resolve]
+
+    REJ --> MSG[Explain / Escalate]
 ```
 
-### Customer → Support → AI → Customer
+Typical reasons to ask for human involvement include:
+
+- High-value actions
+- Low-confidence decisions
+- Ambiguous context
+- Repeated tool failures
+- Requests requiring manual judgment
+
+The support interface exposes the approval request without exposing private chain-of-thought.
+
+---
+
+# Verification
+
+A successful tool response is not treated as proof that the requested outcome happened.
+
+The system follows:
+
+```text
+Execute
+   ↓
+Verify
+   ↓
+Report success only when verified
+```
+
+For a replacement:
+
+```text
+mock_replace
+    ↓
+Re-check resulting state
+    ↓
+Verified
+    ↓
+Customer response
+```
+
+If verification fails or becomes inconclusive, the system can recover or escalate instead of claiming success.
+
+---
+
+# Reliability
+
+Northstar includes several reliability mechanisms:
+
+### Transient retry
+
+Transient model/network/tool failures can be retried within bounded limits.
+
+Permanent failures such as authorization or invalid input are not blindly retried.
+
+### Recovery
+
+When a safe retry is insufficient, the worker can move toward:
+
+```text
+Recovery
+→ Clarification
+→ Human assistance
+→ Escalation
+```
+
+### Clarification
+
+If the worker cannot safely identify the intended order or required context:
+
+```text
+AI
+ ↓
+Ask customer
+ ↓
+WAITING_FOR_CUSTOMER
+ ↓
+Customer replies
+ ↓
+Continue
+```
+
+### HITL
+
+For decisions outside the worker's safe authority:
+
+```text
+WAITING_FOR_HUMAN
+```
+
+and the support agent decides what happens next.
+
+### Idempotency
+
+Support mutations use idempotency safeguards so repeated execution does not silently create duplicate business actions.
+
+---
+
+# Evidence and Observability
+
+A support agent should be able to answer:
+
+> **"What did the AI actually do?"**
+
+Northstar records operational evidence such as:
+
+```text
+Agent run
+Ticket
+Intent / workflow
+Tool calls
+Tool results
+Policy result
+Action proposal
+Approval decision
+Verification result
+Resolution
+Timestamps
+```
+
+The support console exposes this through the ticket trace and live activity.
+
+Example operational timeline:
+
+```text
+✓ Ticket understood
+✓ Order context loaded
+✓ Product policy checked
+✓ Replacement eligibility confirmed
+✓ Action proposed
+✓ Approval requested
+✓ Approval received
+✓ Replacement executed
+✓ Replacement verified
+✓ Customer response generated
+✓ Ticket resolved
+```
+
+This is operational trace data, not hidden model reasoning.
+
+---
+
+# Customer → Support → AI → Customer
 
 ```mermaid
 flowchart LR
-    CU[Customer] --> ORD[Order]
-    ORD --> DL[Delivered\n~60s simulated]
-    DL --> TK[Ticket\nfree-text goal]
-    TK --> SC[Support Console]
-    SC --> SAI[Solve with AI]
-    SAI --> WRK[AI Worker\nLangGraph + MCP]
-    WRK --> RES[Resolution]
-    RES --> CU
+    C[Customer] --> O[Order]
+    O --> D[Delivered]
+    D --> T[Support Ticket]
+    T --> S[Support Console]
+    S --> A[Solve with AI]
+    A --> L[LangGraph + MCP]
+    L --> R[Verified Resolution]
+    R --> M[AI_AGENT Ticket Message]
+    M --> C
 ```
 
----
+The final AI response is persisted as an actual ticket message.
 
-## How This Maps to the Problem Statement
-
-| Requirement | Implementation |
-|---|---|
-| **Understand the goal** | `agent/support_graph/nodes.py:supervise` via `agent/support/classifier.py` → `intent` + `confidence` + `workflow` (REFUND/REPLACE/RETURN/CANCELLATION/DELIVERY/PAYMENT/GENERAL) |
-| **Break task into actions** | `agent/support_graph/planner.py` goal-oriented `INTENT_TOOL_PLAN` + `graph.py` 9-node DAG (`load_ticket → supervisor → gather → check_policy → propose → human_approval → execute → verify → respond`) |
-| **Use tools** | `mcp_server/support` 24 business tools (user/order/product/policy/action/ticket/knowledge) behind `mcp_server/support_server.py :8003`. No raw SQL; service-token identity. Task plane `mcp_server/server.py :8002` 18 tools includes isolated `browser_*` for legacy tasks only — not used in canonical ticket solve |
-| **Observe results** | Every tool call persisted to `biz.tool_calls` with arguments + result, emitted on `bus`, rendered in `GET /trace` timeline; next node reads prior `tool_results` / `policy_context` |
-| **Decide next action** | Conditional edges `_route_supervisor`, `_route_approval`, `_route_verify` branch on `approval_required`, `eligible`, `escalated` |
-| **Remember relevant context** | `agent/support_graph/state.py` `SupportGraphState` (ticket/order/customer/policy/verification) persisted as `agent_runs.graph_state` JSONB — resume restores full checkpoint |
-| **Detect failures** | `_fail_human`, `needs_human`/`escalated` branches, `run.status = FAILED`, ticket → `ESCALATED`; audit rows + `error` field |
-| **Retry / recover** | Chat narration `TIMEOUT_S=10` draft fallback; chat runner idempotent `approval:{id}` + `agent:{ticket}:{workflow}` keys; `bus` + SSE with backfill; graph `max_steps=40` cap |
-| **Verify outcome** | `nodes.verify()` re-calls `check_*_eligibility` on live DB after `execute`; `verifier/` independent snapshot-diff-invariant pipeline (`ns_verifier` read-only) never trusts the last action's OK |
-| **Ask for clarification** | Worker-plane `clarification_service` parks `WAITING_FOR_CUSTOMER` with TTL; canonical graph `ask_customer` → `WAITING_FOR_CUSTOMER` + `AI_AGENT` message asking for order context |
-| **Ask for approval** | `approval_policy.needs_approval` (confidence < 0.6 or refund ≥ Rs 5,000) → `Approval PENDING` 24h TTL, `waiting_for_approval` event, Resolve/Reject buttons only — typed "yes" in `chat_intent` maps to read-only `confirm` |
-| **Return useful evidence** | `GET /support/tickets/:id/trace` → `agent_runs` + `tool_calls` + `approvals` + `audit_logs` + `verification_result` + `AI_AGENT` ticket message; SSE `GET /support/tickets/:id/activity` live stream |
+There is **no manual copy/paste step** between the support AI and the customer.
 
 ---
 
-## Key Product Capabilities
+# Example: Damaged Product Replacement
 
-### Autonomous Resolution
-Support provides only the high-level goal: **"Solve this ticket."** The supervisor picks a workflow, the planner loads the minimal tool set for that intent, and the graph runs without step-by-step human direction. The same path is used from both **Solve with AI** and `POST /api/chat solve ticket TKT-...` (canonical — never a worker task).
-
-### Tool Use
-All business data goes through MCP. The support plane (`:8003`, `ns_app` role, 24 tools) exposes user/order/product/policy/action/ticket/knowledge. The task plane (`:8002`, 18 tools) exposes the legacy customer/order/ticket + `browser_*` + `refund_create`/`replacement_create` for worker tasks. Both planes enforce token identity (`OPERATOR_TOKEN` / `POLICY_TOKEN_SECRET`) and both forbid raw SQL.
-
-### Policies
-Deterministic rules — not LLM-invented. `agent/policy/rules.py` + `agent/policy/eligibility.py` + `docs/policy.md` matrix (`E-REF-001`, `P-REF-001`, `E-REPL-001`, …) plus per-product `biz.policies`. The `check_*_eligibility` tools are the source of truth; the LLM only classifies.
-
-### HITL
-Two mechanisms: (1) **Approval** for risky/low-confidence actions (24h `PENDING → APPROVED/REJECTED/EXPIRED`, resume replays prefix idempotently) and (2) **Clarification** when context is missing (`WAITING_FOR_CUSTOMER`). Chat approval attempts are refused byte-exactly — "buttons only."
-
-### Verification
-Post-action, `verify` re-executes `check_*_eligibility`. If still `eligible` after a supposed mutation, the run escalates (`needs_human`) and never claims success. The standalone `verifier/` package snapshots before/after via `ns_verifier` and runs per-effect + global invariants.
-
-### Evidence
-Persisted trace (`tool_calls` with args/result, `approvals` with expiry, `audit_logs` with sequence, `agent_runs` with intent/workflow/decision/error/graph_state/verification_result), live SSE activity events, and the final `customer_ticket_messages` row (`sender_type=AI_AGENT`) the customer reads.
-
----
-
-## End-to-End Example
+Customer raises:
 
 > **"My headphones arrived damaged. I want a replacement."**
 
-```
-1. Customer (apps/customer-web :5174) signs in, ticket TKT-7F3A created as OPEN.
-2. Support (apps/support-web :5175) opens /tickets/<id>.
-3. Support clicks Solve with AI → POST /support/tickets/:id/solve.
-4. agent_run_service.solve() creates agent_runs RUNNING, ticket → AI_PROCESSING.
-5. support_graph: supervisor → REPLACEMENT / REPLACE (confidence 0.82).
-6. gather loads get_ticket, get_order, get_order_items via MCP :8003.
-7. check_policy calls check_replacement_eligibility → eligible, reasons [].
-8. propose runs approval_policy.needs_approval(REPLACE, amount, 0.82)
-   → low-confidence or over-cap? if yes → pause, else auto-execute.
-9. If HITL: Approval PENDING created, WAITING_FOR_HUMAN, graph_state persisted.
-   Support approves POST /support/approvals/:id/decision → resume_same_run.
-10. execute calls mock_replace idempotently; verify re-calls eligibility
-    → now ineligible (replacement consumed) → ok.
-11. respond drafts resolution (LLM phraser with template fallback).
-12. agent_run_service writes AI_AGENT message into customer_ticket_messages,
-    ticket → RESOLVED, audit run_resolved emitted.
-13. Support watches trace: GET /support/tickets/:id/trace (steps + approvals).
-14. Customer reopens /tickets/:id on :5174 and reads the AI response.
-```
+The support agent clicks:
 
----
+**Solve with AI**
 
-## Customer Frontend
+The worker can then:
 
-```
-Customer Web  apps/customer-web  :5174
-├── /              Home
-├── /login         Login (JWT, Argon2)
-├── /signup        Signup (always CUSTOMER)
-├── /products      Product catalog
-├── /products/:id  Product detail + policies
-├── /cart          Cart (Protected)
-├── /checkout      Checkout → mock payment → shop_orders
-├── /orders        Order list
-├── /orders/:id    Order detail + tracking
-├── /support       Support tickets list
-├── /tickets/new   Raise ticket (subject/body/category/priority, optional order_id)
-└── /tickets/:id   Ticket detail + conversation (CUSTOMER + AI_AGENT messages)
+```text
+1. Understand the request
+2. Classify it as a replacement problem
+3. Retrieve the relevant order context
+4. Retrieve product/policy information
+5. Check replacement eligibility
+6. Determine whether approval is required
+7. Execute the replacement action
+8. Verify the resulting state
+9. Generate the customer response
+10. Save it as an AI_AGENT ticket message
+11. Resolve the ticket
 ```
 
-Payment and delivery (~60s `DELIVERY_DELAY_SECONDS`) are simulated — the shop creates `shop_orders` and the order's status flips to DELIVERED for realistic ticket context.
+If approval is required:
 
-## Support Frontend
-
-```
-Support Web  apps/support-web  :5175
-├── /login         Staff login (SUPPORT_AGENT JWT)
-├── /dashboard     Ticket queue + stats (OPEN/AI_PROCESSING/WAITING_FOR_HUMAN/RESOLVED)
-├── /tickets       Queue table with filters
-├── /tickets/:id   Ticket detail
-│   ├── Customer Context  (get_user, user_tickets, user_orders)
-│   ├── Order Context     (get_order, items, status, tracking, product policies)
-│   ├── Conversation      (CUSTOMER / SUPPORT_AGENT / AI_AGENT)
-│   ├── AI Copilot        (Solve with AI, trace, activity SSE, takeover)
-│   ├── Approval Card     (Approve / Reject, expiry countdown)
-│   └── Tool Activity     (tool_started / tool_done timeline)
-└── /chat          Ticket-grounded chat
-    ├── Thread history + ticket binding (TKT-XXXXXX, history → resolve_references)
-    ├── Live trace for activeTicketId
-    ├── Clarifications panel
-    └── Approval decisions (buttons only)
+```text
+Propose
+   ↓
+WAITING_FOR_HUMAN
+   ↓
+Support approves
+   ↓
+Resume
+   ↓
+Execute
+   ↓
+Verify
+   ↓
+Respond
 ```
 
 ---
 
-## Tech Stack
+# Example: Ambiguous Request
+
+Customer says:
+
+> **"I want a refund."**
+
+and the customer has multiple recent orders.
+
+The worker should not guess.
+
+Instead:
+
+```text
+Multiple possible orders
+        ↓
+Ask customer which order
+        ↓
+WAITING_FOR_CUSTOMER
+```
+
+The same ticket can then continue once the customer provides the missing context.
+
+---
+
+# Example: Failure
+
+Suppose order lookup fails:
+
+```text
+get_order
+   ↓
+timeout
+   ↓
+retry
+   ↓
+failure
+   ↓
+human assistance / escalation
+```
+
+The customer should receive a safe support message, not an internal traceback or false success.
+
+---
+
+# Ecommerce Simulation
+
+The ecommerce environment exists to create realistic support tasks.
+
+## Purchase flow
+
+```text
+Product
+  ↓
+Cart / Buy
+  ↓
+Checkout
+  ↓
+Mock Payment
+  ↓
+Order Created
+```
+
+## Order lifecycle
+
+```text
+PROCESSING
+    ↓
+SHIPPED
+    ↓
+DELIVERED
+```
+
+Delivery is simulated so a support ticket can be raised against a real persisted order.
+
+Payment, delivery, and support mutations are intentionally simulated for the prototype.
+
+---
+
+# Support Actions
+
+The support environment includes controlled actions for common ecommerce cases:
+
+```text
+Refund
+Return
+Replacement
+Cancellation
+```
+
+These are mocked business operations, but they still follow:
+
+```text
+Validate
+→ Policy
+→ Authorize
+→ Execute
+→ Verify
+→ Audit
+```
+
+This keeps the prototype architecture replaceable with real providers later.
+
+---
+
+# MCP Tooling
+
+The support agent accesses business capabilities through MCP.
+
+## User
+
+```text
+get_user
+get_user_orders
+get_user_tickets
+```
+
+## Order
+
+```text
+get_order
+get_order_items
+get_order_status
+get_order_tracking
+```
+
+## Product
+
+```text
+get_product
+get_product_details
+get_product_policy
+```
+
+## Policy
+
+```text
+check_refund_eligibility
+check_return_eligibility
+check_replacement_eligibility
+check_cancellation_eligibility
+```
+
+## Actions
+
+```text
+mock_refund
+mock_return
+mock_replace
+mock_cancel_order
+```
+
+## Ticket
+
+```text
+get_ticket
+add_ticket_message
+update_ticket
+resolve_ticket
+escalate_ticket
+```
+
+## Knowledge
+
+```text
+search_knowledge
+```
+
+The agent does not receive unrestricted database/SQL access.
+
+---
+
+# Why MCP?
+
+MCP provides a structured tool boundary between the reasoning layer and business capabilities.
+
+The AI can reason:
+
+> "I need to check whether this order is eligible for replacement."
+
+It can then use the appropriate capability rather than depending on internal database details.
+
+This keeps the tool contract explicit and makes the agent easier to test and extend.
+
+---
+
+# Why LangGraph?
+
+Support execution is stateful.
+
+A ticket can involve:
+
+- multiple tool calls
+- conditional paths
+- retries
+- customer clarification
+- human approval
+- action execution
+- verification
+- escalation
+
+LangGraph gives the worker explicit state and controlled transitions for those situations.
+
+The important part is not simply "using LangGraph"; it is using it to manage a workflow whose execution can pause, continue, recover, and terminate safely.
+
+---
+
+# Why Deterministic Policies?
+
+Business rules should not be invented by a language model.
+
+For example:
+
+```text
+Order delivered 3 days ago
+Return window = 7 days
+→ Eligible
+```
+
+The policy layer provides the result.
+
+The AI interprets the result and communicates it clearly.
+
+This makes the system more predictable and easier to verify.
+
+---
+
+# Why Verification?
+
+Without verification, an agent can say:
+
+> "The refund was completed."
+
+even if the underlying action failed.
+
+Northstar instead follows:
+
+```text
+Action
+ ↓
+Re-read / verify
+ ↓
+Only then report success
+```
+
+This separates **attempted execution** from **confirmed completion**.
+
+---
+
+# Why Two Frontends?
+
+The customer and support operator have fundamentally different jobs.
+
+### Customer
+
+```text
+Browse
+Buy
+Track
+Ask for help
+Read resolution
+```
+
+### Support
+
+```text
+Triage
+Investigate
+Supervise AI
+Approve
+Take over
+Resolve
+Inspect evidence
+```
+
+Keeping these as separate applications makes the permissions and product experience clear.
+
+---
+
+# Technology Stack
 
 | Layer | Technology |
 |---|---|
-| Customer UI | React 18.3 + Vite 5 + TypeScript 5 + Tailwind CSS + shadcn/ui + Framer Motion |
-| Support UI | React 18.3 + Vite 5 + TypeScript 5 + TanStack Query 5 + zustand + axios |
-| Styling | Tailwind CSS + shadcn/ui |
-| Backend | FastAPI + Pydantic + SQLAlchemy 2 + Alembic + SSE (sse-starlette) |
-| Database | PostgreSQL 16 + pgvector (`:5433` host, `5432` in compose) |
-| Agent | LangGraph (graph runner) + LangChain (interfaces) + hand-written `support_graph` |
-| Model | Inception (`INCEPTION_API_KEY`, `mercury-2.5`, `api.inceptionlabs.ai/v1`) with Groq fallback (`llama-3.3-70b-versatile`) |
-| Tools | MCP — `mcp` SDK, task plane `:8002` (18 tools), support plane `:8003` (24 tools) |
-| Browser | Playwright (`browser/` + `browser_*` task-plane tools, Chromium) — isolated, not in canonical ticket path |
-| Authentication | JWT (PyJWT, HS256, 24h) + Argon2 (`argon2-cffi`) + role `CUSTOMER`/`SUPPORT_AGENT` |
-| Realtime | SSE — `GET /support/tickets/:id/activity` (canonical bus) + `GET /api/tasks/:id/events` (worker audit) |
-| Testing | pytest + pytest-asyncio + httpx TestClient + Playwright browser tests + import-linter |
-| Containerization | Docker Compose (postgres/pgvector, api, mcp, mcp-support) |
-| Config | pydantic-settings (`common/northstar_common/config.py`, `env_file=.env`) |
+| Customer frontend | React + Vite + TypeScript |
+| Support frontend | React + Vite + TypeScript |
+| UI | Tailwind CSS + shadcn/ui |
+| Motion | Framer Motion |
+| Server state | TanStack Query |
+| Client state | Zustand |
+| Backend | FastAPI |
+| Validation | Pydantic |
+| ORM | SQLAlchemy 2 |
+| Migrations | Alembic |
+| Database | PostgreSQL |
+| Agent | LangGraph + LangChain |
+| Model | Inception |
+| Tools | MCP |
+| Realtime | SSE |
+| Authentication | JWT + Argon2 |
+| Testing | pytest + integration/browser testing |
+| Containerization | Docker Compose |
 
-Only technologies present in `pyproject.toml`, `apps/*/package.json`, and `docker-compose.yml` are listed.
+The browser tooling in the repository is isolated from the canonical customer-support ticket path.
 
 ---
 
-## Project Structure
+# Repository Structure
 
-```
+```text
 northstar-worker/
+│
 ├── apps/
-│   ├── customer-web/        # Customer storefront :5174
-│   └── support-web/         # Support console :5175 (+ chat)
-├── backend/                 # FastAPI app factory app/main.py (24 routers)
+│   ├── customer-web/          # Customer storefront
+│   └── support-web/           # Support console
+│
+├── backend/                   # FastAPI application
 │   └── app/
-│       ├── api/             # health, auth, commerce, support, agentrun, worker, ops, control
-│       ├── services/        # agent_run (canonical), support, worker/*, commerce, actions
-│       ├── repositories/    # thin SQLAlchemy queries (no business logic)
-│       ├── core/            # auth (JWT/Argon2), deps, exceptions, security
-│       └── sse/             # SSE stream + listener (worker_audit_events)
-├── agent/                   # Canonical + legacy agent code
-│   ├── support_graph/       # state.py, graph.py, nodes.py, planner.py, runner.py
-│   ├── support/             # classifier, approval policy
-│   ├── llm/                 # MercuryClient, config_from_env (Inception > Groq)
-│   ├── policy/              # eligibility, authorization, issuer (HMAC)
-│   ├── memory/  contract/  evidence/  runtime/  graph/  ...
-│   └── llm/schemas.py       # Interpretation strict defaults
-├── mcp_server/              # MCP planes
-│   ├── server.py / registry.py            # :8002 task plane, 18 tools
-│   └── support/  support_server.py        # :8003 support plane, 24 tools
-├── database/                # SQLAlchemy models (biz + worker schemas), Alembic 0016
-├── common/                  # northstar_common config + logging
-├── browser/                 # Playwright perception layer (one context per run)
-├── verifier/                # Snapshot-diff-invariant independent verifier (ns_verifier role)
-├── eval/  frontend/  packages/            # eval scenarios, legacy shell, shared-types
-├── scripts/                 # dev_up, seed, reset, seed_support_admin, browser demo, secret_scan
-├── tests/                   # unit, integration, architecture, policy, recovery, verifier, browser
-├── docs/
-│   ├── architecture/  demo/  screenshots/  # asset structure (see below)
-│   ├── how-to-run.md  canonical-architecture.md  hitl.md  policy.md  ...
-│   └── mcp-tools.md
-├── docker-compose.yml       # postgres :5433, api :8000, mcp :8002, mcp-support :8003
-├── .env.example             # all env vars, no secrets
-├── importlinter.ini         # import contracts (agent ⇄ verifier isolation)
+│       ├── api/               # HTTP routes
+│       ├── core/              # Auth, config, dependencies
+│       ├── models/            # Database models
+│       ├── schemas/           # API schemas
+│       ├── services/          # Business/application services
+│       └── repositories/      # Database access
+│
+├── agent/                     # AI worker
+│   ├── support_graph/         # Canonical LangGraph support flow
+│   ├── support/               # Support classification/policies
+│   ├── policy/                # Deterministic rules
+│   ├── llm/                   # Model client/configuration
+│   └── runtime/               # Agent runtime utilities
+│
+├── mcp_server/                # MCP tool servers
+│   ├── support/               # Canonical support tools
+│   └── ...
+│
+├── database/                  # Database setup and migrations
+├── common/                    # Shared configuration/logging
+├── verifier/                  # Independent verification logic
+├── browser/                   # Browser automation/perception
+├── eval/                      # Evaluation scenarios
+├── scripts/                   # Seed/setup/development utilities
+├── tests/                     # Unit/integration/browser tests
+├── docs/                      # Documentation and visual assets
+│
+├── docker-compose.yml
+├── .env.example
 ├── pyproject.toml
 └── README.md
 ```
 
-Brief folder roles: `agent/support_graph` is the only ticket execution path; `mcp_server/support` is the only tool surface it uses; `backend/app/services/agent_run` is the canonical orchestrator; `database/models/biz` is source of truth, `database/models/worker` is the legacy task sandbox.
+The implementation is intentionally modular:
+
+```text
+API
+ ↓
+Service
+ ↓
+Repository
+ ↓
+Database
+```
+
+and:
+
+```text
+Agent
+ ↓
+LangGraph
+ ↓
+MCP / Policies / HITL / Verification
+```
+
+The project does not rely on a single giant source file for the application.
 
 ---
 
-## Setup
+# Setup
 
-### Prerequisites
+## Prerequisites
 
-- Python 3.11+ (`python --version`)
-- Node 20+ (`node --version`)
+- Python 3.11+
+- Node.js 20+
 - Docker + Docker Compose
 - Git
-- (Optional) `uv` for Python deps; Chromium via `playwright` for browser tests
 
-### Environment
+Optional:
+
+- `uv`
+- Playwright / Chromium for browser tests
+
+---
+
+## 1. Environment
+
+Create your local environment:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-`.env` is git-ignored. `.env.example` documents every variable — never commit `.env`. Key variables:
+The `.env` file is intentionally ignored by Git.
+
+Configure the required values, including the model credential for live AI execution:
 
 ```env
-INCEPTION_API_KEY=            # primary model key; empty → draft fallback
+INCEPTION_API_KEY=your_key_here
 INCEPTION_MODEL=mercury-2.5
 INCEPTION_BASE_URL=https://api.inceptionlabs.ai/v1
-GROQ_API_KEY=                 # fallback only when INCEPTION_API_KEY unset
-JWT_SECRET=local-dev-jwt-secret-change-me-please
-OPERATOR_TOKEN=local-operator-token
-POLICY_TOKEN_SECRET=local-policy-secret
-DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5433/northstar
-NS_APP_DATABASE_URL=postgresql+psycopg://ns_app:northstar@localhost:5433/northstar
+
+DATABASE_URL=your_database_url
+JWT_SECRET=your_local_secret
+OPERATOR_TOKEN=your_local_operator_token
+POLICY_TOKEN_SECRET=your_local_policy_secret
+
 VITE_API_URL=http://localhost:8000
-SUPPORT_ADMIN_EMAIL=admin@northstar.shop
-SUPPORT_ADMIN_PASSWORD=admin
 ```
 
-Production boot (`assert_production_secrets` in `backend/app/main.py` and `common/northstar_common/config.py`) refuses `local-*` / `local-dev-*` secrets when `ENVIRONMENT != local`.
+> Never commit real credentials.
 
-### Database
+---
+
+## 2. Start PostgreSQL
 
 ```powershell
 docker compose up -d
-docker exec northstar-postgres pg_isready -U postgres -d northstar
-python -m alembic -c database/alembic.ini upgrade head   # head = 0016_support_graph_state
 ```
 
-`database/alembic.ini` and `database/session.py` use `5433` on the host because a native Windows Postgres often occupies `5432`.
+Run migrations:
 
-### Backend
+```powershell
+python -m alembic -c database/alembic.ini upgrade head
+```
+
+---
+
+## 3. Start the Backend
+
+Set the Python path:
 
 ```powershell
 $env:PYTHONPATH='backend;common;agent;database;mcp_server;verifier;eval;browser'
-python -m uvicorn app.main:app --app-dir backend --port 8000 --host 127.0.0.1
-curl http://127.0.0.1:8000/api/health
-# {"status":"ok","service":"northstar-worker-backend","version":"0.1.0-phase6"}
 ```
 
-### MCP Servers
-
-Support MCP is required for the canonical path; task MCP is required only for legacy worker tasks / browser.
+Start FastAPI:
 
 ```powershell
-# Support plane :8003 (business tools, ns_app role)
-$env:PYTHONPATH='backend;common;agent;database;mcp_server'
-python -m mcp_server.support_server
-
-# Task plane :8002 (legacy + browser) — separate shell
-$env:PYTHONPATH='backend;common;agent;database;mcp_server'
-python -m mcp_server.server
+python -m uvicorn app.main:app --app-dir backend --port 8000 --host 127.0.0.1
 ```
 
-Both expect Postgres on `5433` and will fail fast without it.
+Health check:
 
-### Customer Frontend
+```text
+http://localhost:8000/api/health
+```
+
+---
+
+## 4. Start Support MCP
+
+```powershell
+$env:PYTHONPATH='backend;common;agent;database;mcp_server'
+python -m mcp_server.support_server
+```
+
+---
+
+## 5. Start Customer Web
 
 ```powershell
 cd apps/customer-web
 npm install
-cmd.exe /c npm run dev   # http://localhost:5174 (not 127.0.0.1 on Windows — IPv6 binding)
+cmd.exe /c npm run dev
 ```
 
-Use `cmd.exe /c npm run dev` on Windows; `Start-Process npm` fails (`%1 is not valid Win32`). Dev login: any signup creates a `CUSTOMER`; or use the seeded support identity from the Support section.
+Open:
 
-### Support Frontend
+```text
+http://localhost:5174
+```
+
+---
+
+## 6. Start Support Web
 
 ```powershell
 cd apps/support-web
 npm install
-cmd.exe /c npm run dev   # http://localhost:5175
+cmd.exe /c npm run dev
 ```
 
-Seed the demo staff account first:
-
-```powershell
-python scripts/seed_support_admin.py  # SUPPORT_ADMIN_EMAIL / SUPPORT_ADMIN_PASSWORD from .env
-```
-
-Login at `/login` with `admin@northstar.shop` / `admin` (prefilled).
-
----
-
-## Running the Demo
-
-Reproduce the recorded demo exactly:
+Open:
 
 ```text
-1. Start services
-   docker compose up -d
-   python -m alembic -c database/alembic.ini upgrade head
-   python scripts/seed_support_admin.py
-   $env:PYTHONPATH='backend;common;agent;database;mcp_server;verifier;eval;browser'
-   python -m uvicorn app.main:app --app-dir backend --port 8000 --host 127.0.0.1
-   (separate shells) python -m mcp_server.support_server  # :8003
-   cmd.exe /c npm run dev  # in apps/customer-web :5174
-   cmd.exe /c npm run dev  # in apps/support-web  :5175
-
-2. Customer app  http://localhost:5174
-   - Sign up / log in
-   - Browse /products → pick a product → add to cart
-   - /checkout → mock payment (creates shop_orders)
-   - /orders/:id shows tracking — wait ~60s → DELIVERED
-
-3. Raise a ticket  http://localhost:5174/support
-   - /tickets/new → subject/body "My headphones arrived damaged. I want a replacement."
-   - category REPLACEMENT, priority NORMAL → TKT-XXXXXX created (OPEN)
-
-4. Support app  http://localhost:5175
-   - /login as admin@northstar.shop / admin
-   - /dashboard sees the new OPEN ticket
-   - Open /tickets/:id — Customer Context + Order Context populate
-
-5. AI execution
-   - Click Solve with AI
-   - Watch AI Copilot: supernode timeline (load_ticket → supervisor → gather → check_policy → propose)
-   - Tool calls stream with arguments (compact key=value detail)
-   - If approval_required: card shows action_type + reason + TTL countdown
-
-6. HITL (when shown)
-   - Click Approve (or Reject to see rejection path)
-   - Graph resumes SAME execution (graph_state), executes mock_replace, verifies
-
-7. Verify resolution
-   - Trace: GET /support/tickets/:id/trace shows steps + approvals + audits
-   - Activity SSE: GET /support/tickets/:id/activity (history + live)
-
-8. Customer sees result
-   - Back to http://localhost:5174/tickets/:id — an AI_AGENT message with the
-     resolution renders in the conversation; ticket is RESOLVED
-
-9. Chat variant of the same canonical path
-   - In Support /chat, type "Solve ticket TKT-XXXXXX" → background thread calls
-     agent_run_service.solve(); ticket panel shows the same trace
-   - Follow-ups "yes, look it up" resolve read-only against thread history
-   - Typed "approve" is refused — buttons only
+http://localhost:5175
 ```
 
-Routes that exist: `apps/customer-web /,/login,/signup,/products,/products/:id,/cart,/checkout,/orders,/orders/:id,/support,/tickets/:id` and `apps/support-web /login,/dashboard,/tickets,/tickets/:id,/chat`. Use `?token=` on SSE streams only (EventSource cannot send headers).
+---
+
+# Running the Demo
+
+The recommended demo is intentionally narrow.
+
+## Customer
+
+1. Open the customer app.
+2. Sign up and log in.
+3. Browse `/products`.
+4. Select a product.
+5. Add it to the cart.
+6. Complete checkout with the simulated payment.
+7. Open the order.
+8. Wait for the simulated lifecycle to reach `DELIVERED`.
+9. Raise a support ticket.
+
+Suggested ticket:
+
+> **My headphones arrived damaged. I want a replacement.**
 
 ---
 
-## Reliability
+## Support
 
-Focused prototype reliability — no distributed queues by design.
-
-- **Retries:** `agent/llm/client.py` classifies `HTTP 429/500/502/503` + transport errors as transient and retries with backoff; chat's `_drive_with_retry` retries only transient failures, 3 attempts max, never retries 401/403/422.
-- **Failure handling:** Tool timeout / browser failure / invalid state / unavailable element / API error → `_fail_human` → `needs_human` / `ESCALATED`, persisted with `error` + audit `run_escalated`. The run never claims `verified` on a failed mutation.
-- **Clarification:** Free-form chat maps to `help`/`unknown` → `chat_conversation.converse` single-model call with `CHAT_LLM_TIMEOUT_S=10` draft fallback; missing-order `ask_customer` parks `WAITING_FOR_CUSTOMER`.
-- **HITL:** `agent/support/approval.py` threshold (`confidence < 0.6` or amount cap) gates execution; `biz.approvals.expires_at` 24h TTL swept on every read; typed approval text is never accepted.
-- **Verification:** `verify` node + `verifier/service.py` snapshot-diff-invariant both run after `execute`; `FAILED`/`BLOCKED` never renders as `verified`.
-- **Idempotency:** `mock_*` use `agent:{ticket_id}:{workflow}` and `approval:{id}` idempotent keys + DB unique (`biz.shop_actions.mutation_key`, `biz.approvals`); chat dedups `PENDING_ID` ghost + `isGhost` filter.
-- **Audit & trace:** `get_trace()` + `build_trace()` render idle / running / waiting / completed / failed / multi-tool states purely from persisted rows — no fake data; real timeline is the submission evidence.
-
----
-
-## Important Design Decisions
-
-### Why LangGraph?
-`agent/support_graph/graph.py` encodes a stateful DAG with branching and **pause/resume** (`graph_state` JSONB checkpoint). On HITL the same execution resumes — not a restart — preserving gathered context, tool results, and policy outcome. Linear scripts cannot do this cleanly.
-
-### Why MCP?
-Two narrow planes isolate tool access: support `:8003` (business reads + policy + mock actions) and task `:8002` (legacy worker + browser). Both forbid raw SQL and share auth via `OPERATOR_TOKEN` / `POLICY_TOKEN_SECRET` + `ns_app:ns_app` role. The agent enumerates its surface in `mcp_server/support/registry.py` and `mcp_server/registry.py` parity-tested against runtime.
-
-### Why deterministic policy?
-`agent/policy/*` + `docs/policy.md` encode business rules (amount caps, replacement windows, non-refundable categories). The LLM decides intent; the tool `check_*_eligibility` decides eligibility. This prevents invented refunds/replacements and makes verification statelessly re-checkable.
-
-### Why verification?
-The last tool's `ok` is never trusted. `verify` re-queries the order's live eligibility; the `verifier/` package snapshots `customer/order/ticket + related rows` before/after through `ns_verifier` and enforces per-effect invariants (10 red-team corruptions → zero false passes). Only both passing produces `verified`.
-
-### Why two frontends?
-`apps/customer-web` and `apps/support-web` are different products with different auth (`CUSTOMER` vs `SUPPORT_AGENT`), routes, and concerns. The customer never sees approvals or traces; support never sees cart or checkout. Shared assumptions would obscure both demos.
+1. Open the support app.
+2. Log in as a support agent.
+3. Open the new ticket.
+4. Inspect the customer/order/product context.
+5. Click **Solve with AI**.
+6. Watch the AI activity and tool calls.
+7. If HITL is requested, approve or reject from the approval card.
+8. Observe execution and verification.
+9. Confirm that the ticket becomes resolved.
 
 ---
 
-## Limitations
+## Customer Verification
 
-A narrow prototype that genuinely runs — not a broad system of mocks.
+Return to the customer application.
 
-- **Payment is simulated.** Checkout creates `shop_orders` with no real gateway.
-- **Delivery is simulated.** `DELIVERY_DELAY_SECONDS=60` flips status server-side; no carrier.
-- **Support actions are mocked** inside the app DB (`mock_refund` / `mock_replace` / `mock_return` / `mock_cancel_order` + `sg_orders`/`sg_order_items`) — correct shape for a prototype, not a payment processor.
-- **Scope is controlled ecommerce.** Arbitrary third-party websites are not automated in the canonical path; browser + `api_get`/`browser_*` exist only on the legacy task plane (`:8002`) and in `tests/browser` / `scripts/browser_replacement_demo.py`.
-- **Approvals have a 24h TTL.** Expired approvals require `take_over` (staff re-owns the ticket, run → `CANCELLED`).
-- **Single model phrasing.** Inception `mercury` is a phraser, not an autonomous browser agent — the graph decides, the model rephrases.
-- **Local single-machine.** No Kafka/Redis/Celery/K8s by design (`docker-compose.yml` non-goals header).
+Open the ticket and verify that the final AI response appears directly in the conversation.
+
+The support agent should not need to copy/paste the response.
 
 ---
 
-## What I Would Build Next
+# Suggested Demo Story
 
-1. Real payment + logistics webhooks behind the current `mock_*` interface (already shaped as `amount_paise` + idempotent keys).
-2. Unify `biz.tickets` (TCK-) and `biz.customer_tickets` (TKT-XXXXXX) into one canonical ticket table — the two-store split exists to avoid coupling legacy worker tasks.
-3. Widen the support graph to `RETURN` / `CANCELLATION` / `DELIVERY` with richer HITL clarification (customer question thread, file upload).
-4. Harden the evaluator (`eval/scenarios/catalog.yaml` S1..S40, `eval/held_out`) into CI and expose `GET /api/evaluation` quality metrics on the dashboard.
-5. Richer observability: trace per-tool latency, retry counts, and verifier verdict on the support ticket page.
-6. Production hardening: real operator identity, rate limits, and `pgvector` semantic search over `search_knowledge` beyond its current store.
+For an interview or review, explain the demo in this order:
 
-No unnecessary heavy infrastructure is proposed for prototype scope.
+```text
+1. Customer creates a realistic support problem.
+2. Support receives the ticket with full business context.
+3. Support gives the AI a goal instead of a step-by-step script.
+4. LangGraph decides and coordinates the work.
+5. MCP provides controlled capabilities.
+6. Deterministic policies protect business rules.
+7. HITL handles actions outside the worker's safe authority.
+8. The action is verified.
+9. The result is written directly to the customer ticket.
+10. The support console exposes evidence of what happened.
+```
+
+This keeps the focus on **autonomous task execution**, not on the ecommerce UI itself.
 
 ---
 
-## Testing
+# Problem Statement Alignment
+
+| Evaluation criterion | Northstar implementation |
+|---|---|
+| **Autonomy** | Support gives the high-level objective "Solve this ticket"; the worker determines the required work |
+| **Execution** | MCP tools and controlled support actions actually operate on persisted application state |
+| **Reliability** | Bounded retries, recovery, clarification, HITL, terminal-state protection |
+| **Verification** | Post-action verification is required before reporting success |
+| **Generalization** | Multiple support intents share the same execution framework and tool layer |
+| **Engineering Quality** | Separate applications, layered backend, LangGraph state, MCP boundaries, persistence, tests |
+| **Product Thinking** | The system is organized around resolving the customer's underlying issue |
+| **Technical Understanding** | Reasoning, tools, policy, approval, execution, verification, and evidence have explicit boundaries |
+
+---
+
+# Testing
+
+The repository contains automated coverage for:
+
+- authentication and authorization
+- ticket behavior
+- policy decisions
+- LangGraph support execution
+- MCP/tool interactions
+- HITL behavior
+- chat semantics
+- retry/recovery behavior
+- security
+- integration paths
+- frontend type checking/builds
+- browser scenarios where applicable
+
+Run backend tests:
 
 ```powershell
 $env:PYTHONPATH='backend;common;agent;database;mcp_server;verifier;eval;browser'
 python -m pytest tests/unit tests/integration -q
-python -m pytest tests/browser -q          # isolated Chromium on :8001/:5174 + live DB :5433
-cmd.exe /c npm run typecheck               # from apps/customer-web and apps/support-web
 ```
 
-The project includes unit tests (`test_chat_intent`, `test_chat_runner_retry`, `test_support_graph`, `support comprehension`, `policy` suite), integration tests (`test_chat_api`, `test_chat_canonical_solve` quarantine proving no worker task for `TKT-`, `test_canonical_solve` replacement auto + HITL resume + escalation), architecture contract tests (`test_import_contracts` vs `importlinter.ini`), browser tests, verifier red-team (10 false-success corruptions), and recovery/chaos (`test_task_cancel`, `test_faults`). Counts are not pinned in this file — run `pytest -q` to see the live tally. Do not claim a count without running it.
+Run architecture/import checks where configured:
 
----
-
-## Security
-
-Concise and proportionate to prototype scope:
-
-- **Authentication:** JWT (`HS256`, `JWT_SECRET`, 24h `exp`) via `backend/app/core/auth.py`; passwords are Argon2 (`argon2-cffi`).
-- **Authorization:** `require_roles("SUPPORT_AGENT")` guards support APIs + `api/read|shop|catalog|worker|eval`; public `POST /auth/register` forces `CUSTOMER` (`schemas/auth.py:exclude`); staff JWT also guards `agent_run` + `direct commits`.
-- **Direct commits:** JWT + HMAC (`POLICY_TOKEN_SECRET` over action params) via `mutation_tools`.
-- **MCP service identity:** `require_roles_or_service` accepts `OPERATOR_TOKEN` (`local-operator-token` default) on `read_api_client` + `mutation_tools` via `context.service_token`; `assert_production_secrets()` refuses insecure defaults outside `local`.
-- **Isolation:** Browser runs one Chromium context per run (`browser/`), refs are ephemeral handles; action tools (`browser_submit`, `refund_create`) are token-gated.
-- **Tool permissions:** No raw SQL — reads and mutations go through service clients + registries; `biz.policies` seed truth is the only policy source.
-- **Audit:** `biz.audit_logs` sequence is gapless; `biz.agent_runs.graph_state` + `verification_result` are persisted for every decision.
-
-Prototype-risk (acceptable): single `JWT_SECRET`; local `Operator-Token`. Blocker (refused): raw SQL from MCP, approval bypass via chat text, auto-migration of `CUSTOMER` to staff.
-
----
-
-## Tech Stack Detail
-
-See [Tech Stack](#tech-stack) for the table. Version truth is `pyproject.toml` + `apps/*/package.json` + `docker-compose.yml` — listed there exactly.
-
----
-
-## Project Structure Detail
-
-See [Project Structure](#project-structure). The README does not re-list every file — ownership follows `importlinter.ini` contracts (e.g., `verifier` never imports `agent`).
-
----
-
-## Documentation Asset Structure
-
+```powershell
+python -m pytest tests/architecture -q
 ```
+
+Run the frontends:
+
+```powershell
+cd apps/customer-web
+cmd.exe /c npm run typecheck
+cmd.exe /c npm run build
+```
+
+```powershell
+cd apps/support-web
+cmd.exe /c npm run typecheck
+cmd.exe /c npm run build
+```
+
+Run browser tests when the required local services are running:
+
+```powershell
+python -m pytest tests/browser -q
+```
+
+> Test counts are intentionally not pinned in this README. Run the current suite to get the live result.
+
+---
+
+# Security
+
+The prototype includes:
+
+- JWT authentication
+- Argon2 password hashing
+- Role-based authorization
+- Customer ownership checks
+- Protected support operations
+- Controlled MCP service identity
+- Deterministic policy checks
+- HITL for higher-risk actions
+- Idempotent support mutations
+- Environment-based secret management
+- No arbitrary SQL tool exposed to the agent
+
+Real credentials must remain outside the repository.
+
+---
+
+# Scope and Limitations
+
+This submission deliberately focuses on a **controlled ecommerce support environment**.
+
+### Simulated operations
+
+The prototype simulates:
+
+- payment
+- delivery
+- refund
+- return
+- replacement
+- cancellation
+
+These are application-level mock operations, not integrations with real financial or logistics providers.
+
+### Controlled environment
+
+The canonical support worker operates inside the application's ecommerce/support environment.
+
+The repository also contains browser/worker tooling for experimentation, but the recorded canonical support-ticket flow does not depend on arbitrary third-party website automation.
+
+### Local prototype
+
+The system is designed to demonstrate the autonomous execution loop on a local stack without unnecessary distributed infrastructure.
+
+---
+
+# What I Would Build Next
+
+With more time, I would extend the same architecture rather than replace it:
+
+1. Connect real payment/refund and logistics providers behind the existing service boundaries.
+2. Add richer external tools and browser-based environments.
+3. Expand support workflows and held-out task evaluation.
+4. Improve distributed execution and multi-worker observability.
+5. Add richer evidence such as screenshots and structured before/after state.
+6. Strengthen deployment-level service authentication and operational controls.
+
+The prototype intentionally prioritizes a **narrow workflow that genuinely works** over a broad system with mostly simulated behavior.
+
+---
+
+# Screenshots to Add
+
+Add the strongest screenshots to:
+
+```text
+docs/screenshots/
+├── customer/
+│   ├── home.png
+│   ├── product-detail.png
+│   ├── order-tracking.png
+│   └── ticket.png
+│
+├── support/
+│   ├── dashboard.png
+│   └── ticket-detail.png
+│
+└── ai/
+    ├── ai-copilot.png
+    ├── hitl.png
+    └── resolution.png
+```
+
+### Recommended final README images
+
+Keep the README visually focused. The best three screenshots are:
+
+```text
+1. Customer product/order experience
+2. Support ticket with customer + order context
+3. AI Copilot / execution / HITL
+```
+
+Place them near the relevant sections rather than creating a long screenshot gallery.
+
+---
+
+# Demo Asset Checklist
+
+Before submission, add:
+
+```text
 docs/
-├── architecture/            # (create when adding architecture PNGs)
-├── demo/
-│   └── README.md            # local demo video pointer (see below)
-└── screenshots/
-    ├── customer/            # 7 expected files (see Customer Experience)
-    ├── support/             # 5 expected files
-    ├── ai/                  # 5 expected files (AI + HITL)
-    └── README.md            # placeholder inventory
+├── screenshots/
+│   ├── customer/
+│   ├── support/
+│   └── ai/
+└── demo/
+    └── demo.mp4          # optional local copy
 ```
 
-No binary assets are committed by this change. Commit your screenshots/video separately — `.gitignore` does not block `docs/screenshots/**` or `docs/demo/**`, only `.env`, `node_modules/`, `dist/`, `__pycache__/`.
+For the public submission, prefer linking the recorded demo from:
+
+```text
+YouTube
+Loom
+Google Drive
+or another reviewer-accessible location
+```
+
+and replace:
+
+```text
+ADD_DEMO_VIDEO_URL
+```
+
+at the top of this README.
 
 ---
 
-## Demo Screenshot Selection
+# Assumptions
 
-Add these in order — most impactful first:
-
-1. **Customer home** — `docs/screenshots/customer/home.png`
-2. **Product detail (with category/price)** — `docs/screenshots/customer/product-detail.png`
-3. **Order tracking (DELIVERED state)** — `docs/screenshots/customer/order-tracking.png`
-4. **Customer ticket conversation (showing AI_AGENT bubble)** — `docs/screenshots/customer/ticket.png`
-5. **Support dashboard queue** — `docs/screenshots/support/dashboard.png`
-6. **Support ticket detail with Customer + Order context panels** — `docs/screenshots/support/ticket-detail.png`
-7. **AI Copilot executing (timeline + tool calls)** — `docs/screenshots/ai/ai-copilot.png`
-8. **HITL approval card (PENDING → Approve/Reject + expiry)** — `docs/screenshots/ai/hitl.png`
-9. **Final resolution state (RESOLVED + AI_AGENT message visible on customer ticket)** — `docs/screenshots/ai/resolution.png`
-
-The three README-embedded images should be one from each group: `customer/home.png`, `support/ticket-detail.png`, `ai/ai-copilot.png` (all as placeholder references until the PNGs exist).
+- The ecommerce environment is simulated for the prototype.
+- Support actions are performed against application data rather than real customer accounts.
+- High-risk actions may require support approval.
+- A customer ticket is the canonical unit of support work.
+- PostgreSQL is the source of truth for application state and execution records.
 
 ---
 
-## Mermaid Diagrams Included
+# Submission Checklist
 
-1. High-Level Architecture (`flowchart TD`) — two frontends, FastAPI, Postgres, LangGraph, MCP support plane (7 tool groups), deterministic guard, HITL gate, verification, AI response, trace.
-2. Autonomous Ticket Execution (`flowchart LR`) — Ticket → Understand → Gather → Tools → Observe → Policy → Propose → Action → Verify → Respond → Resolve.
-3. HITL Flow (`flowchart TD`) — proposal → risk check → pause/resume with 24h TTL and typed-yes refusal.
-4. Customer → Support → AI → Customer (`flowchart LR`) — full product loop.
+Before submitting, verify:
 
-All are GitHub-native Mermaid; no PNG diagrams are added.
-
----
-
-## How to Verify
-
-```powershell
-# lint + import contracts + tests (what make verify runs)
-ruff check .; ruff format --check .
-$env:PYTHONPATH='backend;common;agent;database;mcp_server;verifier;eval;browser'
-python -m pytest tests/architecture -q   # import contracts
-python -m pytest tests/unit tests/integration -q
-python scripts/secret_scan.py
-cmd.exe /c npm run typecheck              # in apps/customer-web and apps/support-web
-cmd.exe /c npm run build                  # both frontends should emit dist/ cleanly
+```text
+[ ] GitHub repository is public/accessibly shared
+[ ] README has the final demo link
+[ ] No real API keys or secrets are committed
+[ ] .env remains local
+[ ] Screenshots have been added
+[ ] Demo can be reproduced from the README
+[ ] Customer frontend starts successfully
+[ ] Support frontend starts successfully
+[ ] Backend starts successfully
+[ ] MCP support server starts successfully
+[ ] Database migrations are current
+[ ] Main tests are passing
+[ ] Typecheck/build is passing
+[ ] End-to-end demo has been run once from a clean state
 ```
 
 ---
 
-> A user gives a support goal → the AI autonomously investigates → uses controlled tools → checks deterministic policies → handles uncertainty through HITL → executes an action → verifies the outcome → provides evidence → communicates the result to the customer.
->
-> That is the story this prototype demonstrates — the ecommerce surface exists to make it realistic.
+# Final Takeaway
 
+Northstar demonstrates an autonomous support worker rather than a response-only chatbot.
+
+```text
+High-level goal
+      ↓
+Understand
+      ↓
+Plan
+      ↓
+Use controlled tools
+      ↓
+Observe
+      ↓
+Apply policy
+      ↓
+Ask for human help when needed
+      ↓
+Execute
+      ↓
+Verify
+      ↓
+Provide evidence
+      ↓
+Communicate the result
+```
+
+The ecommerce surface provides the realistic environment.
+
+The core contribution is the **autonomous execution loop** behind **Solve with AI**.
