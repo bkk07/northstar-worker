@@ -37,6 +37,8 @@ data/
 # Browser run artifacts (storage state, screenshots)
 storage/
 screenshots/
+!docs/screenshots/
+!docs/screenshots/**
 
 # Playwright
 /test-results/
